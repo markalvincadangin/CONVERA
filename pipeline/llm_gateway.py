@@ -2,19 +2,17 @@ from __future__ import annotations
 
 """
 RatchetAI Universal Multi-Provider LLM Gateway
-Supports Google Gemini 3.6 Flash, Groq Cloud (GPT-OSS 120B / Qwen 27B), OpenRouter, and Local Ollama.
-Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, Fast Timeout Protection, Response Sanitization, Model Attribution Telemetry, and Anti-Truncation Token Allocation.
+Supports Google Gemini (3.5 Flash-Lite / 3.6 Flash / 3.5 Flash), Groq Cloud (GPT-OSS 120B / Qwen 27B), OpenRouter, and Local Ollama.
+Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, Fast Timeout Protection,
+Response Sanitization (with aggressive chain-of-thought stripping), Model Attribution Telemetry, and Anti-Truncation Token Allocation.
 """
 
 import os
-import sys
 import re
-import json
 import time
-import random
 import asyncio
 from pathlib import Path
-from typing import Optional, List, Dict, Any, Tuple
+from typing import Dict, Any, Tuple
 import httpx
 from dotenv import load_dotenv
 
@@ -22,46 +20,116 @@ BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
 
 
+# ---------------------------------------------------------------------------
+# Response Sanitization — strips ALL reasoning leaks from any model
+# ---------------------------------------------------------------------------
+
+# Patterns that indicate chain-of-thought reasoning leaked into output.
+# These appear as plaintext (no <think> wrapper) from Qwen, DeepSeek, etc.
+_COT_PREAMBLE_PATTERNS = [
+    # Qwen-style meta-planning lines
+    r"^.*(?:Let(?:'s| me|us) (?:draft|check|think|plan|verify|ensure|review|structure|map|adjust|count|trim|analyze|start|begin))\b.*$",
+    r"^.*(?:I(?:'ll| will| need to| should| must) (?:draft|check|think|plan|verify|ensure|review|structure|map|adjust|count|trim|analyze|use|generate|rely|create|make|double[\s-]?check))\b.*$",
+    r"^.*(?:Wait,|Also,|Hmm,|OK,|Okay,|Now,|First,|Next,|Actually,|So,) (?:I |let |the ).*$",
+    # Numbered meta-reasoning steps ("1. Deconstruct Requirements", "2. Research & Data Generation")
+    r"^\d+\.\s*(?:Deconstruct|Parse|Analyze|Identify|Research|Generate|Mental|Plan|Review|Check|Map|Verify|Draft|Ensure|Understand)\b.*$",
+    # Bullet-point constraint echoing
+    r"^[-\u2022]\s*(?:Table|Cell|Source|Column|Section|Evidence|Generate|Follow|Eliminate|Ensure|Must|All cells|Exactly|Sections|Tiers?|Hyperlinks?|Problems?)\b.*(?:columns?|rows?|words?|links?|sections?|tiers?|constraints?|format|concise|provided|required|complete).*$",
+    # Self-narration
+    r"^.*(?:All constraints met|constraints? (?:are |have been )?(?:met|satisfied|checked)).*$",
+    r"^.*(?:Table columns?:|Cell length:|Sources:|Sections:).*$",
+]
+
+_COT_COMPILED = [re.compile(p, re.IGNORECASE | re.MULTILINE) for p in _COT_PREAMBLE_PATTERNS]
+
+
 def clean_llm_response(text: str) -> str:
     """
-    Sanitize LLM outputs by removing reasoning preambles, <think> tags, and meta commentary.
-    Ensures 100% consistent Markdown rendering across all model architectures.
+    Sanitize LLM outputs by removing reasoning preambles, <think> tags,
+    chain-of-thought leaks, and meta commentary.  Handles Qwen, DeepSeek,
+    GPT-OSS and Gemini output quirks.
     """
     if not text:
         return ""
 
-    # 1. Remove <think>...</think> tags and internal reasoning
+    # Stage 1: Remove <think>...</think> blocks
     cleaned = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE)
     cleaned = re.sub(r"</?think>", "", cleaned, flags=re.IGNORECASE)
 
-    # 2. Remove leading "Here's a thinking process:..." if model outputs it as markdown text
-    if re.match(r"^\s*Here(?:'s| is) a thinking process", cleaned, flags=re.IGNORECASE):
-        match = re.search(r"(#\s+[^\n]+[\s\S]*)", cleaned)
-        if match:
-            cleaned = match.group(1)
+    # Stage 2: Find the real content start
+    # All RatchetAI phase outputs begin with a markdown heading.
+    # If there's a `# Phase` or `## ` heading, everything before it is reasoning preamble.
+    heading_match = re.search(r"^(#{1,2}\s+(?:Phase\s+\d|[A-Z]))", cleaned, re.MULTILINE)
+    if heading_match:
+        preamble = cleaned[:heading_match.start()]
+        # Only strip if preamble looks like reasoning (not just a blank line)
+        if preamble.strip() and _looks_like_reasoning(preamble):
+            cleaned = cleaned[heading_match.start():]
+
+    # Stage 3: Remove interstitial reasoning lines that survive
+    # These are lines between sections like "Wait, I need to ensure..."
+    lines = cleaned.split("\n")
+    filtered_lines = []
+
+    for line in lines:
+        stripped = line.strip()
+
+        # Skip reasoning lines that appear mid-content (but never strip table rows or headings)
+        if stripped and not stripped.startswith("|") and not stripped.startswith("#") and _is_reasoning_line(stripped):
+            continue
+
+        filtered_lines.append(line)
+
+    cleaned = "\n".join(filtered_lines)
+
+    # Stage 4: Collapse excessive blank lines
+    cleaned = re.sub(r"\n{4,}", "\n\n\n", cleaned)
 
     return cleaned.strip()
+
+
+def _looks_like_reasoning(text: str) -> bool:
+    """Check if a block of text looks like chain-of-thought reasoning."""
+    indicators = [
+        r"(?:let(?:'s| me)|I(?:'ll| will| need| should| must))",
+        r"(?:constraints?|requirements?|deconstruct|mental simulation)",
+        r"(?:draft|check|verify|ensure|trim|adjust|structure|map)",
+        r"(?:wait,|also,|hmm,|okay,|now,|first,|actually,)",
+    ]
+    text_lower = text.lower()
+    matches = sum(1 for p in indicators if re.search(p, text_lower))
+    return matches >= 1
+
+
+def _is_reasoning_line(line: str) -> bool:
+    """Check if a single line is a reasoning/meta-commentary line."""
+    for pattern in _COT_COMPILED:
+        if pattern.search(line):
+            return True
+    return False
 
 
 def format_model_display_name(provider: str, model: str) -> str:
     """Format model name into clean, human-readable display string."""
     if provider == "gemini":
-        if "3.6" in model:
+        if "3.5-flash-lite" in model:
+            return "Google Gemini 3.5 Flash-Lite"
+        elif "3.6" in model:
             return "Google Gemini 3.6 Flash"
         elif "3.5" in model:
             return "Google Gemini 3.5 Flash"
         return f"Google Gemini ({model})"
     elif provider == "groq":
         if "gpt-oss-120b" in model:
-            return "Groq · GPT-OSS 120B"
+            return "Groq \u00b7 GPT-OSS 120B"
         elif "qwen" in model:
-            return "Groq · Qwen 3.6 27B"
-        return f"Groq · {model.split('/')[-1]}"
+            return "Groq \u00b7 Qwen 3.6 27B"
+        return f"Groq \u00b7 {model.split('/')[-1]}"
     elif provider == "openrouter":
-        return f"OpenRouter · {model.split('/')[-1].replace(':free', '')}"
+        return f"OpenRouter \u00b7 {model.split('/')[-1].replace(':free', '')}"
     elif provider == "ollama":
-        return f"Local Ollama · {model}"
-    return f"{provider.capitalize()} · {model}"
+        return f"Local Ollama \u00b7 {model}"
+    return f"{provider.capitalize()} \u00b7 {model}"
 
 
 def reload_config():
@@ -69,7 +137,7 @@ def reload_config():
     load_dotenv(ROOT_DIR / ".env", override=True)
     return {
         "provider": os.getenv("LLM_PROVIDER", "gemini").lower(),
-        "gemini_model": os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
+        "gemini_model": os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
         "gemini_key": os.getenv("GEMINI_API_KEY", os.getenv("GOOGLE_API_KEY", "")),
         "groq_key": os.getenv("GROQ_API_KEY", ""),
         "groq_model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
@@ -80,11 +148,15 @@ def reload_config():
     }
 
 
+# ---------------------------------------------------------------------------
+# Provider Call Functions
+# ---------------------------------------------------------------------------
+
 async def call_gemini_native(
     system_instruction: str,
     prompt: str,
     history: list[dict] = None,
-    model: str = "gemini-3.6-flash",
+    model: str = "gemini-3.5-flash-lite",
 ) -> str:
     from google import genai
     from google.genai import types as genai_types
@@ -152,7 +224,15 @@ async def call_openai_compatible_api(
     prompt: str,
     history: list[dict] = None,
 ) -> str:
-    full_instruction = system_instruction + "\n\nCRITICAL: Output ONLY the markdown document. Do NOT include <think> tags or conversational preambles like 'Here is the analysis'. Complete all 4 sections through to the end."
+    full_instruction = (
+        system_instruction
+        + "\n\nCRITICAL FORMATTING RULES:"
+        + "\n- Output ONLY the final markdown document."
+        + "\n- Do NOT include <think> tags, reasoning steps, constraint checking, or self-narration."
+        + "\n- Do NOT echo instructions back or plan your response aloud."
+        + "\n- Start IMMEDIATELY with the first markdown heading."
+        + "\n- Complete all sections through to the end."
+    )
     messages = [{"role": "system", "content": full_instruction}]
     if history:
         for turn in history:
@@ -188,6 +268,10 @@ async def call_openai_compatible_api(
         return clean_llm_response(raw_text)
 
 
+# ---------------------------------------------------------------------------
+# Universal Generation Gateway with Multi-Provider Failover Cascade
+# ---------------------------------------------------------------------------
+
 async def generate_with_meta(
     system_instruction: str,
     prompt: str,
@@ -195,6 +279,7 @@ async def generate_with_meta(
 ) -> Tuple[str, Dict[str, Any]]:
     """
     Universal Generation Gateway that returns (clean_text, model_metadata).
+    Cascade order prioritizes models that don't leak chain-of-thought.
     """
     cfg = reload_config()
     provider = cfg["provider"]
@@ -204,21 +289,27 @@ async def generate_with_meta(
     cascade = []
 
     # Priority 1: User's explicitly chosen provider
-    if provider == "groq" and cfg["groq_key"]:
+    if provider == "gemini" and cfg["gemini_key"]:
+        cascade.append(("gemini", "gemini-3.5-flash-lite"))
+        cascade.append(("gemini", "gemini-3.6-flash"))
+        cascade.append(("gemini", "gemini-3.5-flash"))
+    elif provider == "groq" and cfg["groq_key"]:
+        # GPT-OSS 120B first: it never leaks reasoning. Qwen last: it leaks CoT.
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
     elif provider == "openrouter" and cfg["openrouter_key"]:
         cascade.append(("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]))
     elif provider == "ollama":
         cascade.append(("ollama", cfg["ollama_base"], "ollama", cfg["ollama_model"]))
-    elif provider == "gemini" and cfg["gemini_key"]:
-        cascade.append(("gemini", "gemini-3.6-flash"))
 
-    # Priority 2: Fast secondary providers (GPT-OSS 120B on Groq has 0.5s response + strict completion)
+    # Priority 2: Fast secondary providers (non-reasoning models first)
+    if cfg["gemini_key"] and ("gemini", "gemini-3.5-flash-lite") not in cascade:
+        cascade.append(("gemini", "gemini-3.5-flash-lite"))
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b") not in cascade:
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
     if cfg["gemini_key"] and ("gemini", "gemini-3.6-flash") not in cascade:
         cascade.append(("gemini", "gemini-3.6-flash"))
+    # Qwen is last resort due to its strong reasoning leak tendency
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b") not in cascade:
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
     if cfg["openrouter_key"] and ("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]) not in cascade:
