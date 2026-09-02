@@ -3,11 +3,12 @@ from __future__ import annotations
 """
 RatchetAI Universal Multi-Provider LLM Gateway
 Supports Google Gemini 3.6 Flash, Groq Cloud (GPT-OSS 120B / Qwen 27B), OpenRouter, and Local Ollama.
-Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, and Fast Timeout Protection.
+Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, Fast Timeout Protection, and Response Sanitization.
 """
 
 import os
 import sys
+import re
 import json
 import time
 import random
@@ -19,6 +20,27 @@ from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
 ROOT_DIR = BASE_DIR.parent
+
+
+def clean_llm_response(text: str) -> str:
+    """
+    Sanitize LLM outputs by removing reasoning preambles, <think> tags, and meta commentary.
+    Ensures 100% consistent Markdown rendering across all model architectures.
+    """
+    if not text:
+        return ""
+
+    # 1. Remove <think>...</think> tags and internal reasoning
+    cleaned = re.sub(r"<think>[\s\S]*?</think>", "", text, flags=re.IGNORECASE)
+    cleaned = re.sub(r"</?think>", "", cleaned, flags=re.IGNORECASE)
+
+    # 2. Remove leading "Here's a thinking process:..." if model outputs it as markdown text
+    if re.match(r"^\s*Here(?:'s| is) a thinking process", cleaned, flags=re.IGNORECASE):
+        match = re.search(r"(#\s+[^\n]+[\s\S]*)", cleaned)
+        if match:
+            cleaned = match.group(1)
+
+    return cleaned.strip()
 
 
 def reload_config():
@@ -70,11 +92,10 @@ async def call_gemini_native(
     ))
 
     config = genai_types.GenerateContentConfig(
-        system_instruction=system_instruction,
+        system_instruction=system_instruction + "\n\nCRITICAL: DO NOT output any conversational preamble or thinking process. Start immediately with markdown content.",
         temperature=0.3,
     )
 
-    # 10s maximum timeout for Gemini so we cascade instantly if there is demand spike
     response = await asyncio.wait_for(
         client.aio.models.generate_content(
             model=model,
@@ -85,7 +106,7 @@ async def call_gemini_native(
     )
 
     if hasattr(response, "text") and response.text and response.text.strip():
-        return response.text.strip()
+        return clean_llm_response(response.text.strip())
 
     if getattr(response, "candidates", None):
         parts_text = []
@@ -96,7 +117,7 @@ async def call_gemini_native(
                         parts_text.append(p.text)
         combined = "".join(parts_text).strip()
         if combined:
-            return combined
+            return clean_llm_response(combined)
 
     raise RuntimeError("Gemini returned empty text response.")
 
@@ -109,7 +130,8 @@ async def call_openai_compatible_api(
     prompt: str,
     history: list[dict] = None,
 ) -> str:
-    messages = [{"role": "system", "content": system_instruction}]
+    full_instruction = system_instruction + "\n\nCRITICAL: Output ONLY the markdown document. Do NOT include <think> tags or conversational preambles like 'Here is the analysis'."
+    messages = [{"role": "system", "content": full_instruction}]
     if history:
         for turn in history:
             role = "user" if turn.get("role") == "user" else "assistant"
@@ -139,7 +161,8 @@ async def call_openai_compatible_api(
         if resp.status_code != 200:
             raise RuntimeError(f"API ({base_url} - {model}) returned HTTP {resp.status_code}: {resp.text}")
         data = resp.json()
-        return data["choices"][0]["message"]["content"].strip()
+        raw_text = data["choices"][0]["message"]["content"].strip()
+        return clean_llm_response(raw_text)
 
 
 async def generate_response_with_fallback(
@@ -148,8 +171,7 @@ async def generate_response_with_fallback(
     history: list[dict] = None,
 ) -> str:
     """
-    Universal Generation Gateway with Fast Multi-Provider Fallback Cascade.
-    Dynamically re-reads .env on every invocation.
+    Universal Generation Gateway with Fast Multi-Provider Fallback Cascade and Output Sanitization.
     """
     cfg = reload_config()
     provider = cfg["provider"]
@@ -184,10 +206,12 @@ async def generate_response_with_fallback(
         try:
             if prov_type == "gemini":
                 model_name = item[1]
-                return await call_gemini_native(system_instruction, prompt, history, model=model_name)
+                res = await call_gemini_native(system_instruction, prompt, history, model=model_name)
+                return clean_llm_response(res)
             else:
                 _, base_url, api_key, model_name = item
-                return await call_openai_compatible_api(base_url, api_key, model_name, system_instruction, prompt, history)
+                res = await call_openai_compatible_api(base_url, api_key, model_name, system_instruction, prompt, history)
+                return clean_llm_response(res)
         except Exception as e:
             last_error = e
             print(f"[!] Provider {prov_type} ({item[1]}) failed: {e}. Cascading to next provider...")

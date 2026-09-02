@@ -10,16 +10,38 @@ interface MarkdownRendererProps {
   className?: string;
 }
 
+function sanitizeMarkdown(raw: string): string {
+  if (!raw) return "";
+  // 1. Remove <think>...</think> tags and content
+  let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, "");
+  cleaned = cleaned.replace(/<\/?think>/gi, "");
+
+  // 2. Remove leading "Here's a thinking process:..." if present
+  if (/^\s*Here(?:'s| is) a thinking process/i.test(cleaned)) {
+    const match = cleaned.match(/(#\s+[^\n]+[\s\S]*)/);
+    if (match) {
+      cleaned = match[1];
+    }
+  }
+
+  return cleaned.trim();
+}
+
 export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
   content,
   className = "",
 }) => {
+  const sanitizedContent = sanitizeMarkdown(content);
+
   return (
     <div className={`markdown-content space-y-4 text-slate-200 leading-relaxed ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw]}
         components={{
+          // Suppress any stray reasoning tags
+          // @ts-expect-error custom think tag handling
+          think: () => null,
           h1: ({ node, ...props }) => (
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight pt-4 pb-2 border-b border-slate-800 flex items-center gap-2" {...props} />
           ),
@@ -81,7 +103,7 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           ),
         }}
       >
-        {content}
+        {sanitizedContent}
       </ReactMarkdown>
     </div>
   );
