@@ -112,7 +112,9 @@ def _is_reasoning_line(line: str) -> bool:
 def format_model_display_name(provider: str, model: str) -> str:
     """Format model name into clean, human-readable display string."""
     if provider == "gemini":
-        if "3.5-flash-lite" in model:
+        if "3.8-flash" in model:
+            return "Google Gemini 3.8 Flash"
+        elif "3.5-flash-lite" in model:
             return "Google Gemini 3.5 Flash-Lite"
         elif "3.6" in model:
             return "Google Gemini 3.6 Flash"
@@ -290,6 +292,7 @@ async def generate_with_meta(
 
     # Priority 1: User's explicitly chosen provider
     if provider == "gemini" and cfg["gemini_key"]:
+        cascade.append(("gemini", "gemini-3.8-flash"))
         cascade.append(("gemini", "gemini-3.5-flash-lite"))
         cascade.append(("gemini", "gemini-3.6-flash"))
         cascade.append(("gemini", "gemini-3.5-flash"))
@@ -303,6 +306,8 @@ async def generate_with_meta(
         cascade.append(("ollama", cfg["ollama_base"], "ollama", cfg["ollama_model"]))
 
     # Priority 2: Fast secondary providers (non-reasoning models first)
+    if cfg["gemini_key"] and ("gemini", "gemini-3.8-flash") not in cascade:
+        cascade.append(("gemini", "gemini-3.8-flash"))
     if cfg["gemini_key"] and ("gemini", "gemini-3.5-flash-lite") not in cascade:
         cascade.append(("gemini", "gemini-3.5-flash-lite"))
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b") not in cascade:
