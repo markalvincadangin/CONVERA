@@ -1,0 +1,26 @@
+{
+  "name": "ratchetai-monorepo",
+  "version": "1.1.0",
+  "private": true,
+  "description": "RatchetAI: Evidence-Ratcheted Problem-to-Solution Venture Engine",
+  "scripts": {
+    "dev": "npm run dev --prefix web",
+    "dev:backend": "cd pipeline && python -m uvicorn server:app --reload --port 8000",
+    "dev:frontend": "npm run dev --prefix web",
+    "dev:cli": "cd pipeline && python main.py",
+    "build": "npm run build --prefix web",
+    "lint": "npm run lint --prefix web",
+    "test:backend": "cd pipeline && pytest"
+  },
+  "keywords": [
+    "technopreneurship",
+    "startup",
+    "validation",
+    "multi-agent",
+    "gemini",
+    "lean-startup",
+    "mom-test"
+  ],
+  "author": "Technopreneurship Program",
+  "license": "MIT"
+}

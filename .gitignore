@@ -1,0 +1,58 @@
+# Node / Next.js
+node_modules/
+.next/
+web/.next/
+web/node_modules/
+out/
+build/
+dist/
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Databases & Runtime Storage
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+pipeline/*.db
+pipeline/*.db-wal
+pipeline/*.db-shm
+
+# Secrets & Environment
+.env
+pipeline/.env
+!.env.example
+!pipeline/.env.example
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
