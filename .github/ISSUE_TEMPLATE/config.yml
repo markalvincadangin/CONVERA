@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 📖 RatchetAI Master Documentation
+    url: https://github.com/markalvincadangin/RatchetAI/tree/main/docs
+    about: Review our IEEE 830 SRSDS specifications and Design System manuals.
+  - name: 💬 Discussion & Ideas
+    url: https://github.com/markalvincadangin/RatchetAI/discussions
+    about: Ask questions and collaborate with fellow technopreneurs.
