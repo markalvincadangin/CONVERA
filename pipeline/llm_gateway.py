@@ -3,7 +3,7 @@ from __future__ import annotations
 """
 RatchetAI Universal Multi-Provider LLM Gateway
 Supports Google Gemini 3.6 Flash, Groq Cloud (GPT-OSS 120B / Qwen 27B), OpenRouter, and Local Ollama.
-Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, Fast Timeout Protection, Response Sanitization, and Model Attribution Telemetry.
+Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, Fast Timeout Protection, Response Sanitization, Model Attribution Telemetry, and Anti-Truncation Token Allocation.
 """
 
 import os
@@ -115,6 +115,7 @@ async def call_gemini_native(
     config = genai_types.GenerateContentConfig(
         system_instruction=system_instruction + "\n\nCRITICAL: DO NOT output any conversational preamble or thinking process. Start immediately with markdown content.",
         temperature=0.3,
+        max_output_tokens=8192,
     )
 
     response = await asyncio.wait_for(
@@ -123,7 +124,7 @@ async def call_gemini_native(
             contents=contents,
             config=config,
         ),
-        timeout=10.0,
+        timeout=15.0,
     )
 
     if hasattr(response, "text") and response.text and response.text.strip():
@@ -151,7 +152,7 @@ async def call_openai_compatible_api(
     prompt: str,
     history: list[dict] = None,
 ) -> str:
-    full_instruction = system_instruction + "\n\nCRITICAL: Output ONLY the markdown document. Do NOT include <think> tags or conversational preambles like 'Here is the analysis'."
+    full_instruction = system_instruction + "\n\nCRITICAL: Output ONLY the markdown document. Do NOT include <think> tags or conversational preambles like 'Here is the analysis'. Complete all 4 sections through to the end."
     messages = [{"role": "system", "content": full_instruction}]
     if history:
         for turn in history:
@@ -173,11 +174,12 @@ async def call_openai_compatible_api(
         "model": model,
         "messages": messages,
         "temperature": 0.3,
+        "max_tokens": 3500,
     }
 
     url = f"{base_url.rstrip('/')}/chat/completions"
 
-    async with httpx.AsyncClient(timeout=15.0) as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
         resp = await client.post(url, json=payload, headers=headers)
         if resp.status_code != 200:
             raise RuntimeError(f"API ({base_url} - {model}) returned HTTP {resp.status_code}: {resp.text}")
@@ -203,7 +205,7 @@ async def generate_with_meta(
 
     # Priority 1: User's explicitly chosen provider
     if provider == "groq" and cfg["groq_key"]:
-        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], cfg["groq_model"]))
+        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
     elif provider == "openrouter" and cfg["openrouter_key"]:
         cascade.append(("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]))
@@ -212,13 +214,13 @@ async def generate_with_meta(
     elif provider == "gemini" and cfg["gemini_key"]:
         cascade.append(("gemini", "gemini-3.6-flash"))
 
-    # Priority 2: Fast secondary providers
+    # Priority 2: Fast secondary providers (GPT-OSS 120B on Groq has 0.5s response + strict completion)
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b") not in cascade:
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
-    if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b") not in cascade:
-        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
     if cfg["gemini_key"] and ("gemini", "gemini-3.6-flash") not in cascade:
         cascade.append(("gemini", "gemini-3.6-flash"))
+    if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b") not in cascade:
+        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
     if cfg["openrouter_key"] and ("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]) not in cascade:
         cascade.append(("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]))
 
