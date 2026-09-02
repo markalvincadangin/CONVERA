@@ -42,6 +42,14 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({
           // Suppress any stray reasoning tags
           // @ts-expect-error custom think tag handling
           think: () => null,
+          a: ({ node, ...props }) => (
+            <a
+              className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors font-medium inline-flex items-center gap-0.5"
+              target="_blank"
+              rel="noopener noreferrer"
+              {...props}
+            />
+          ),
           h1: ({ node, ...props }) => (
             <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight pt-4 pb-2 border-b border-slate-800 flex items-center gap-2" {...props} />
           ),

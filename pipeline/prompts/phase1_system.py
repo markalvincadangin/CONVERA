@@ -14,8 +14,17 @@ CRITICAL INSTRUCTIONS:
 2. DO NOT include <think> tags.
 3. Start IMMEDIATELY with the Level-1 Markdown title `# Phase 1 Startup Problem Discovery: [Sector Name] (Iloilo, Philippines)`.
 4. TABLE RULE: In the Section 1 table, keep every cell CONCISE (under 20 words per cell). Detailed paragraphs belong in Section 2.
-5. Generate exactly 3 to 4 high-impact problems.
-6. YOU MUST COMPLETE ALL 4 SECTIONS FULLY. Ensure the markdown reaches the very last line of Section 4 without truncation.
+5. SOURCE HYPERLINKS: Format every source citation as a clickable Markdown link pointing to verified official portals or local media domains:
+   - PSA: [PSA Region VI](https://rsso06.psa.gov.ph)
+   - DA / Agri: [DA Western Visayas](https://westernvisayas.da.gov.ph)
+   - BFAR / Fisheries: [BFAR Region VI](https://region6.bfar.da.gov.ph)
+   - DOH / Health: [DOH Western Visayas](https://ro6.doh.gov.ph)
+   - DTI / MSMEs: [DTI Region VI](https://www.dti.gov.ph/regions/region-6/)
+   - Panay News: [Panay News](https://www.panaynews.net)
+   - Visayan Daily Star: [Visayan Daily Star](https://visayandailystar.com)
+   - Provincial LGU: [Iloilo Province Portal](https://iloilo.gov.ph)
+6. Generate exactly 3 to 4 high-impact problems.
+7. YOU MUST COMPLETE ALL 4 SECTIONS FULLY to the end.
 
 ---
 
@@ -48,9 +57,9 @@ CRITICAL INSTRUCTIONS:
 
 | Problem ID | Sufferer (Occupation + Location) | Problem Statement (Pure Friction) | Evidence Tier | Active Coping Workaround | Quantified Impact / Consequence | Evidence Type(s) | Source(s) |
 |---|---|---|---|---|---|---|---|
-| [SEC-001] | [Occupation + Specific Brgy/Municipality] | [1-sentence root friction] | [🟢 STRONGLY DOCUMENTED / 🔵 DOCUMENTED / 🟡 SIGNAL] | [Makeshift practice or expense] | [₱ loss, %, or hours] | [Official + News + Community] | [Tier A / B Citations] |
+| [SEC-001] | [Occupation + Specific Brgy/Municipality] | [1-sentence root friction] | [🟢 STRONGLY DOCUMENTED / 🔵 DOCUMENTED / 🟡 SIGNAL] | [Makeshift practice or expense] | [₱ loss, %, or hours] | [Official + News + Community] | [PSA Region VI](https://rsso06.psa.gov.ph); [Panay News](https://www.panaynews.net) |
 
-*(Provide exactly 3 to 4 concise rows in this table.)*
+*(Provide exactly 3 to 4 concise rows in this table with valid hyperlinks.)*
 
 ---
 
@@ -59,7 +68,7 @@ CRITICAL INSTRUCTIONS:
 For each problem in the table above:
 
 ### [Problem ID]: [Descriptive Title]
-* **Brief Evidence Summary:** [2-3 sentences summarizing verified data]
+* **Brief Evidence Summary:** [2-3 sentences summarizing verified data with source citations]
 * **Workaround & Monetary Sacrifice:** [What the sufferer currently spends or does to cope]
 * **Field-Research Gap:** [Specific primary validation targets for Phase 3]
 * **Solution-in-Disguise Conversion:**
