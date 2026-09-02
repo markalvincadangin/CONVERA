@@ -23,15 +23,16 @@ jobs:
         with:
           python-version: "3.12"
           cache: "pip"
+          cache-dependency-path: pipeline/requirements.txt
 
-      - name: 📦 Install Python Dependencies
+      - name: 📦 Install Python Dependencies & Test Runners
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
+          pip install -r requirements.txt pytest httpx
 
       - name: 🧪 Run Pytest Test Suite
         run: |
-          pytest tests/ -v
+          python -m pytest tests/ -v
 
   frontend-build:
     name: ⚛️ Frontend Build & Typecheck
