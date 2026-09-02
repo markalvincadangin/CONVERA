@@ -9,3 +9,4 @@ export * from "./MarkdownRenderer";
 export * from "./SkeletonLoader";
 export * from "./EmptyState";
 export * from "./Tooltip";
+export * from "./ModelAttributionBadge";

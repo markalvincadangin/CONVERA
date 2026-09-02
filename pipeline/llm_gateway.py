@@ -3,7 +3,7 @@ from __future__ import annotations
 """
 RatchetAI Universal Multi-Provider LLM Gateway
 Supports Google Gemini 3.6 Flash, Groq Cloud (GPT-OSS 120B / Qwen 27B), OpenRouter, and Local Ollama.
-Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, Fast Timeout Protection, and Response Sanitization.
+Includes Real-Time Environment Reloading, Intelligent Multi-Provider Failover Cascade, Fast Timeout Protection, Response Sanitization, and Model Attribution Telemetry.
 """
 
 import os
@@ -14,7 +14,7 @@ import time
 import random
 import asyncio
 from pathlib import Path
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Tuple
 import httpx
 from dotenv import load_dotenv
 
@@ -41,6 +41,27 @@ def clean_llm_response(text: str) -> str:
             cleaned = match.group(1)
 
     return cleaned.strip()
+
+
+def format_model_display_name(provider: str, model: str) -> str:
+    """Format model name into clean, human-readable display string."""
+    if provider == "gemini":
+        if "3.6" in model:
+            return "Google Gemini 3.6 Flash"
+        elif "3.5" in model:
+            return "Google Gemini 3.5 Flash"
+        return f"Google Gemini ({model})"
+    elif provider == "groq":
+        if "gpt-oss-120b" in model:
+            return "Groq · GPT-OSS 120B"
+        elif "qwen" in model:
+            return "Groq · Qwen 3.6 27B"
+        return f"Groq · {model.split('/')[-1]}"
+    elif provider == "openrouter":
+        return f"OpenRouter · {model.split('/')[-1].replace(':free', '')}"
+    elif provider == "ollama":
+        return f"Local Ollama · {model}"
+    return f"{provider.capitalize()} · {model}"
 
 
 def reload_config():
@@ -165,17 +186,18 @@ async def call_openai_compatible_api(
         return clean_llm_response(raw_text)
 
 
-async def generate_response_with_fallback(
+async def generate_with_meta(
     system_instruction: str,
     prompt: str,
     history: list[dict] = None,
-) -> str:
+) -> Tuple[str, Dict[str, Any]]:
     """
-    Universal Generation Gateway with Fast Multi-Provider Fallback Cascade and Output Sanitization.
+    Universal Generation Gateway that returns (clean_text, model_metadata).
     """
     cfg = reload_config()
     provider = cfg["provider"]
     last_error = None
+    t0 = time.time()
 
     cascade = []
 
@@ -190,7 +212,7 @@ async def generate_response_with_fallback(
     elif provider == "gemini" and cfg["gemini_key"]:
         cascade.append(("gemini", "gemini-3.6-flash"))
 
-    # Priority 2: Ultra-Fast Secondary Providers (Groq is 500+ tok/s)
+    # Priority 2: Fast secondary providers
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b") not in cascade:
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b") not in cascade:
@@ -207,14 +229,38 @@ async def generate_response_with_fallback(
             if prov_type == "gemini":
                 model_name = item[1]
                 res = await call_gemini_native(system_instruction, prompt, history, model=model_name)
-                return clean_llm_response(res)
+                latency = round(time.time() - t0, 2)
+                meta = {
+                    "provider": "gemini",
+                    "model": model_name,
+                    "display_name": format_model_display_name("gemini", model_name),
+                    "latency_seconds": latency,
+                }
+                return clean_llm_response(res), meta
             else:
                 _, base_url, api_key, model_name = item
                 res = await call_openai_compatible_api(base_url, api_key, model_name, system_instruction, prompt, history)
-                return clean_llm_response(res)
+                latency = round(time.time() - t0, 2)
+                meta = {
+                    "provider": prov_type,
+                    "model": model_name,
+                    "display_name": format_model_display_name(prov_type, model_name),
+                    "latency_seconds": latency,
+                }
+                return clean_llm_response(res), meta
         except Exception as e:
             last_error = e
             print(f"[!] Provider {prov_type} ({item[1]}) failed: {e}. Cascading to next provider...")
             await asyncio.sleep(0.1)
 
     raise RuntimeError(f"All LLM providers in cascade failed. Last error: {last_error}")
+
+
+async def generate_response_with_fallback(
+    system_instruction: str,
+    prompt: str,
+    history: list[dict] = None,
+) -> str:
+    """Backward-compatible helper returning raw text."""
+    content, _ = await generate_with_meta(system_instruction, prompt, history)
+    return content

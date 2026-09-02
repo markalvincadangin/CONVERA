@@ -23,6 +23,13 @@ export type TestArchetype =
   | "LOI_OR_PREORDER_DEPOSIT"
   | "STRUCTURED_SOLUTION_INTERVIEW";
 
+export interface ModelMetadata {
+  provider?: string;
+  model?: string;
+  display_name?: string;
+  latency_seconds?: number;
+}
+
 export interface SessionMeta {
   session_id: string;
   project_id?: string;
@@ -42,14 +49,20 @@ export interface SessionMeta {
 export interface SessionState extends SessionMeta {
   phase1_response?: string;
   phase1_sectors?: string[];
+  phase1_model_meta?: ModelMetadata;
   phase2_response?: string;
+  phase2_scorecard?: string;
+  phase2_model_meta?: ModelMetadata;
   phase3_response?: string;
   phase3_problem?: string;
   phase3_history?: { role: "user" | "assistant"; content: string }[];
+  phase3_model_meta?: ModelMetadata;
   phase4_response?: string;
   phase4_concepts?: SolutionConcept[];
   phase4_history?: { role: "user" | "assistant"; content: string }[];
+  phase4_model_meta?: ModelMetadata;
   phase5_response?: string;
+  phase5_model_meta?: ModelMetadata;
   phase5_metrics?: {
     concept_label: string;
     sample_size: number;
@@ -79,6 +92,7 @@ export interface Phase3TurnResponse {
   next_question: string;
   is_all_complete: boolean;
   scorecard?: string;
+  model_meta?: ModelMetadata;
   state: SessionState;
 }
 
@@ -96,6 +110,7 @@ export interface Phase4StepResponse {
     families_present: string[];
     families_not_yet_tried: string[];
   };
+  model_meta?: ModelMetadata;
   state: SessionState;
 }
 
@@ -103,5 +118,6 @@ export interface Phase5AuditResponse {
   status: string;
   response: string;
   conversion_rate: number;
+  model_meta?: ModelMetadata;
   state: SessionState;
 }

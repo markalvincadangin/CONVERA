@@ -6,6 +6,7 @@ import { Lightbulb, Sparkles, ArrowRight, ArrowLeft, CheckCircle2, Plus, LayoutG
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
+import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { MECHANISM_FAMILIES } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { SessionState, SolutionConcept } from "@/lib/types";

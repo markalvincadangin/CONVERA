@@ -6,6 +6,7 @@ import { Activity, Sparkles, CheckCircle2, AlertTriangle, ArrowLeft, Download, A
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
+import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { COMMITMENT_TIERS } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { SessionState, TestArchetype } from "@/lib/types";

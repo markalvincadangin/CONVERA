@@ -7,6 +7,7 @@ import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { AlertBanner } from "@/components/common/AlertBanner";
 import { LoadingStatusCard } from "@/components/common/LoadingStatusCard";
+import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { ScreeningScorecardGrid } from "./ScreeningScorecardGrid";
 import { phaseService } from "@/services/phaseService";

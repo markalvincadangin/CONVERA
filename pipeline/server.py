@@ -42,7 +42,7 @@ from gates import (
     mark_level_complete, all_levels_complete, check_concept_minimum,
     format_concept_shortfall
 )
-from llm_gateway import generate_response_with_fallback
+from llm_gateway import generate_response_with_fallback, generate_with_meta
 from prompts.phase1_system import PHASE1_SYSTEM
 from prompts.phase2_system import PHASE2_SYSTEM
 from prompts.phase3_system import PHASE3_SYSTEM
@@ -274,7 +274,7 @@ async def phase1_discover(req: Phase1DiscoverRequest):
     )
 
     try:
-        response = await generate_response_with_fallback(
+        response, meta = await generate_with_meta(
             system_instruction=PHASE1_SYSTEM,
             prompt=prompt,
         )
@@ -282,9 +282,10 @@ async def phase1_discover(req: Phase1DiscoverRequest):
         raise HTTPException(status_code=503, detail=f"LLM generation failed: {str(e)}")
 
     state["phase1_response"] = response
+    state["phase1_model_meta"] = meta
     state["phase1_complete"] = True
     save_session_state(req.session_id, state)
-    return {"state": state, "response": response}
+    return {"state": state, "response": response, "model_meta": meta}
 
 
 @app.post("/api/phases/1/additions")
@@ -299,7 +300,7 @@ async def phase1_additions(req: Phase1AdditionsRequest):
     )
 
     try:
-        response = await generate_response_with_fallback(
+        response, meta = await generate_with_meta(
             system_instruction=PHASE1_SYSTEM,
             prompt=prompt,
         )
@@ -307,8 +308,9 @@ async def phase1_additions(req: Phase1AdditionsRequest):
         raise HTTPException(status_code=503, detail=f"LLM generation failed: {str(e)}")
 
     state["phase1_response"] = response
+    state["phase1_model_meta"] = meta
     save_session_state(req.session_id, state)
-    return {"state": state, "response": response}
+    return {"state": state, "response": response, "model_meta": meta}
 
 
 # ----------------------------------------------------------------------

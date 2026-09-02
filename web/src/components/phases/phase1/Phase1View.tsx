@@ -8,6 +8,7 @@ import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { AlertBanner } from "@/components/common/AlertBanner";
 import { LoadingStatusCard } from "@/components/common/LoadingStatusCard";
+import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { ALL_SECTORS } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { SessionState } from "@/lib/types";
@@ -250,7 +251,10 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
                 <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                 <h3 className="text-base font-bold text-white">Discovered Problem Landscape</h3>
               </div>
-              <Badge variant="emerald">Discovery Complete</Badge>
+              <div className="flex items-center gap-2">
+                <ModelAttributionBadge meta={session.phase1_model_meta} />
+                <Badge variant="emerald">Discovery Complete</Badge>
+              </div>
             </div>
 
             <div className="prose prose-invert max-w-none prose-sm prose-cyan overflow-x-auto text-slate-200">

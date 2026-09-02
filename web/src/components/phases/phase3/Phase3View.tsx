@@ -6,6 +6,7 @@ import { ShieldCheck, Send, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, Sp
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
+import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { LEVEL_ORDER, LEVEL_LABELS } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { SessionState } from "@/lib/types";
