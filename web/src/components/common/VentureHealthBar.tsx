@@ -9,13 +9,11 @@ import {
   Trophy,
   Award,
   ShieldCheck,
-  TrendingUp,
   Flame,
   CheckCircle2,
   Lock,
   Sparkles,
   ArrowRight,
-  HelpCircle,
   Search,
   Cpu,
   Target,
@@ -24,6 +22,7 @@ import {
   BarChart3,
   Crown,
   Zap,
+  Activity,
 } from "lucide-react";
 
 interface VentureHealthBarProps {
@@ -68,164 +67,147 @@ export const VentureHealthBar: React.FC<VentureHealthBarProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const health = calculateVentureHealth(session, problems);
 
-  const gradeColors = {
-    "A+": "bg-emerald-500/15 text-emerald-300 border-emerald-500/30",
-    A: "bg-cyan-500/15 text-cyan-300 border-cyan-500/30",
-    B: "bg-teal-500/15 text-teal-300 border-teal-500/30",
-    C: "bg-amber-500/15 text-amber-300 border-amber-500/30",
-    NEEDS_WORK: "bg-slate-800 text-slate-400 border-slate-700",
+  const getHealthTone = (score: number) => {
+    if (score >= 80) return { dot: "bg-emerald-400 shadow-emerald-500/50", text: "text-emerald-400", border: "border-emerald-500/30", bg: "bg-emerald-500/10" };
+    if (score >= 50) return { dot: "bg-cyan-400 shadow-cyan-500/50", text: "text-cyan-400", border: "border-cyan-500/30", bg: "bg-cyan-500/10" };
+    if (score >= 20) return { dot: "bg-amber-400 shadow-amber-500/50", text: "text-amber-400", border: "border-amber-500/30", bg: "bg-amber-500/10" };
+    return { dot: "bg-slate-400 shadow-slate-500/50", text: "text-slate-300", border: "border-slate-800", bg: "bg-slate-900" };
   };
+
+  const tone = getHealthTone(health.health_score);
 
   return (
     <>
-      {/* Clickable Header Health Trigger */}
+      {/* Clickable Header Health Trigger (Polished Command Pill) */}
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs transition-all duration-200 group"
-        title="View Venture Health & Achievements"
+        className="flex items-center gap-2 px-3 py-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
+        title={`Venture Health Score: ${health.health_score}% (${health.earned_badges.length} of ${health.all_badges.length} Milestones Cleared) - Click for Audit Dossier`}
       >
-        <div className="w-5 h-5 rounded-lg bg-amber-500/15 text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/30 group-hover:scale-110 transition-transform">
-          <Trophy className="w-3 h-3" />
+        {/* Pulse Dot & Icon */}
+        <div className={`relative flex items-center justify-center p-1.5 rounded-xl ${tone.bg} ${tone.border} border shrink-0 group-hover:scale-105 transition-transform`}>
+          <Activity className={`w-3.5 h-3.5 ${tone.text}`} />
+          <span className={`absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full ${tone.dot} shadow-sm animate-pulse`} />
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <span className="font-mono font-bold text-white">
+        {/* Metrics Display */}
+        <div className="flex items-center gap-1.5 text-xs font-mono font-bold">
+          <span className="text-white tracking-tight">
             {health.health_score}%
           </span>
-          <span className={`text-[10px] font-bold font-mono px-1.5 py-0.2 rounded border ${gradeColors[health.grade]}`}>
-            {health.grade}
+          <span className="text-slate-600 hidden sm:inline">•</span>
+          <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">
+            {health.earned_badges.length}/{health.all_badges.length} Gates
           </span>
-        </div>
-
-        <div className="flex items-center gap-1 text-[10px] font-mono text-slate-400 hidden sm:flex">
-          <Award className="w-3 h-3 text-amber-400" />
-          <span>{health.earned_badges.length}/{health.all_badges.length}</span>
         </div>
       </button>
 
-      {/* Health & Badges Dossier Modal */}
+      {/* Venture Health Audit Dossier Modal */}
       <Modal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
-        title="Venture Health Index & Milestone Badges"
-        maxWidth="4xl"
+        title="Venture Health & Milestone Audit"
+        maxWidth="2xl"
       >
-        <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
-          {/* Top Score & Grade Banner */}
-          <div className="p-5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 rounded-3xl border border-slate-800 space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/10 border border-amber-500/30 text-amber-400 flex items-center justify-center font-black font-mono text-xl shadow-lg shadow-amber-500/10">
-                  {health.health_score}%
-                </div>
-                <div>
-                  <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400 block font-mono">
-                    Venture Health Rating
-                  </span>
-                  <h4 className="text-base font-bold text-white">
-                    {health.grade_label}
-                  </h4>
-                </div>
+        <div className="space-y-6">
+          {/* Top Score Summary Card */}
+          <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/95 to-slate-950 border border-slate-800 shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-mono uppercase font-bold tracking-wider text-cyan-400">
+                  Evidence-Ratcheted Readiness Score
+                </span>
               </div>
-
-              <span className={`text-xs font-mono font-bold px-3 py-1 rounded-full border self-start sm:self-center ${gradeColors[health.grade]}`}>
-                Grade: {health.grade}
-              </span>
-            </div>
-
-            {/* 4-Dimension Progress Breakdown */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800">
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono uppercase block">Phase Gates (35%)</span>
-                <span className="text-sm font-bold font-mono text-cyan-400">{health.gates_score}/35</span>
-              </div>
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono uppercase block">Evidence Quality (25%)</span>
-                <span className="text-sm font-bold font-mono text-teal-400">{health.evidence_score}/25</span>
-              </div>
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono uppercase block">Experiments (25%)</span>
-                <span className="text-sm font-bold font-mono text-emerald-400">{health.experiment_score}/25</span>
-              </div>
-              <div className="p-3 bg-slate-900/60 rounded-xl border border-slate-800/80">
-                <span className="text-[10px] text-slate-400 font-mono uppercase block">Deliverables (15%)</span>
-                <span className="text-sm font-bold font-mono text-purple-400">{health.deliverables_score}/15</span>
-              </div>
-            </div>
-          </div>
-
-          {/* Urgent Action Banner */}
-          <div className="p-4 bg-gradient-to-r from-cyan-950/40 via-slate-900 to-slate-950 rounded-2xl border border-cyan-500/30 flex items-start gap-3 shadow-md">
-            <Sparkles className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
-            <div className="space-y-1">
-              <span className="text-[10px] uppercase font-bold tracking-wider text-cyan-300 font-mono">
-                Urgent Recommended Action
-              </span>
-              <p className="text-xs text-slate-200 leading-relaxed">
-                {health.urgent_recommendation}
+              <h3 className="text-2xl font-extrabold text-white tracking-tight">
+                {health.health_score >= 80
+                  ? "Investment-Grade Venture"
+                  : health.health_score >= 50
+                  ? "Advancing Candidate Portfolio"
+                  : "Early-Stage Discovery"}
+              </h3>
+              <p className="text-xs text-slate-400 max-w-md leading-relaxed">
+                Evaluates empirical grounding, Mom Test conversation depth, Devil's Advocate stress-testing, and MVP skin-in-the-game conversion.
               </p>
             </div>
+
+            {/* Score Ring / Badge */}
+            <div className="flex items-center gap-4 shrink-0">
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
+                <span className="text-3xl font-extrabold font-mono text-cyan-400">
+                  {health.health_score}%
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mt-0.5">
+                  Health Index
+                </span>
+              </div>
+              <div className="flex flex-col items-center justify-center p-4 rounded-2xl bg-slate-950 border border-slate-800 shadow-inner">
+                <span className="text-3xl font-extrabold font-mono text-emerald-400">
+                  {health.earned_badges.length}
+                  <span className="text-sm text-slate-500 font-normal">/{health.all_badges.length}</span>
+                </span>
+                <span className="text-[10px] font-mono text-slate-400 uppercase tracking-wider mt-0.5">
+                  Milestones
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* Milestone Badges Grid */}
+          {/* Badges & Milestones Grid */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5 font-mono">
-                <Award className="w-4 h-4 text-amber-400" />
-                Venture Milestone Badges ({health.earned_badges.length}/{health.all_badges.length})
+              <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-400">
+                9 Evidence Ratchet Milestones
               </h4>
-              <span className="text-[11px] text-slate-400 font-mono">
-                Unlocked through rigorous validation
+              <span className="text-xs font-mono text-slate-400">
+                {health.earned_badges.length} Cleared • {health.all_badges.length - health.earned_badges.length} Remaining
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {health.all_badges.map((badge) => (
-                <div
-                  key={badge.id}
-                  className={`p-4 rounded-2xl border flex items-start gap-3 transition-all ${
-                    badge.isEarned
-                      ? "bg-slate-900/90 border-amber-500/40 shadow-lg shadow-amber-500/5 hover:border-amber-500/60"
-                      : "bg-slate-950/60 border-slate-800/80 opacity-60 grayscale hover:opacity-80 transition-opacity"
-                  }`}
-                >
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {health.all_badges.map((b) => {
+                const isEarned = b.isEarned;
+                return (
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${
-                      badge.isEarned
-                        ? "bg-amber-500/15 text-amber-400 border-amber-500/30 shadow-inner"
-                        : "bg-slate-800 text-slate-500 border-slate-700"
+                    key={b.id}
+                    className={`p-4 rounded-2xl border transition-all flex flex-col justify-between gap-3 ${
+                      isEarned
+                        ? "bg-slate-900/90 border-emerald-500/40 shadow-lg shadow-emerald-500/5"
+                        : "bg-slate-950/60 border-slate-850 opacity-60"
                     }`}
                   >
-                    {renderBadgeIcon(badge.icon_name, badge.isEarned)}
-                  </div>
-
-                  <div className="space-y-1 flex-1">
-                    <div className="flex items-center justify-between">
-                      <h5 className={`text-xs font-bold ${badge.isEarned ? "text-white" : "text-slate-400"}`}>
-                        {badge.name}
-                      </h5>
-                      {badge.isEarned ? (
-                        <span className="text-[9px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                          EARNED
+                    <div className="flex items-start justify-between gap-2">
+                      <div className={`p-2 rounded-xl ${isEarned ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30" : "bg-slate-900 text-slate-600 border border-slate-800"}`}>
+                        {renderBadgeIcon(b.icon_name, isEarned)}
+                      </div>
+                      {isEarned ? (
+                        <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Cleared
                         </span>
                       ) : (
-                        <span className="text-[9px] font-mono text-slate-500 flex items-center gap-0.5">
-                          <Lock className="w-2.5 h-2.5" /> LOCKED
+                        <span className="text-[10px] font-mono text-slate-500 bg-slate-900 px-2 py-0.5 rounded-full border border-slate-800 flex items-center gap-1">
+                          <Lock className="w-3 h-3" /> Locked
                         </span>
                       )}
                     </div>
 
-                    <p className="text-[11px] text-slate-300 leading-snug">
-                      {badge.description}
-                    </p>
-
-                    <p className="text-[10px] text-slate-500 font-mono pt-1 border-t border-slate-800/60">
-                      Criteria: {badge.criteria}
-                    </p>
+                    <div>
+                      <h5 className={`text-xs font-bold ${isEarned ? "text-white" : "text-slate-400"}`}>
+                        {b.name}
+                      </h5>
+                      <p className="text-[11px] text-slate-400 leading-snug mt-1">
+                        {b.description}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          </div>
+
+          <div className="flex justify-end pt-2">
+            <Button variant="primary" onClick={() => setIsOpen(false)}>
+              Close Audit Dossier
+            </Button>
           </div>
         </div>
       </Modal>

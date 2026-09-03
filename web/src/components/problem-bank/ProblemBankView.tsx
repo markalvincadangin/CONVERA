@@ -307,17 +307,6 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           <Button
             variant="secondary"
             size="sm"
-            onClick={handleReindexIds}
-            isLoading={isProcessingBatch}
-            leftIcon={<Wand2 className="w-3.5 h-3.5 text-amber-400" />}
-            title="Clean and assign sequential sector IDs (AGR-001, HLT-001, RET-001)"
-          >
-            Standardize IDs
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
             onClick={() => setIsBlindSpotModalOpen(true)}
             leftIcon={<Radar className="w-3.5 h-3.5 text-purple-400" />}
           >

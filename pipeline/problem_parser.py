@@ -48,6 +48,49 @@ def clean_problem_id(val: str) -> str:
     s = re.sub(r"[^A-Za-z0-9\-]", "", s).upper()
     return s
 
+SECTOR_TO_CANONICAL_PREFIX = {
+    "Agriculture & Fisheries": "AGR",
+    "Health & Wellness": "HLT",
+    "MSMEs & Retail": "RET",
+    "Education & Youth": "EDU",
+    "Transport & Logistics": "LOG",
+    "Housing & Utilities": "UTL",
+    "Government Services & Compliance": "GOV",
+    "Finance & Credit": "FIN",
+}
+
+LEGACY_PREFIX_MAP = {
+    "HW": "HLT",
+    "MSME": "RET",
+    "TRN": "LOG",
+    "HOU": "UTL",
+    "CRE": "FIN",
+    "ED": "EDU",
+}
+
+def canonicalize_problem_id(raw_id: str, sector: str, index: int = 1) -> str:
+    """Converts any raw ID into strict 3-letter prefix + 3-digit number (e.g. AGR-001, HLT-002)."""
+    s = clean_problem_id(raw_id)
+    
+    # Check if starts with a known prefix
+    match = re.match(r"^([A-Za-z]+)[-_]?(\d+)?", s)
+    if match:
+        pfx = match.group(1).upper()
+        num_str = match.group(2)
+        
+        # Normalize legacy prefixes (HW -> HLT, MSME -> RET, etc.)
+        canon_pfx = LEGACY_PREFIX_MAP.get(pfx, pfx)
+        if canon_pfx not in SECTOR_TO_CANONICAL_PREFIX.values():
+            canon_pfx = SECTOR_TO_CANONICAL_PREFIX.get(sector, "PRB")
+            
+        num = int(num_str) if num_str else index
+        return f"{canon_pfx}-{num:03d}"
+    
+    # Fallback to sector canonical prefix
+    canon_pfx = SECTOR_TO_CANONICAL_PREFIX.get(sector, "PRB")
+    return f"{canon_pfx}-{index:03d}"
+
+
 def infer_sector(problem_id: str, title: str) -> str:
     """Infer industry sector from ID prefix or report title."""
     clean_id = clean_problem_id(problem_id)
