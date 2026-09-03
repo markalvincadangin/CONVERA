@@ -1,6 +1,6 @@
-# DSR-Informed Computing Research Concept Development Framework
+# Unified DSR-Informed Computing Research Ideation & Concept Development Framework
 
-## A Working Guide for Discovering, Validating, Formulating, Evaluating, and Selecting Computing Research Concepts
+## A Comprehensive Guide for Discovering, Validating, Formulating, Evaluating, and Selecting Computing Research Concepts
 
 **Revised and expanded version**  
 **August 2026**
@@ -83,19 +83,62 @@ This revision preserves the original six-phase and four-gate structure while add
 
 # 1. Introduction
 
-Computing research concepts become weak when a group begins with a fashionable technology and then searches for a problem to attach to it. Statements such as “we want to make an AI system,” “we should use blockchain,” or “our project must use IoT” do not establish who experiences a meaningful problem, whether the problem is important, what existing work already addresses it, what remains unknown, or how a study could generate credible evidence.
+## 1.1 The Nature of Computing Research: Sciences of the Artificial
 
-This guidebook reverses that pattern. It treats concept development as a sequence of evidence-based decisions. The group first explores application domains, records candidate problems in a Problem Bank, and shortlists problems without assuming a technical solution. It then identifies stakeholders, context, and the current process; defines and validates the problem; examines existing solutions and literature; establishes a research gap and research question; and only afterward formulates objectives, requirements, artifact options, and technology choices.
+In the rigorous landscape of computing research, your ability to generate high-impact, evidenced ideas is the pivot upon which your entire capstone or thesis rests. You must understand that while the natural sciences seek to discover and describe the immutable laws governing the physical universe, computing predominantly operates within what Herbert Simon termed the **"Sciences of the Artificial."**
 
-> **Core idea**  
-> A good Computing research concept is not merely a useful application idea. It should contain a meaningful and evidenced problem, a defensible research uncertainty, an appropriate Computing intervention or artifact, a credible evaluation plan, an expected knowledge contribution, and a scope that can be completed responsibly.
+Your task is not merely to observe nature passively, but to create purposeful human-made artifacts—systems, algorithms, methods, models, and architectures—designed to solve human problems, reduce friction, and improve organizational efficiency. Strategic ideation and methodological discipline are what prevent your project from being a mere routine software development exercise and elevate it to a formal, defensible contribution to the **"existing stock of knowledge."**
+
+## 1.2 Defining the Research Voyage
+
+Research is never an aimless search; it is a **"scientific and systematic search for pertinent information on a specific topic."** Synthesizing classical foundations from Kothari and the Oxford Advanced Learner’s Dictionary, research must be understood as a disciplined **voyage of discovery**—a movement from the known to the unknown. This voyage is fueled by inquisitiveness, the *"mother of all knowledge,"* which compels the professional researcher to probe until a full, verifiable understanding of the phenomenon is attained.
+
+## 1.3 Research Paradigms in Computing
+
+To navigate this voyage effectively, you must first categorize your objective. Research in computing typically aligns with one of the primary paradigms defined by Kothari:
+
+| Research Objective | Paradigm Type | Primary Goal | Typical Computing Application |
+|---|---|---|---|
+| **Gaining Familiarity** | **Exploratory / Formulative** | To achieve new insights into a phenomenon or develop hypotheses. | Investigating uncharacterized operational bottlenecks or emergent user interactions in new computing environments. |
+| **Portraying Characteristics** | **Descriptive** | To accurately represent the traits of an individual, situation, group, or system state. | Benchmarking baseline latency, throughput, energy profiles, or user error distributions across legacy software systems. |
+| **Determining Frequency** | **Diagnostic** | To identify how often something occurs or its association with other factors. | Quantifying frequency of buffer overflows, sensor packet drops, or correlation between network jitter and UI dropouts. |
+| **Testing Causal Links** | **Hypothesis-Testing** | To test a hypothesis regarding an empirical causal relationship between variables. | Controlled experimentation testing whether an algorithmic intervention produces a statistically significant reduction in inference time. |
+
+Beyond these groupings, researchers must distinguish:
+- **Fundamental Research vs. Applied Research:** Fundamental research gathers knowledge for knowledge’s sake and broad theory formulation, whereas Applied research aims at finding an immediate, rigorous solution for a pressing practical problem.
+- **Conceptual vs. Empirical Research:** Conceptual research deals with abstract ideas or theoretical frameworks (philosophers and theoreticians), whereas Empirical research relies on verifiable, data-driven observation and experimentation.
+
+## 1.4 The Non-Linear Research Journey
+
+Researchers must internalize the Research Process (Steps I through VII) as a structured but non-linear journey. While textbooks present problem definition, literature review, hypothesis/artifact formulation, design, data collection, execution, and reporting sequentially, in practice you will engage in constant **"feed-back"** and **"feed-forward"** loops. Mastering this structure allows you to maintain control over the sub-systems of your inquiry.
+
+```text
+  ┌─────────────────┐       ┌─────────────────┐       ┌─────────────────┐
+  │  Problem Bank   │ ────> │   Validation    │ ────> │  Research Gap   │
+  │  (Scouting)     │       │   (Funneling)   │       │  & Opportunity  │
+  └─────────────────┘       └─────────────────┘       └─────────────────┘
+           ▲                         │                         │
+           │      Feed-back Loop     ▼                         ▼
+           └──────────────── ┌─────────────────┐      ┌─────────────────┐
+                             │   Evaluation    │ <─── │ Artifact Design │
+                             │  ("Trapping")   │      │  & Formulation  │
+                             └─────────────────┘      └─────────────────┘
+                                     │
+                                     ▼ (Circumscription Loop)
+```
+
+## 1.5 The Core Idea and Governance
+
+Computing research concepts become weak when a group begins with a fashionable technology and then searches for a problem to attach to it. Statements such as "we want to make an AI system," "we should use blockchain," or "our project must use IoT" do not establish who experiences a meaningful problem, whether the problem is important, what existing work already addresses it, what remains unknown, or how a study could generate credible evidence.
+
+This guidebook reverses that pattern. It treats concept development as a sequence of evidence-based decisions:
+
+> **Core Governing Rule**  
+> A good Computing research concept is not merely a useful application idea. It should contain a meaningful and evidenced problem, a defensible research uncertainty, an appropriate Computing intervention or artifact, a credible evaluation plan, an expected knowledge contribution, and a scope that can be completed responsibly. The validated problem, research gap, requirements, context, and evaluation needs should constrain and justify the technology choice.
 
 The framework supports two related decisions:
-
 1. Whether a candidate problem is sufficiently meaningful, research-worthy, evaluable, ethical, and feasible to continue.
 2. Which eligible concept offers the strongest combination of relevance, evidence, research opportunity, technical fit, evaluability, contribution, and feasibility.
-
-The process is iterative. Contrary evidence, access limitations, ethical concerns, measurement problems, or technical constraints may require the group to narrow, reformulate, defer, or reject an idea. Revision is evidence of disciplined research planning, not failure.
 
 ---
 
@@ -234,6 +277,62 @@ Online information requires contextual judgment. A post that is publicly viewabl
 The United Nations Sustainable Development Goals contain 17 goals and 169 targets. This framework uses SDG alignment as a relevance layer, not as evidence that a local problem exists. When an SDG connection is claimed, the group should identify the specific target and explain the mechanism through which the research may contribute.
 
 Philippine relevance may also be supported through national, sectoral, local, or institutional priorities. The DOST Harmonized National R&D Agenda 2022-2028 and relevant DOST-PCIEERD priorities can strengthen significance where they genuinely apply. Alignment does not replace problem validation, a research gap, or credible evaluation.
+
+## 3.10 Epistemic Methods of Inquiry: Authority, Rationalism, and the Scientific Method
+
+Researchers must understand how knowledge is acquired and validated:
+- **Method of Authority:** Consulting experts, official documentation, or established literature. While useful for preliminary orientation, the authority may be biased, outdated, or context-incompatible.
+- **Rational Method (Rationalism):** Relying on logical deduction and seemingly "self-evident truths" (e.g., Descartes’ *Cogito, ergo sum*). While essential for theoretical reasoning, logic is only as good as its underlying assumptions.
+- **The Scientific Method:** The non-negotiable gold standard of computing research. It moves through three disciplined stages:
+  1. *Observation:* Noting phenomena, discrepancies, and variables systematically.
+  2. *Tentative Explanation:* Formulating an initial hypothesis or tentative design (cause-and-effect or artifact-to-utility relationship).
+  3. *Empirical Verification:* Subjecting the explanation to rigorous, verifiable testing against independent data and literature.
+
+## 3.11 Cognitive Logic Models: Deduction, Induction, and Abduction
+
+Once a problem is defined, the researcher must choose the cognitive path toward a solution:
+- **Deduction (Top-Down):** Deriving specific hypotheses from established general theories (Patten). For example, using *Reinforcement Theory* to predict that intermittent feedback loops will increase user compliance in a telemetry app.
+- **Induction (Ground-Up):** Observing specific empirical patterns and synthesizing them into a generalized framework or theory. (e.g., *Grounded Theory* qualitative analysis of software engineering friction).
+- **Abduction (The DSR Paradigm):** In Design Science Research (Vaishnavi & Kuechler), the researcher performs an **"Abductive Suggestion."** This is a creative, disciplined leap from problem awareness to a tentative artifact design, proposing a novel combination of constructs, methods, or architectures to satisfy unmet requirements.
+
+## 3.12 Kernel Theories and DSR Artifact Classification
+
+An "Abductive Suggestion" must never be an arbitrary guess; it must be grounded in **Kernel Theories** (established laws and principles from natural, social, or computational sciences, such as *Cognitive Load Theory*, *Information Theory*, *Queueing Theory*, or *CAP Theorem*). Kernel theories provide the foundational *justification* for why an artifact is expected to work.
+
+Following March & Smith (1995) and Vaishnavi & Kuechler (2015), the proposed output must be explicitly categorized into one of the **Four DSR Artifact Types**:
+1. **Constructs:** The specialized vocabulary, concepts, ontologies, and symbols defining the problem/solution domain.
+2. **Models:** Abstractions and representations of relationships between problem components and system parameters.
+3. **Methods:** Algorithms, workflows, heuristics, optimization routines, and "how-to" guidelines.
+4. **Instantiations:** Working physical implementations, systems, testbeds, and software prototypes operationalizing constructs, models, or methods.
+
+| Formulation Dimension | Empirical / Behavioral Paradigm | DSR / Artifact Paradigm |
+|---|---|---|
+| **Core Statement** | **Tentative Hypothesis:** *"System A will reduce latency by 20% compared to System B under high concurrency."* | **Tentative Design:** *"A distributed caching algorithm (Method) designed to address sub-millisecond retrieval in offline-first nodes."* |
+| **Primary Goal** | Truth discovery and hypothesis testing | Utility creation and artifact performance |
+
+## 3.13 The "Trapping" Phase, Circumscription Loop, and Experimental Design
+
+Evaluation represents the **"Trapping Phase"** (a concept coined by Robert Cialdini in 1994 and emphasized by Bordens & Abbott)—the ruthless empirical arena where ideas and artifacts are either validated or discarded based on observed reality.
+
+Key components of the Trapping Phase include:
+- **Variable Isolation:** Explicitly distinguishing the **Independent Variable** (the manipulated treatment, such as a new indexing algorithm) from the **Dependent Variable** (the measured outcome, such as disk I/O or query execution time), utilizing calibrated, objective instruments that minimize measurement bias (Patten).
+- **The Circumscription Loop (Vaishnavi & Kuechler):** In DSR, an evaluation failure is not a catastrophic defeat; it is the vital discovery of **"Missing Constraint Knowledge."** The Circumscription Loop channels unexpected failures back to the suggestion/design phase to refine the artifact based on newly uncovered boundary conditions.
+- **Experimental Design Toolkit (Kothari, 2004):**
+  - *Informal Designs:* Before-and-after without control; After-only with control.
+  - *Formal Controlled Designs:*
+    - **Completely Randomized Design (CRD):** Random assignment of treatments across homogeneous experimental units.
+    - **Randomized Block Design (RBD):** Grouping heterogeneous units into homogeneous blocks before assigning treatments (e.g., blocking by hardware tier).
+    - **Latin Square Design (LSD):** A balanced two-dimensional grid controlling for two major sources of extraneous variance simultaneously (e.g., network condition $	imes$ dataset size).
+- **The Pilot Study Protocol:** A mandatory miniature pre-run of the evaluation to calibrate instrumentation, test logging pipelines, verify script reliability, and eliminate procedural ambiguities before full-scale data collection.
+
+## 3.14 Institutional Alignment: Karl Pearson’s "Unity of Science" and WVSU Core Values
+
+As Karl Pearson stated in *The Grammar of Science* (1892), **the unity of all sciences consists alone in its method, not in its material.** Whether a researcher is writing a machine learning algorithm, configuring a distributed ledger, or analyzing human-computer interaction, professional rigor demands adherence to universal scientific principles: objectivity, systematic execution, empirical verification, and intellectual honesty.
+
+At **West Visayas State University (WVSU)**, computing research is anchored in institutional core values:
+- **Excellence:** Demonstrating uncompromising methodological discipline, reproducible evaluation, and technical precision as a "taga-West" scholar.
+- **Creativity:** Executing rigorous abductive reasoning and innovative artifact design to address authentic computational bottlenecks.
+- **Service:** Transforming local communities, regional industries, and public welfare through impactful, ethical, and verifiable computing contributions.
 
 ---
 
@@ -447,9 +546,22 @@ At every stage, record one of the following:
 
 ---
 
-# 7. Phase A - Problem Discovery
+# 7. Phase A - Problem Discovery (Scouting Phase)
 
-**Purpose:** Convert a shortlisted Problem Bank entry into a clear description of a meaningful real-world problem in a defined context, without designing a technology first.
+**Purpose:** Convert a shortlisted Problem Bank entry into a clear, operationalized description of a meaningful real-world problem in a defined context, executing the **Scouting Mechanism** without designing a technology first.
+
+### The Scouting Mechanism
+Following the Bordens & Abbott (2018) process approach, **Scouting** is the researcher’s initial transition from casual observation to systematic scientific inquiry. It is the disciplined process where an observed phenomenon—a specific system failure, inefficiency, or human-computer interaction event—triggers focused inquiry.
+> *Case Illustration:* Consider the real-world case of Christopher Cepeda, whose fatal pedestrian collision while distracted on a mobile phone catalyzed the foundational research by Byington and Schwebel (2013). Rather than treating it as an isolated news event, the researchers scouted the underlying phenomenon of "distraction-induced attention disruption," recreating the environment in an interactive Virtual Environment (VE) to systematically observe pedestrian crossing decisions under cognitive load.
+
+### Variable Identification in Scouting
+During the scouting phase, researchers must decompose the observed phenomenon into identifiable parameters:
+- **Variable:** Any characteristic, attribute, or quantity that can take on two or more values (e.g., system latency, packet error rate, cognitive load index, response time under varying concurrency).
+- **Constant:** Any characteristic that remains fixed across the context of the study (e.g., processor architecture, operating system version, baseline environmental lighting).
+- **Observation vectors for computing variables include:**
+  1. Monitoring system throughput and resource degradation under fluctuating transaction loads.
+  2. Tracking user error frequencies and task completion times when interface heuristics are altered.
+  3. Auditing the rate of "near-misses," edge-case race conditions, or unhandled exceptions in automated pipelines.
 
 ## Key questions
 
@@ -519,9 +631,24 @@ Continue to Phase B only when the group can describe a concrete candidate proble
 
 ---
 
-# 8. Phase B - Problem Validation
+# 8. Phase B - Problem Validation (Funneling & Feasibility)
 
-**Purpose:** Determine whether the candidate problem exists in the claimed context, whether it is significant enough to investigate, and whether the group can ethically and practically study it.
+**Purpose:** Determine whether the candidate problem exists in the claimed context, whether it is significant enough to investigate, and whether the group can ethically and practically study it through **Kothari’s Funneling Paradigm** and the **Feasibility Matrix**.
+
+### The Funneling Mechanism
+Broad scouting observations must be systematically "funneled" into an operationalized research problem:
+1. **Expert & Practitioner Consultations:** Engaging domain practitioners, software engineers, and faculty guides to identify real friction vs. hypothetical non-issues.
+2. **Dual-Literature Search:**
+   - *Conceptual Literature:* Reviewing the fundamental theories, architectural concepts, and principles governing the domain (e.g., queuing models, cryptography proofs).
+   - *Empirical Literature:* Reviewing recent peer-reviewed studies and experimental papers that attempted similar problem solutions.
+3. **Operational Rephrasing:** Transforming a general, ambiguous problem statement into a precise, operationalized inquiry that cleanly discriminates between relevant and irrelevant data.
+
+### The Non-Negotiable Feasibility Matrix
+Before advancing, the candidate problem must be screened against four strict feasibility constraints:
+- **Hardware & Software Resources:** Does the team possess or have verified access to necessary compute resources, testbeds, SDKs, and toolchains?
+- **Data & Environment Access:** Is training/testing data accessible, or can it be generated ethically within the study's scope?
+- **Legal & Ethical Manageability (Belmont Report):** Does the study strictly comply with *Beneficence* (mitigating risks), *Justice* (equitable burden), and *Respect for Persons* (informed consent)?
+- **Academic Timeline Constraints:** Can the investigation, artifact synthesis, and evaluation be definitively completed within the academic semester/term?
 
 ## Key questions
 
@@ -679,9 +806,25 @@ Apply **Gate 2 - Research Worthiness**. If the concept lacks a defensible unknow
 
 ---
 
-# 10. Phase D - Solution Formulation
+# 10. Phase D - Solution Formulation (Abductive Artifact Design)
 
-**Purpose:** Translate the validated problem and research question into measurable objectives and requirements, then select an artifact and technologies that satisfy those requirements.
+**Purpose:** Translate the validated problem and research question into measurable objectives and requirements, performing an **Abductive Suggestion** grounded in **Kernel Theories** to select an artifact and technologies that satisfy those requirements.
+
+### The Cognitive Path of Solution Formulation
+Computing researchers formulate solutions through three distinct logic models:
+- **Deductive Path (Theory-to-Hypothesis):** Top-down derivation where an established theoretical law predicts an outcome (e.g., Applying *Amdahl's Law* to predict speedup limits in multi-core parsing).
+- **Inductive Path (Observation-to-Theory):** Ground-up synthesis where empirical observation of system execution traces leads to a generalized workflow model.
+- **Abductive Path (The DSR Creative Leap):** Generating an informed, creative suggestion of an artifact design (Construct, Model, Method, or Instantiation) that bridges the gap between the validated problem and the desired system state.
+
+### Grounding in Kernel Theories
+The proposed solution must be theoretically grounded in one or more **Kernel Theories** (e.g., *Cognitive Load Theory* for HCI/visualization tools, *Information Theory* or *Entropy Models* for compression/security, *Queueing Theory* for scheduling, *Distributed Consensus Models* for peer networks). The kernel theory provides the explanatory foundation justifying *why* the proposed mechanism is expected to succeed.
+
+### DSR Artifact Categorization
+The group must classify its primary deliverable into one of the four DSR artifact classes (March & Smith, 1995):
+1. **Construct:** A domain ontology, semantic schema, or formal syntax.
+2. **Model:** A formal representation of relationships, state machines, or architectural workflows.
+3. **Method:** An algorithm, optimization technique, heuristic, or formal step-by-step procedure.
+4. **Instantiation:** An executable research prototype, testbed, or working software system demonstrating feasibility.
 
 ## Key questions
 
@@ -755,9 +898,20 @@ Proceed only when the proposed artifact and technologies are necessary, proporti
 
 ---
 
-# 11. Phase E - Evaluation Design
+# 11. Phase E - Evaluation Design (The "Trapping" Phase)
 
-**Purpose:** Establish before development how the study will demonstrate functionality and produce credible evidence that answers the research question.
+**Purpose:** Establish before development how the study will enter the **"Trapping Phase"** (Cialdini, 1994), demonstrating functionality and producing rigorous, objective empirical evidence that answers the research question.
+
+### The "Trapping" Protocol
+Evaluation is the ruthless arena of empirical testing where hypotheses and artifact capabilities are validated, bounded, or falsified:
+- **Variable Isolation:** Explicitly operationalize the **Independent Variable (Treatment)** (e.g., baseline vs. novel pruning algorithm) and the **Dependent Variable (Outcome)** (e.g., memory footprint, inference latency, classification F1-score), using calibrated instruments that minimize measurement bias (Patten).
+- **The Circumscription Loop (Vaishnavi & Kuechler):** If the artifact fails to meet predefined acceptance criteria during evaluation, the failure is treated as a generator of **"Missing Constraint Knowledge."** The Circumscription Loop routes this insight back to Phase D to refine artifact parameters and constraints.
+- **Kothari Experimental Design Selection:**
+  - *Informal Designs:* Before-and-After comparison without control; After-only with control group.
+  - *Completely Randomized Design (CRD):* Independent random allocation of inputs across homogeneous test nodes.
+  - *Randomized Block Design (RBD):* Stratifying test cases into homogeneous blocks (e.g., low-resolution vs. high-resolution image sets) prior to benchmark execution.
+  - *Latin Square Design (LSD):* A $k 	imes k$ matrix controlling for two simultaneous nuisance factors (e.g., Network Bandwidth $	imes$ Client Device Model).
+- **The Mandatory Pilot Study:** A required preliminary dry-run of the evaluation protocol to verify script logging integrity, test suite calibration, and instrument reliability before full-scale data capture.
 
 ## Key questions
 
@@ -1481,6 +1635,10 @@ A concept is ready for formal proposal development only when the group can compl
 
 # 21. References
 
+Byington, K. W., & Schwebel, D. C. (2013). Effects of mobile Internet use on college student pedestrian injury risk. *Accident Analysis & Prevention, 51*, 78-83.
+
+Cialdini, R. B. (1994). A full-cycle approach to social psychology. In G. G. Brannigan & M. R. Merrens (Eds.), *The art of exploration in psychological research* (pp. 52-72).
+
 Bordens, K. S., & Abbott, B. B. (2018). *Research design and methods: A process approach* (10th ed.). McGraw-Hill Education. [Publisher page](https://www.mheducation.com/highered/product/research-designs-and-methods-bordens.html)
 
 Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design science in information systems research. *MIS Quarterly, 28*(1), 75-105. [AIS eLibrary](https://aisel.aisnet.org/misq/vol28/iss1/6/)
@@ -1802,6 +1960,114 @@ Every material decision should answer:
 4. What was selected, revised, deferred, or rejected?
 5. Why was that action proportionate to the evidence?
 6. Which documents, gates, scores, risks, and next actions must now change?
+
+---
+
+
+
+# Appendix H - Practical Step-by-Step Worksheet for WVSU Capstone Ideation (LO1)
+
+*Use this worksheet as a living document to satisfy Course Outcome LO1 (Formulating objectives, scope, and evaluation metrics).*
+
+---
+
+### Step 1: Broad Observation (The Scouting Phase)
+*What specific real-world phenomenon, operational failure, or system behavior caught your attention? Describe the context, setting, and stakeholders.*
+```text
+[Observation Description]:
+```
+
+---
+
+### Step 2: Initial Variables Identification
+*Decompose the phenomenon into measurable parameters.*
+- **Independent Variable (Treatment / Manipulated Factor):**
+  ```text
+  [e.g., Algorithmic indexing mechanism, compression ratio, UI heuristic]
+  ```
+- **Dependent Variable (Measured Outcome / Behavior):**
+  ```text
+  [e.g., Query latency, memory allocation, classification error rate, completion time]
+  ```
+- **Extraneous Constants (Controlled Factors):**
+  ```text
+  [e.g., Hardware architecture, OS version, ambient network jitter]
+  ```
+
+---
+
+### Step 3: Dual-Literature Grounding
+*Ground the inquiry in both theory and prior empirical evidence.*
+- **Conceptual / Kernel Theory (Provides the fundamental logic and explanation):**
+  ```text
+  [Theory Name & Citation - e.g., Cognitive Load Theory (Sweller), Information Theory (Shannon), Queueing Theory]
+  ```
+- **Empirical Study (Provides benchmark context and prior art):**
+  ```text
+  [Study Author(s), Year, Title, & Key Finding]
+  ```
+
+---
+
+### Step 4: Operational Problem Statement
+*Rephrase the topic into an unambiguous, solvable, and evidenced research problem that discriminates relevant from irrelevant data.*
+```text
+[Operational Problem Statement]:
+```
+
+---
+
+### Step 5: Proposed Solution Logic Path
+*Select the primary cognitive reasoning path.*
+- [ ] **Deduction:** Top-Down Hypothesis Testing (Theory $ightarrow$ Hypothesis $ightarrow$ Experiment)
+- [ ] **Induction:** Ground-Up Theory Formulation (Observation $ightarrow$ Pattern $ightarrow$ Generalization)
+- [ ] **Abduction (DSR):** Creative Leap / Abductive Suggestion (Problem Awareness $ightarrow$ Novel Artifact Design)
+
+---
+
+### Step 6: Proposed Artifact Classification (DSR)
+*Define the primary deliverable output type (March & Smith / Vaishnavi & Kuechler).*
+- [ ] **Construct:** Vocabulary, taxonomy, or domain ontology.
+- [ ] **Model:** Formal representation of relationships, workflows, or architectural states.
+- [ ] **Method:** Algorithm, optimization routine, heuristic, or step-by-step technique.
+- [ ] **Instantiation:** Executable prototype, physical testbed, or software tool.
+```text
+[Brief Description of Proposed Artifact]:
+```
+
+---
+
+### Step 7: Evaluation Metric & Experimental Design (The "Trapping" Phase)
+*Specify exactly how success will be measured and trapped.*
+- **Experimental Design:**
+  - [ ] Completely Randomized Design (CRD)
+  - [ ] Randomized Block Design (RBD)
+  - [ ] Latin Square Design (LSD)
+  - [ ] Before-and-After with Control
+- **Performance Metrics & Instruments:**
+  ```text
+  [e.g., F1-Score, Execution Latency (ms), Throughput (req/sec), SUS Usability Score]
+  ```
+- **Circumscription Protocol:**
+  ```text
+  [Predefined failure threshold that triggers design parameter refinement]
+  ```
+
+---
+
+### Step 8: The Feasibility Check & Institutional Alignment
+*Verify non-negotiable execution constraints.*
+- [ ] **Hardware & Software:** Required compute/toolchains are secured.
+- [ ] **Data Access:** Legitimate and ethical data access path confirmed.
+- [ ] **Belmont Report Compliance:** Beneficence, Justice, and Respect for Persons addressed.
+- [ ] **Academic Timeline:** Complete study evaluable within the academic term.
+- [ ] **WVSU Core Values:** Demonstrates *Excellence* (methodological rigor), *Creativity* (abductive innovation), and *Service* (community impact).
+
+---
+
+### Concluding Summary on Scientific Rigor
+
+As Karl Pearson established, **the unity of all sciences consists alone in its method, not its material.** Whether you are building an algorithm, testing an embedded sensor array, or evaluating human-computer interaction, your responsibility as a **"taga-West" computing scholar** is to maintain uncompromising objectivity, empirical discipline, and ethical integrity. Research is a lifelong craft that empowers you to transform your community and advance the global computing landscape.
 
 ---
 

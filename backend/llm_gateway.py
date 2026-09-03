@@ -308,10 +308,10 @@ async def generate_with_meta(
 
     # Priority 1: User's explicitly chosen provider
     if provider == "gemini" and cfg["gemini_key"]:
-        cascade.append(("gemini", "gemini-3.8-flash"))
-        cascade.append(("gemini", "gemini-3.5-flash-lite"))
-        cascade.append(("gemini", "gemini-3.6-flash"))
-        cascade.append(("gemini", "gemini-3.5-flash"))
+        cascade.append(("gemini", "gemini-2.5-flash"))
+        cascade.append(("gemini", "gemini-2.0-flash"))
+        cascade.append(("gemini", "gemini-1.5-flash"))
+        cascade.append(("gemini", "gemini-2.5-flash-lite"))
     elif provider == "groq" and cfg["groq_key"]:
         # GPT-OSS 120B first: it never leaks reasoning. Qwen last: it leaks CoT.
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
@@ -322,14 +322,14 @@ async def generate_with_meta(
         cascade.append(("ollama", cfg["ollama_base"], "ollama", cfg["ollama_model"]))
 
     # Priority 2: Fast secondary providers (non-reasoning models first)
-    if cfg["gemini_key"] and ("gemini", "gemini-3.8-flash") not in cascade:
-        cascade.append(("gemini", "gemini-3.8-flash"))
-    if cfg["gemini_key"] and ("gemini", "gemini-3.5-flash-lite") not in cascade:
-        cascade.append(("gemini", "gemini-3.5-flash-lite"))
+    if cfg["gemini_key"] and ("gemini", "gemini-2.5-flash") not in cascade:
+        cascade.append(("gemini", "gemini-2.5-flash"))
+    if cfg["gemini_key"] and ("gemini", "gemini-2.0-flash") not in cascade:
+        cascade.append(("gemini", "gemini-2.0-flash"))
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b") not in cascade:
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
-    if cfg["gemini_key"] and ("gemini", "gemini-3.6-flash") not in cascade:
-        cascade.append(("gemini", "gemini-3.6-flash"))
+    if cfg["gemini_key"] and ("gemini", "gemini-1.5-flash") not in cascade:
+        cascade.append(("gemini", "gemini-1.5-flash"))
     # Qwen is last resort due to its strong reasoning leak tendency
     if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b") not in cascade:
         cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
