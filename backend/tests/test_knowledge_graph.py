@@ -5,7 +5,21 @@ from engines.assumption_engine import extract_claims_and_assumptions
 
 def test_knowledge_graph_storage():
     storage = get_storage()
+    sess = storage.save_session("sess_kg_test", {"project_name": "KG Test Project"})
+    pid = sess.get("project_id", "proj_sess_kg_test")
     prob = storage.get_problem("HOU-001")
+    if not prob:
+        storage.add_problem({
+            "id": "HOU-001",
+            "project_id": pid,
+            "session_id": "sess_kg_test",
+            "sector": "Housing & Utilities",
+            "sufferer_occupation": "Homeowners",
+            "sufferer_location": "Jaro, Iloilo City",
+            "problem_statement": "Severe localized flooding during monsoons.",
+            "evidence_tier": "DOCUMENTED"
+        })
+        prob = storage.get_problem("HOU-001")
     assert prob is not None
     
     # Test setting claims
