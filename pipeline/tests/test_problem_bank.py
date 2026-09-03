@@ -121,3 +121,44 @@ def test_update_and_history(temp_storage):
     fetched = temp_storage.get_problem("MSME-001")
     assert len(fetched["phase_history"]) == 1
     assert fetched["phase_history"][0]["action"] == "screened"
+
+
+def test_normalize_problem_ids_and_merge(temp_storage):
+    storage = temp_storage
+    
+    p1 = storage.add_problem({
+        "id": "HW-99",
+        "sector": "Health & Wellness",
+        "problem_statement": "Maternal health logistics delay.",
+        "score": 85.0
+    })
+    p2 = storage.add_problem({
+        "id": "TEMP-AGR-X",
+        "sector": "Agriculture & Fisheries",
+        "problem_statement": "Post-harvest onion spoilage.",
+        "score": 90.0
+    })
+    
+    # Reindex
+    normalized = storage.normalize_problem_ids()
+    ids = [p["id"] for p in normalized]
+    assert "AGR-001" in ids
+    assert "HLT-001" in ids
+    
+    # Add duplicate to merge
+    dup = storage.add_problem({
+        "id": "AGR-999",
+        "sector": "Agriculture & Fisheries",
+        "problem_statement": "Bulb onion rot in Miagao.",
+        "votes": 5
+    })
+    
+    merged = storage.merge_problems("AGR-001", ["AGR-999"])
+    assert merged is not None
+    assert merged["votes"] == 5
+    assert storage.get_problem("AGR-999") is None
+    
+    # Bulk delete
+    deleted = storage.bulk_delete_problems(["AGR-001", "HLT-001"])
+    assert deleted == 2
+    assert len(storage.list_problems()) == 0

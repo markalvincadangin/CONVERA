@@ -67,6 +67,28 @@ export const problemService = {
     return fetchApi<ScoreBreakdown>(`/api/problems/${id}/score-breakdown`);
   },
 
+  
+  async reindexIds(projectId?: string): Promise<{ status: string; count: number; problems: ProblemRecord[] }> {
+    return fetchApi<{ status: string; count: number; problems: ProblemRecord[] }>("/api/problems/reindex-ids", {
+      method: "POST",
+      body: JSON.stringify({ project_id: projectId }),
+    });
+  },
+
+  async mergeProblems(primaryId: string, duplicateIds: string[]): Promise<{ status: string; problem: ProblemRecord }> {
+    return fetchApi<{ status: string; problem: ProblemRecord }>("/api/problems/merge", {
+      method: "POST",
+      body: JSON.stringify({ primary_id: primaryId, duplicate_ids: duplicateIds }),
+    });
+  },
+
+  async bulkDelete(problemIds: string[]): Promise<{ status: string; deleted_count: number }> {
+    return fetchApi<{ status: string; deleted_count: number }>("/api/problems/bulk-delete", {
+      method: "POST",
+      body: JSON.stringify({ problem_ids: problemIds }),
+    });
+  },
+
   async challengeProblem(id: string): Promise<{ status: string; critique: DevilsAdvocateReport }> {
     return fetchApi<{ status: string; critique: DevilsAdvocateReport }>(`/api/problems/${id}/challenge`, {
       method: "POST",

@@ -166,6 +166,17 @@ class Phase5AuditRequest(BaseModel):
     evidence_desc: str
 
 # Problem Bank Models
+
+class ReindexRequest(BaseModel):
+    project_id: Optional[str] = None
+
+class MergeProblemsRequest(BaseModel):
+    primary_id: str
+    duplicate_ids: List[str]
+
+class BulkDeleteProblemsRequest(BaseModel):
+    problem_ids: List[str]
+
 class AddProblemRequest(BaseModel):
     id: Optional[str] = None
     project_id: Optional[str] = None
@@ -511,6 +522,30 @@ async def enrich_manual_note(req: EnrichProblemRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"AI enrichment failed: {str(e)}")
 
+
+
+@app.post("/api/problems/reindex-ids")
+async def reindex_problem_ids(req: ReindexRequest):
+    """Re-index all problem IDs into canonical, sequential sector codes (AGR-001, HLT-001, etc.)."""
+    storage = get_storage()
+    updated_problems = storage.normalize_problem_ids(project_id=req.project_id)
+    return {"status": "success", "count": len(updated_problems), "problems": updated_problems}
+
+@app.post("/api/problems/merge")
+async def merge_problems_endpoint(req: MergeProblemsRequest):
+    """Merge duplicate problems into a single primary record, combining citations and votes."""
+    storage = get_storage()
+    merged = storage.merge_problems(req.primary_id, req.duplicate_ids)
+    if not merged:
+        raise HTTPException(status_code=404, detail=f"Primary problem '{req.primary_id}' not found.")
+    return {"status": "success", "problem": merged}
+
+@app.post("/api/problems/bulk-delete")
+async def bulk_delete_endpoint(req: BulkDeleteProblemsRequest):
+    """Bulk delete multiple problem records."""
+    storage = get_storage()
+    deleted_count = storage.bulk_delete_problems(req.problem_ids)
+    return {"status": "success", "deleted_count": deleted_count}
 
 @app.post("/api/problems/parse-phase1")
 async def parse_phase1_output(req: ParsePhase1Request):

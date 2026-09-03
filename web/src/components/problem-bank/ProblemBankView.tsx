@@ -30,6 +30,10 @@ import {
   User,
   Activity,
   FileText,
+  Trash2,
+  Merge,
+  Wand2,
+  Check,
 } from "lucide-react";
 
 interface ProblemBankViewProps {
@@ -45,15 +49,18 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Filters & Search
+  // Filters, Search & Sorting
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSector, setSelectedSector] = useState("All");
   const [selectedTier, setSelectedTier] = useState("All");
-  const [selectedStatus, setSelectedStatus] = useState("All");
+  const [sortBy, setSortBy] = useState<"SCORE_DESC" | "VOTES_DESC" | "TIER_DESC" | "ID_ASC" | "SECTOR_ASC">("SCORE_DESC");
+  const [quickFilter, setQuickFilter] = useState<"ALL" | "CHALLENGED" | "STRONG" | "VOTED">("ALL");
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isProcessingBatch, setIsProcessingBatch] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   // Modals
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -83,24 +90,42 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
     fetchProblems();
   }, [session?.project_id]);
 
-  // Client-side filtering
+  // Client-side filtering & sorting
   const filteredProblems = useMemo(() => {
-    return problems.filter((p) => {
-      if (selectedSector !== "All" && p.sector !== selectedSector) return false;
-      if (selectedTier !== "All" && p.evidence_tier !== selectedTier) return false;
-      if (selectedStatus !== "All" && p.status !== selectedStatus) return false;
-      if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const inStmt = p.problem_statement.toLowerCase().includes(q);
-        const inSuff = (p.sufferer_occupation || "").toLowerCase().includes(q);
-        const inLoc = (p.sufferer_location || "").toLowerCase().includes(q);
-        const inId = p.id.toLowerCase().includes(q);
-        const inNotes = (p.notes || "").toLowerCase().includes(q);
-        if (!inStmt && !inSuff && !inLoc && !inId && !inNotes) return false;
-      }
-      return true;
-    });
-  }, [problems, selectedSector, selectedTier, selectedStatus, searchQuery]);
+    return problems
+      .filter((p) => {
+        if (selectedSector !== "All" && p.sector !== selectedSector) return false;
+        if (selectedTier !== "All" && p.evidence_tier !== selectedTier) return false;
+        
+        // Quick Filters
+        if (quickFilter === "CHALLENGED" && !p.devils_advocate_data) return false;
+        if (quickFilter === "STRONG" && p.evidence_tier !== "STRONGLY_DOCUMENTED") return false;
+        if (quickFilter === "VOTED" && (!p.votes || p.votes <= 0)) return false;
+
+        // Search Query
+        if (searchQuery.trim()) {
+          const q = searchQuery.toLowerCase();
+          const inStmt = (p.problem_statement || "").toLowerCase().includes(q);
+          const inSuff = (p.sufferer_occupation || "").toLowerCase().includes(q);
+          const inLoc = (p.sufferer_location || "").toLowerCase().includes(q);
+          const inId = p.id.toLowerCase().includes(q);
+          const inNotes = (p.notes || "").toLowerCase().includes(q);
+          if (!inStmt && !inSuff && !inLoc && !inId && !inNotes) return false;
+        }
+        return true;
+      })
+      .sort((a, b) => {
+        if (sortBy === "SCORE_DESC") return (b.score || 0) - (a.score || 0);
+        if (sortBy === "VOTES_DESC") return (b.votes || 0) - (a.votes || 0);
+        if (sortBy === "ID_ASC") return a.id.localeCompare(b.id);
+        if (sortBy === "SECTOR_ASC") return a.sector.localeCompare(b.sector);
+        if (sortBy === "TIER_DESC") {
+          const tierRank = (t: string) => (t === "STRONGLY_DOCUMENTED" ? 3 : t === "DOCUMENTED" ? 2 : 1);
+          return tierRank(b.evidence_tier) - tierRank(a.evidence_tier);
+        }
+        return 0;
+      });
+  }, [problems, selectedSector, selectedTier, quickFilter, sortBy, searchQuery]);
 
   const handleToggleSelect = (id: string) => {
     const next = new Set(selectedIds);
@@ -117,6 +142,70 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       setSelectedIds(new Set());
     } else {
       setSelectedIds(new Set(filteredProblems.map((p) => p.id)));
+    }
+  };
+
+  // 1-Click Standardize & Canonicalize IDs
+  const handleReindexIds = async () => {
+    if (!window.confirm("Standardize all problem IDs into clean sequential format (e.g. AGR-001, HLT-001, RET-001)?")) {
+      return;
+    }
+    setIsProcessingBatch(true);
+    try {
+      const res = await problemService.reindexIds(session?.project_id || undefined);
+      setProblems(res.problems);
+      setSelectedIds(new Set());
+      setFeedbackMessage(`Cleaned & standardized ${res.count} problem IDs!`);
+      setTimeout(() => setFeedbackMessage(null), 4000);
+    } catch (err: any) {
+      alert(`Reindexing failed: ${err.message}`);
+    } finally {
+      setIsProcessingBatch(false);
+    }
+  };
+
+  // Bulk Delete
+  const handleBulkDelete = async () => {
+    const count = selectedIds.size;
+    if (!window.confirm(`Permanently delete ${count} selected problem records from the database?`)) {
+      return;
+    }
+    setIsProcessingBatch(true);
+    try {
+      await problemService.bulkDelete(Array.from(selectedIds));
+      setProblems((prev) => prev.filter((p) => !selectedIds.has(p.id)));
+      setSelectedIds(new Set());
+      setFeedbackMessage(`Deleted ${count} problem records.`);
+      setTimeout(() => setFeedbackMessage(null), 4000);
+    } catch (err: any) {
+      alert(`Bulk delete failed: ${err.message}`);
+    } finally {
+      setIsProcessingBatch(false);
+    }
+  };
+
+  // Merge Selected Duplicates
+  const handleMergeSelected = async () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length < 2) return;
+    const primaryId = ids[0];
+    const duplicates = ids.slice(1);
+
+    if (!window.confirm(`Merge ${duplicates.join(", ")} into primary problem ${primaryId}? This combines citations and upvotes.`)) {
+      return;
+    }
+
+    setIsProcessingBatch(true);
+    try {
+      await problemService.mergeProblems(primaryId, duplicates);
+      await fetchProblems();
+      setSelectedIds(new Set([primaryId]));
+      setFeedbackMessage(`Merged duplicates into ${primaryId}!`);
+      setTimeout(() => setFeedbackMessage(null), 4000);
+    } catch (err: any) {
+      alert(`Merge failed: ${err.message}`);
+    } finally {
+      setIsProcessingBatch(false);
     }
   };
 
@@ -218,6 +307,17 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           <Button
             variant="secondary"
             size="sm"
+            onClick={handleReindexIds}
+            isLoading={isProcessingBatch}
+            leftIcon={<Wand2 className="w-3.5 h-3.5 text-amber-400" />}
+            title="Clean and assign sequential sector IDs (AGR-001, HLT-001, RET-001)"
+          >
+            Standardize IDs
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => setIsBlindSpotModalOpen(true)}
             leftIcon={<Radar className="w-3.5 h-3.5 text-purple-400" />}
           >
@@ -253,6 +353,14 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         </div>
       </div>
 
+      {/* Feedback Alert if Action Performed */}
+      {feedbackMessage && (
+        <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-mono flex items-center gap-2">
+          <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{feedbackMessage}</span>
+        </div>
+      )}
+
       {/* Control Bar: Search & Filters */}
       <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-3 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
@@ -263,7 +371,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search problem statements, locations, sufferers..."
+              placeholder="Search statements, locations, sufferers..."
               className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 shadow-inner"
             />
           </div>
@@ -285,7 +393,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           </div>
 
           {/* Evidence Tier Filter */}
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-2">
             <select
               value={selectedTier}
               onChange={(e) => setSelectedTier(e.target.value)}
@@ -298,8 +406,23 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             </select>
           </div>
 
+          {/* Sort By Dropdown */}
+          <div className="sm:col-span-2">
+            <select
+              value={sortBy}
+              onChange={(e: any) => setSortBy(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-cyan-300 font-mono font-semibold focus:outline-none focus:border-cyan-500/50 shadow-inner"
+            >
+              <option value="SCORE_DESC">Score (High → Low)</option>
+              <option value="VOTES_DESC">Votes (Most Upvoted)</option>
+              <option value="TIER_DESC">Evidence Tier</option>
+              <option value="ID_ASC">ID (AGR → UTL)</option>
+              <option value="SECTOR_ASC">Sector (A → Z)</option>
+            </select>
+          </div>
+
           {/* View Mode Toggle */}
-          <div className="sm:col-span-2 flex items-center justify-end gap-1.5">
+          <div className="sm:col-span-1 flex items-center justify-end gap-1">
             <button
               onClick={() => setViewMode("cards")}
               className={`p-2 rounded-xl border transition-all ${
@@ -325,11 +448,59 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           </div>
         </div>
 
+        {/* Quick Filter Chips */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-[10px] font-mono uppercase font-bold text-slate-500 mr-1">Quick Filter:</span>
+          <button
+            onClick={() => setQuickFilter("ALL")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all ${
+              quickFilter === "ALL"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
+                : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+            }`}
+          >
+            All ({problems.length})
+          </button>
+          <button
+            onClick={() => setQuickFilter("STRONG")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1 ${
+              quickFilter === "STRONG"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold"
+                : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+            }`}
+          >
+            <ShieldCheck className="w-3 h-3 text-emerald-400" />
+            <span>Strongly Documented</span>
+          </button>
+          <button
+            onClick={() => setQuickFilter("VOTED")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1 ${
+              quickFilter === "VOTED"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold"
+                : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+            }`}
+          >
+            <ThumbsUp className="w-3 h-3 text-cyan-400" />
+            <span>Team Upvoted</span>
+          </button>
+          <button
+            onClick={() => setQuickFilter("CHALLENGED")}
+            className={`px-2.5 py-1 rounded-lg text-xs font-mono transition-all flex items-center gap-1 ${
+              quickFilter === "CHALLENGED"
+                ? "bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold"
+                : "bg-slate-950 border border-slate-800 text-slate-400 hover:text-white"
+            }`}
+          >
+            <Flame className="w-3 h-3 text-rose-400" />
+            <span>Challenged (Devil's Advocate)</span>
+          </button>
+        </div>
+
         {/* Action Bar when items are selected */}
         {selectedIds.size > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80">
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800/80 bg-slate-950/60 p-3 rounded-xl border border-cyan-500/20">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-cyan-400 font-mono">
+              <span className="text-xs font-bold text-cyan-300 font-mono">
                 {selectedIds.size} of {filteredProblems.length} Selected
               </span>
               <button
@@ -340,14 +511,36 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
               </button>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
+              {selectedIds.size >= 2 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleMergeSelected}
+                  isLoading={isProcessingBatch}
+                  leftIcon={<Merge className="w-3.5 h-3.5 text-purple-400" />}
+                >
+                  Merge {selectedIds.size} Selected
+                </Button>
+              )}
+
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleBulkDelete}
+                isLoading={isProcessingBatch}
+                leftIcon={<Trash2 className="w-3.5 h-3.5 text-rose-400" />}
+              >
+                Delete Selected
+              </Button>
+
               <Button
                 variant="primary"
                 size="sm"
                 onClick={() => onSendToPhase2(Array.from(selectedIds))}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
               >
-                Screen {selectedIds.size} Selected in Phase 2
+                Screen {selectedIds.size} in Phase 2
               </Button>
             </div>
           </div>

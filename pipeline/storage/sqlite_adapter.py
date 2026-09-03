@@ -187,7 +187,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_problems_tier ON problems(evidence_tier);
                 CREATE INDEX IF NOT EXISTS idx_problems_updated ON problems(updated_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_problem_sources_pid ON problem_sources(problem_id);
-                CREATE INDEX IF NOT EXISTS idx_problem_history_pid ON problem_phase_history(problem_id);
+                CREATE INDEX IF NOT EXISTS idx_problem_phase_history_pid ON problem_phase_history(problem_id);
             """)
 
             # Migration safe check for newly added columns if table already existed
@@ -851,3 +851,121 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             conn.execute("UPDATE problems SET votes = max(0, coalesce(votes, 0) + ?) WHERE id = ?", (delta, problem_id))
         p = self.get_problem(problem_id)
         return p or {"id": problem_id, "votes": 0}
+
+
+    def normalize_problem_ids(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Re-indexes all problem IDs into clean sequential codes: AGR-001, HLT-001, RET-001, etc."""
+        sector_prefixes = {
+            "Agriculture & Fisheries": "AGR",
+            "Health & Wellness": "HLT",
+            "MSMEs & Retail": "RET",
+            "Education & Youth": "EDU",
+            "Transport & Logistics": "LOG",
+            "Housing & Utilities": "UTL",
+            "Government Services & Compliance": "GOV",
+            "Finance & Credit": "FIN",
+        }
+        
+        with self._get_connection() as conn:
+            conn.execute("PRAGMA foreign_keys = OFF;")
+            query = "SELECT * FROM problems"
+            params = []
+            if project_id:
+                query += " WHERE project_id = ?"
+                params.append(project_id)
+            query += " ORDER BY sector ASC, score DESC, votes DESC, id ASC"
+            
+            rows = [dict(r) for r in conn.execute(query, params).fetchall()]
+            
+            sector_counters: Dict[str, int] = {}
+            id_mapping: Dict[str, str] = {}
+            
+            # Temporary prefix to avoid unique constraint collisions during rename
+            temp_prefix = f"TEMP_{uuid.uuid4().hex[:4]}_"
+            for r in rows:
+                conn.execute("UPDATE problems SET id = ? WHERE id = ?", (temp_prefix + r["id"], r["id"]))
+                conn.execute("UPDATE problem_sources SET problem_id = ? WHERE problem_id = ?", (temp_prefix + r["id"], r["id"]))
+                conn.execute("UPDATE problem_comments SET problem_id = ? WHERE problem_id = ?", (temp_prefix + r["id"], r["id"]))
+                conn.execute("UPDATE problem_phase_history SET problem_id = ? WHERE problem_id = ?", (temp_prefix + r["id"], r["id"]))
+            
+            # Now assign clean permanent sequential IDs
+            for r in rows:
+                old_id = r["id"]
+                temp_id = temp_prefix + old_id
+                sec = r["sector"]
+                prefix = sector_prefixes.get(sec, "PRB")
+                count = sector_counters.get(sec, 0) + 1
+                sector_counters[sec] = count
+                new_id = f"{prefix}-{count:03d}"
+                id_mapping[old_id] = new_id
+                
+                conn.execute("UPDATE problems SET id = ? WHERE id = ?", (new_id, temp_id))
+                conn.execute("UPDATE problem_sources SET problem_id = ? WHERE problem_id = ?", (new_id, temp_id))
+                conn.execute("UPDATE problem_comments SET problem_id = ? WHERE problem_id = ?", (new_id, temp_id))
+                conn.execute("UPDATE problem_phase_history SET problem_id = ? WHERE problem_id = ?", (new_id, temp_id))
+            
+            conn.commit()
+            
+        return self.list_problems(project_id=project_id)
+
+    def merge_problems(self, primary_id: str, duplicate_ids: List[str]) -> Optional[Dict[str, Any]]:
+        """Merges multiple duplicate problems into a primary problem record."""
+        clean_primary = clean_problem_id(primary_id)
+        clean_dups = [clean_problem_id(d) for d in duplicate_ids if clean_problem_id(d) != clean_primary]
+        
+        if not clean_dups:
+            return self.get_problem(clean_primary)
+            
+        primary = self.get_problem(clean_primary)
+        if not primary:
+            return None
+            
+        total_votes = primary.get("votes", 0)
+        combined_sources = list(primary.get("sources", []))
+        existing_urls = {s.get("source_url") for s in combined_sources if s.get("source_url")}
+        
+        with self._get_connection() as conn:
+            for dup_id in clean_dups:
+                dup = self.get_problem(dup_id)
+                if not dup:
+                    continue
+                total_votes += dup.get("votes", 0)
+                
+                # Merge sources
+                for s in dup.get("sources", []):
+                    url = s.get("source_url")
+                    if not url or url not in existing_urls:
+                        combined_sources.append(s)
+                        if url:
+                            existing_urls.add(url)
+                        conn.execute("""
+                            INSERT INTO problem_sources (problem_id, source_name, source_type, source_url, notes, tier)
+                            VALUES (?, ?, ?, ?, ?, ?)
+                        """, (clean_primary, s.get("source_name", "Cited Source"), s.get("source_type", "FIELD_NOTE"), s.get("source_url", ""), s.get("notes", ""), s.get("tier", "SIGNAL")))
+                
+                # Move comments
+                conn.execute("UPDATE problem_comments SET problem_id = ? WHERE problem_id = ?", (clean_primary, dup_id))
+                
+                # Delete duplicate record
+                conn.execute("DELETE FROM problems WHERE id = ?", (dup_id,))
+                conn.execute("DELETE FROM problem_sources WHERE problem_id = ?", (dup_id,))
+            
+            # Update primary votes and updated_at
+            now = datetime.now(timezone.utc).isoformat()
+            conn.execute("UPDATE problems SET votes = ?, updated_at = ? WHERE id = ?", (total_votes, now, clean_primary))
+            conn.commit()
+            
+        return self.get_problem(clean_primary)
+
+    def bulk_delete_problems(self, problem_ids: List[str]) -> int:
+        """Bulk deletes problems and their associated sources."""
+        clean_ids = [clean_problem_id(pid) for pid in problem_ids]
+        if not clean_ids:
+            return 0
+            
+        with self._get_connection() as conn:
+            placeholders = ",".join("?" for _ in clean_ids)
+            cur = conn.execute(f"DELETE FROM problems WHERE id IN ({placeholders})", clean_ids)
+            conn.execute(f"DELETE FROM problem_sources WHERE problem_id IN ({placeholders})", clean_ids)
+            conn.commit()
+            return cur.rowcount
