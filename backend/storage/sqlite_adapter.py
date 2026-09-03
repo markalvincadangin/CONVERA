@@ -363,6 +363,23 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS circumscription_iterations (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL,
+                    session_id TEXT,
+                    artifact_name TEXT NOT NULL,
+                    iteration_number INTEGER NOT NULL,
+                    test_run_name TEXT NOT NULL,
+                    metric_name TEXT NOT NULL,
+                    observed_value REAL NOT NULL,
+                    target_value REAL NOT NULL,
+                    status TEXT NOT NULL, -- PASSED, FAILED_LOOPBACK
+                    failure_mode TEXT,
+                    constraint_extracted TEXT,
+                    target_phase_loopback TEXT DEFAULT 'PHASE_D',
+                    created_at TEXT NOT NULL
+                );
+
 
 
 
@@ -2087,3 +2104,60 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 d["failed_criteria"] = json.loads(d["failed_criteria"]) if d.get("failed_criteria") else []
                 results.append(d)
             return results
+
+    def record_circumscription_iteration(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        iter_id = data.get("id") or f"circ_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        proj_id = data.get("project_id", "default_proj")
+
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT COUNT(*) FROM circumscription_iterations WHERE project_id = ? OR project_id = 'default_proj'",
+                (proj_id,)
+            ).fetchone()
+            iteration_num = (row[0] if row else 0) + 1
+
+            conn.execute(
+                """
+                INSERT INTO circumscription_iterations
+                (id, project_id, session_id, artifact_name, iteration_number, test_run_name, metric_name, observed_value, target_value, status, failure_mode, constraint_extracted, target_phase_loopback, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    observed_value = excluded.observed_value,
+                    status = excluded.status,
+                    failure_mode = excluded.failure_mode,
+                    constraint_extracted = excluded.constraint_extracted
+                """,
+                (
+                    iter_id,
+                    proj_id,
+                    data.get("session_id"),
+                    data.get("artifact_name", "Artifact Model"),
+                    data.get("iteration_number", iteration_num),
+                    data.get("test_run_name", f"Benchmark Run #{iteration_num}"),
+                    data.get("metric_name", "Accuracy (%)"),
+                    float(data.get("observed_value", 0.0)),
+                    float(data.get("target_value", 85.0)),
+                    data.get("status", "FAILED_LOOPBACK"),
+                    data.get("failure_mode", ""),
+                    data.get("constraint_extracted", ""),
+                    data.get("target_phase_loopback", "PHASE_D"),
+                    now
+                )
+            )
+        data["id"] = iter_id
+        data["iteration_number"] = iteration_num
+        data["created_at"] = now
+        return data
+
+    def list_circumscription_iterations(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM circumscription_iterations WHERE 1=1"
+        params: List[Any] = []
+        if project_id:
+            query += " AND (project_id = ? OR project_id = 'default_proj')"
+            params.append(project_id)
+        query += " ORDER BY iteration_number ASC"
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            return [dict(r) for r in rows]

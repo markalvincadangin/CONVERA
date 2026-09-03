@@ -18,6 +18,8 @@ import { LiteratureMatrixTable, LiteratureRow, ResearchGapItem } from "@/compone
 import { UnknownsMap } from "@/components/knowledge/UnknownsMap";
 import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
 import { GateReviewModal } from "@/components/frameworks/research/GateReviewModal";
+import { CircumscriptionLoopView } from "@/components/frameworks/research/CircumscriptionLoopView";
+import { IntelligenceScorecardDrawer } from "@/components/knowledge/IntelligenceScorecardDrawer";
 import { researchService } from "@/services/researchService";
 import { SessionState, ProblemRecord } from "@/lib/types";
 
@@ -47,6 +49,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const [matrixGaps, setMatrixGaps] = useState<ResearchGapItem[]>([]);
   const [isLoadingMatrix, setIsLoadingMatrix] = useState<boolean>(false);
   const [isTraceabilityOpen, setIsTraceabilityOpen] = useState<boolean>(false);
+  const [isScorecardOpen, setIsScorecardOpen] = useState<boolean>(false);
   const [activeGateModal, setActiveGateModal] = useState<"GATE_1" | "GATE_2" | "GATE_3" | "GATE_4" | null>(null);
 
   // Default demo papers for initial view
@@ -88,6 +91,12 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
           </div>
 
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setIsScorecardOpen(true)}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 transition flex items-center gap-1.5"
+            >
+              <Sparkles className="w-3.5 h-3.5" /> Intelligence Scorecard
+            </button>
             <button
               onClick={() => setIsTraceabilityOpen(true)}
               className="rounded-2xl border border-slate-700 bg-slate-900/80 hover:bg-slate-800 px-4 py-3 text-xs font-bold text-cyan-300 shadow-xl transition-all"

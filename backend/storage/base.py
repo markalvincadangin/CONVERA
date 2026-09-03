@@ -221,3 +221,12 @@ class BaseStorageAdapter(ABC):
     def list_gate_reviews(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """List all recorded gate reviews for a project."""
         pass
+    @abstractmethod
+    def record_circumscription_iteration(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Record a DSR evaluation circumscription iteration."""
+        pass
+
+    @abstractmethod
+    def list_circumscription_iterations(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List all recorded circumscription iterations."""
+        pass
