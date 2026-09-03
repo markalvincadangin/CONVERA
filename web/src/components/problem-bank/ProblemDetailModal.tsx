@@ -6,6 +6,7 @@ import { Button } from "@/components/common/Button";
 import { ProblemCommentsSection } from "./ProblemCommentsSection";
 import { authService } from "@/services/authService";
 import { ProblemRecord } from "@/lib/types";
+import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import {
@@ -120,7 +121,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} title={`Problem Dossier: ${problem.id}`} maxWidth="4xl">
+      <Modal isOpen={isOpen} onClose={onClose} title={`Problem Dossier: ${sanitizeProblemId(problem.id)}`} maxWidth="4xl">
         <div className="space-y-6 max-h-[75vh] overflow-y-auto pr-1">
           {/* Top Badges Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-950 rounded-2xl border border-slate-800">

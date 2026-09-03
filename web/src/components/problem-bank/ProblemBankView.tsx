@@ -8,6 +8,7 @@ import { Spinner } from "@/components/common/Spinner";
 import { ProblemRecord, EvidenceTier, SessionState } from "@/lib/types";
 import { problemService } from "@/services/problemService";
 import { ALL_SECTORS } from "@/lib/constants";
+import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { ManualProblemModal } from "./ManualProblemModal";
 import { ProblemDetailModal } from "./ProblemDetailModal";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
@@ -179,7 +180,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       "Sources Count",
     ];
     const rows = filteredProblems.map((p) => [
-      `"${p.id}"`,
+      `"${sanitizeProblemId(p.id)}"`,
       `"${p.sector}"`,
       `"${p.sufferer_occupation}"`,
       `"${p.sufferer_location}"`,
@@ -320,9 +321,9 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50"
             >
               <option value="All">All Evidence Tiers</option>
-              <option value="STRONGLY_DOCUMENTED"><ShieldCheck className="w-3 h-3" /> Strongly Documented</option>
-              <option value="DOCUMENTED"> Documented</option>
-              <option value="SIGNAL"> Signal</option>
+              <option value="STRONGLY_DOCUMENTED">Strongly Documented</option>
+              <option value="DOCUMENTED">Documented</option>
+              <option value="SIGNAL">Signal</option>
             </select>
           </div>
 
@@ -424,7 +425,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
             return (
               <div
-                key={p.id}
+                key={sanitizeProblemId(p.id)}
                 className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between gap-3 relative cursor-pointer ${
                   isSelected
                     ? "bg-slate-800/90 border-cyan-500 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/50"
@@ -446,7 +447,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                         className="rounded border-slate-700 text-cyan-500 focus:ring-0 w-4 h-4 cursor-pointer"
                       />
                       <span className="font-mono text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-                        {p.id}
+                        {sanitizeProblemId(p.id)}
                       </span>
                     </div>
 
@@ -482,12 +483,12 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
                   {/* Problem Statement */}
                   <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-snug">
-                    {p.problem_statement}
+                    {sanitizeText(p.problem_statement)}
                   </h4>
 
                   {/* Sufferer & Location */}
                   <p className="text-[11px] text-slate-400 line-clamp-1">
-                    <strong className="text-slate-300">{p.sufferer_occupation}</strong> in {p.sufferer_location}
+                    <strong className="text-slate-300">{sanitizeText(p.sufferer_occupation)}</strong> in {sanitizeText(p.sufferer_location)}
                   </p>
                 </div>
 
@@ -495,7 +496,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                 <div className="pt-2 border-t border-slate-800/80 space-y-2 text-[11px]">
                   {p.quantified_impact && (
                     <div className="text-emerald-400 font-medium truncate text-[11px]">
-                       {p.quantified_impact}
+                       {sanitizeText(p.quantified_impact)}
                     </div>
                   )}
 
@@ -554,7 +555,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                   const isSelected = selectedIds.has(p.id);
                   return (
                     <tr
-                      key={p.id}
+                      key={sanitizeProblemId(p.id)}
                       className={`hover:bg-slate-800/50 cursor-pointer transition-colors ${
                         isSelected ? "bg-cyan-500/5" : ""
                       }`}
@@ -571,14 +572,14 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                           className="rounded border-slate-700 text-cyan-500 focus:ring-0 w-4 h-4 cursor-pointer"
                         />
                       </td>
-                      <td className="p-3 font-mono font-bold text-white whitespace-nowrap">{p.id}</td>
+                      <td className="p-3 font-mono font-bold text-white whitespace-nowrap">{sanitizeProblemId(p.id)}</td>
                       <td className="p-3 text-slate-400 whitespace-nowrap">{p.sector}</td>
                       <td className="p-3 max-w-[180px]">
                         <div className="font-semibold text-white truncate">{p.sufferer_occupation}</div>
                         <div className="text-[10px] text-slate-400 truncate">{p.sufferer_location}</div>
                       </td>
                       <td className="p-3 max-w-[280px]">
-                        <p className="line-clamp-2 text-white font-medium leading-snug">{p.problem_statement}</p>
+                        <p className="line-clamp-2 text-white font-medium leading-snug">{sanitizeText(p.problem_statement)}</p>
                       </td>
                       <td className="p-3 whitespace-nowrap">{tierBadge(p.evidence_tier)}</td>
                       <td className="p-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>

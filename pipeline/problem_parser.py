@@ -1,7 +1,7 @@
 """
 Phase 1 Markdown to Structured Problem Bank Parser
 Extracts structured problem records, source links, and deep-dive analyses
-from Phase 1 Discovery Advisor markdown reports.
+from Phase 1 Discovery Advisor markdown reports with full text sanitization.
 """
 
 import re
@@ -24,14 +24,37 @@ SECTOR_PREFIX_MAP = {
     "CRE": "Finance & Credit",
 }
 
+def clean_text(val: Optional[str]) -> str:
+    """Strip markdown bold/italics, HTML linebreaks, and extraneous whitespace."""
+    if not val:
+        return ""
+    # Strip HTML tags like <br>, <br/>, </p>
+    s = re.sub(r"<br\s*/?>", " ", val, flags=re.IGNORECASE)
+    s = re.sub(r"<[^>]+>", " ", s)
+    # Strip markdown bold/italic asterisks & underscores
+    s = re.sub(r"\*\*([^*]+)\*\*", r"\1", s)
+    s = re.sub(r"\*([^*]+)\*", r"\1", s)
+    s = re.sub(r"__([^_]+)__", r"\1", s)
+    s = re.sub(r"_([^_]+)_", r"\1", s)
+    # Strip stray asterisks, hashes, or backticks
+    s = s.replace("**", "").replace("*", "").replace("`", "").replace("##", "").replace("#", "")
+    # Normalize whitespace
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+def clean_problem_id(val: str) -> str:
+    """Sanitize problem ID to clean standard like AGR-001."""
+    s = clean_text(val)
+    s = re.sub(r"[^A-Za-z0-9\-]", "", s).upper()
+    return s
+
 def infer_sector(problem_id: str, title: str) -> str:
-    """Infer sector from problem ID prefix or document title."""
-    clean_id = re.sub(r"[\[\]\s]", "", problem_id).upper()
+    """Infer industry sector from ID prefix or report title."""
+    clean_id = clean_problem_id(problem_id)
     for prefix, sector in SECTOR_PREFIX_MAP.items():
         if clean_id.startswith(prefix):
             return sector
 
-    # Fallback to title
     for sector in SECTOR_PREFIX_MAP.values():
         if sector.lower() in title.lower():
             return sector
@@ -53,7 +76,7 @@ def parse_phase1_markdown(
     doc_title = ""
     for line in lines[:10]:
         if line.startswith("# "):
-            doc_title = line.replace("#", "").strip()
+            doc_title = clean_text(line.replace("#", ""))
             break
 
     problems: Dict[str, Dict[str, Any]] = {}
@@ -82,17 +105,17 @@ def parse_phase1_markdown(
                 continue
 
             raw_id = cells[0]
-            clean_id = re.sub(r"[\[\]\s]", "", raw_id)
-            if not clean_id or clean_id.lower() == "problem id":
+            clean_id = clean_problem_id(raw_id)
+            if not clean_id or clean_id.lower() == "problemid":
                 continue
 
-            sufferer_raw = cells[1] if len(cells) > 1 else ""
-            problem_stmt = cells[2] if len(cells) > 2 else ""
+            sufferer_raw = clean_text(cells[1]) if len(cells) > 1 else ""
+            problem_stmt = clean_text(cells[2]) if len(cells) > 2 else ""
             tier_raw = cells[3] if len(cells) > 3 else "SIGNAL"
-            workaround = cells[4] if len(cells) > 4 else ""
-            impact = cells[5] if len(cells) > 5 else ""
-            evidence_types_raw = cells[6] if len(cells) > 6 else ""
-            sources_raw = cells[7] if len(cells) > 7 else ""
+            workaround = clean_text(cells[4]) if len(cells) > 4 else ""
+            impact = clean_text(cells[5]) if len(cells) > 5 else ""
+            evidence_types_raw = clean_text(cells[6]) if len(cells) > 6 else ""
+            sources_raw = cells[7].strip() if len(cells) > 7 else ""
 
             # Normalize evidence tier
             clean_tier = "SIGNAL"
@@ -107,40 +130,51 @@ def parse_phase1_markdown(
             sufferer_loc = "Iloilo, Philippines"
             if " in " in sufferer_raw:
                 parts = sufferer_raw.split(" in ", 1)
-                sufferer_occ = parts[0].strip()
-                sufferer_loc = parts[1].strip()
-            elif "," in sufferer_raw:
-                parts = sufferer_raw.split(",", 1)
-                sufferer_occ = parts[0].strip()
-                sufferer_loc = parts[1].strip()
+                sufferer_occ = clean_text(parts[0])
+                sufferer_loc = clean_text(parts[1])
 
-            # Parse evidence types
-            ev_types = [t.strip() for t in re.split(r"[,;+/]", evidence_types_raw) if t.strip()]
+            # Split evidence types
+            evidence_types = [
+                clean_text(t) for t in re.split(r"[,;\n]+", evidence_types_raw) if clean_text(t)
+            ]
+            if not evidence_types:
+                evidence_types = ["Opportunistic Observation"]
 
-            # Parse sources hyperlinks: [Label](url)
+            # Parse sources (handle markdown links like [PSA](https://...) or raw text)
             sources = []
-            link_matches = re.findall(r"\[([^\]]+)\]\((https?://[^\)]+)\)", sources_raw)
-            if link_matches:
-                for label, url in link_matches:
-                    source_tier = "A" if any(k in url.lower() for k in ["psa", "doh", "dti", "da.", "bfar", "denr", "dost", "dswd", "deped", "iloilo.gov"]) else "B"
-                    sources.append({
-                        "source_name": label,
-                        "source_url": url,
-                        "source_tier": source_tier,
-                        "evidence_type": "Official / News Registry",
-                        "quote_or_summary": f"Referenced in Phase 1 discovery landscape: {label}"
-                    })
-            else:
-                # Plain text sources
-                raw_source_names = [s.strip() for s in re.split(r"[,;]", sources_raw) if s.strip()]
-                for sname in raw_source_names:
-                    sources.append({
-                        "source_name": sname,
-                        "source_url": None,
-                        "source_tier": "C",
-                        "evidence_type": "Observation / Report",
-                        "quote_or_summary": sname
-                    })
+            if sources_raw:
+                link_matches = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", sources_raw)
+                if link_matches:
+                    for name, url in link_matches:
+                        c_name = clean_text(name)
+                        tier = "Tier B"
+                        if any(k in c_name.lower() for k in ["psa", "dti", "da", "dost", "doh", "lgu", "bfar", "nia"]):
+                            tier = "Tier A"
+                        elif any(k in c_name.lower() for k in ["reddit", "facebook", "community", "forum"]):
+                            tier = "Tier C"
+                        sources.append({
+                            "source_name": c_name,
+                            "source_url": url.strip(),
+                            "source_tier": tier,
+                            "citation": c_name
+                        })
+                else:
+                    for s in re.split(r"[\n;]+", sources_raw):
+                        cs = clean_text(s)
+                        if cs:
+                            tier = "Tier B"
+                            if "tier a" in cs.lower() or any(k in cs.lower() for k in ["psa", "dti", "da", "dost", "bfar"]):
+                                tier = "Tier A"
+                            elif "tier c" in cs.lower():
+                                tier = "Tier C"
+                            elif "tier d" in cs.lower():
+                                tier = "Tier D"
+                            sources.append({
+                                "source_name": cs,
+                                "source_url": None,
+                                "source_tier": tier,
+                                "citation": cs
+                            })
 
             sector = infer_sector(clean_id, doc_title)
 
@@ -149,43 +183,46 @@ def parse_phase1_markdown(
                 "project_id": project_id,
                 "session_id": session_id,
                 "sector": sector,
-                "sufferer_occupation": sufferer_occ,
-                "sufferer_location": sufferer_loc,
-                "problem_statement": problem_stmt,
+                "sufferer_occupation": sufferer_occ or "Target User",
+                "sufferer_location": sufferer_loc or "Iloilo, Philippines",
+                "problem_statement": problem_stmt or "Unspecified friction.",
                 "evidence_tier": clean_tier,
-                "workaround": workaround,
-                "quantified_impact": impact,
-                "evidence_types": ev_types,
-                "sources": sources,
+                "workaround": workaround or "Informal manual workarounds",
+                "quantified_impact": impact or "Unquantified friction",
+                "evidence_types": evidence_types,
                 "source": "llm_phase1",
-                "source_detail": doc_title or "Phase 1 Automated Discovery",
-                "tags": [sector.split("&")[0].strip().lower()],
-                "status": "discovered",
-                "notes": ""
+                "source_detail": doc_title or "Phase 1 Discovery",
+                "tags": [sector, "Phase 1 Discovered"],
+                "status": "DISCOVERED",
+                "sources": sources,
+                "notes": "",
             }
 
     # ------------------------------------------------------------------
-    # Step 2: Parse Deep-Dive Section 2 (enrich notes & fields)
+    # Step 2: Parse Deep-Dive Sections (Section 2)
     # ------------------------------------------------------------------
-    deep_dive_blocks = re.split(r"\n###\s+", markdown)
-    for block in deep_dive_blocks[1:]:
-        header_line = block.splitlines()[0]
-        id_match = re.search(r"\[?([A-Za-z0-9_-]+)\]?:?\s*(.*)", header_line)
-        if not id_match:
+    current_pid = None
+    deep_dive_text = []
+
+    for line in lines:
+        match = re.search(r"###?\s*(?:2\.\d+\s+)?(?:Problem\s+)?\[?([A-Z]+-\d+)\]?", line)
+        if match:
+            if current_pid and current_pid in problems and deep_dive_text:
+                problems[current_pid]["notes"] = clean_text("\n".join(deep_dive_text))
+            current_pid = clean_problem_id(match.group(1))
+            deep_dive_text = [clean_text(line)]
             continue
 
-        p_id = id_match.group(1).replace("[", "").replace("]", "").strip()
-        p_title = id_match.group(2).strip()
+        if current_pid:
+            if line.startswith("## ") and not line.startswith("### "):
+                if current_pid in problems and deep_dive_text:
+                    problems[current_pid]["notes"] = clean_text("\n".join(deep_dive_text))
+                current_pid = None
+                deep_dive_text = []
+            else:
+                deep_dive_text.append(clean_text(line))
 
-        if p_id in problems:
-            # Extract notes from bullet points
-            notes_lines = []
-            for bline in block.splitlines()[1:]:
-                if bline.strip().startswith("* ") or bline.strip().startswith("- "):
-                    notes_lines.append(bline.strip())
-            if notes_lines:
-                problems[p_id]["notes"] = (
-                    f"**Deep Dive Analysis: {p_title}**\n" + "\n".join(notes_lines)
-                )
+    if current_pid and current_pid in problems and deep_dive_text:
+        problems[current_pid]["notes"] = clean_text("\n".join(deep_dive_text))
 
     return list(problems.values())
