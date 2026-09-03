@@ -56,3 +56,8 @@ Thumbs.db
 .vscode/
 *.swp
 *.swo
+
+# Graphify Outputs
+graphify-out/
+graph.html
+
