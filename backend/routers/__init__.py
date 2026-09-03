@@ -8,10 +8,11 @@ from .connectors import router as connectors_router
 from .inbox import router as inbox_router
 from .agents import router as agents_router
 from .frameworks import router as frameworks_router
-from .problems import router as problems_router
+from .problems import router as problems_router, research_router
 from .sessions import router as sessions_router
 from .pipeline import router as pipeline_router
 from .knowledge import router as knowledge_router
+from .decisions import router as decisions_router
 
 __all__ = [
     "connectors_router",
@@ -19,7 +20,9 @@ __all__ = [
     "agents_router",
     "frameworks_router",
     "problems_router",
+    "research_router",
     "sessions_router",
     "pipeline_router",
     "knowledge_router",
+    "decisions_router",
 ]

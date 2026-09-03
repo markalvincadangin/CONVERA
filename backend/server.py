@@ -39,8 +39,10 @@ from routers import (
     agents_router,
     frameworks_router,
     problems_router,
+    research_router,
     sessions_router,
     pipeline_router,
+    decisions_router,
 )
 
 app = FastAPI(
@@ -64,9 +66,11 @@ app.include_router(inbox_router)
 app.include_router(agents_router)
 app.include_router(frameworks_router)
 app.include_router(problems_router)
+app.include_router(research_router)
 app.include_router(sessions_router)
 app.include_router(pipeline_router)
 app.include_router(knowledge_router)
+app.include_router(decisions_router)
 
 
 # ---------------------------------------------------------------------------
