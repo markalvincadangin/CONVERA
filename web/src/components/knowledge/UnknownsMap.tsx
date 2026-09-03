@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { Plus, CheckCircle2, HelpCircle, AlertTriangle, ShieldAlert, X, Sparkles, RefreshCw } from "lucide-react";
 import { unknownsApi, UnknownsMapReport, UnknownItem } from "@/services/knowledgeService";
 
 interface UnknownsMapProps {
   projectId?: string;
   sessionId?: string;
+  refreshKey?: number;
 }
 
-export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_proj", sessionId }) => {
+export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_proj", sessionId, refreshKey = 0 }) => {
   const [data, setData] = useState<UnknownsMapReport | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
@@ -30,7 +32,7 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
 
   useEffect(() => {
     loadMap();
-  }, [projectId]);
+  }, [projectId, refreshKey]);
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,9 +88,9 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowAddModal(true)}
-            className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-900/40 transition-all active:scale-95"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-cyan-950/50 transition-all active:scale-95"
           >
-            + Add Unknown / Hypothesis
+            <Plus className="w-3.5 h-3.5" /> Add Unknown / Hypothesis
           </button>
         </div>
       </div>
@@ -140,7 +142,11 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
               </div>
             ))}
             {(!data?.what_we_know || data.what_we_know.length === 0) && (
-              <div className="text-center py-8 text-xs text-slate-500 italic">No verified facts recorded yet.</div>
+              <div className="text-center py-6 px-3 rounded-xl border border-dashed border-emerald-900/40 bg-emerald-950/10 space-y-1.5">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500/50 mx-auto" />
+                <p className="text-xs font-medium text-slate-400">No verified facts recorded yet.</p>
+                <p className="text-[10px] text-slate-500">Auto-decompose from Problem Bank or add verified metrics.</p>
+              </div>
             )}
           </div>
         </div>
@@ -166,7 +172,11 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
               </div>
             ))}
             {(!data?.what_we_think || data.what_we_think.length === 0) && (
-              <div className="text-center py-8 text-xs text-slate-500 italic">No working hypotheses mapped.</div>
+              <div className="text-center py-6 px-3 rounded-xl border border-dashed border-amber-900/40 bg-amber-950/10 space-y-1.5">
+                <HelpCircle className="w-5 h-5 text-amber-500/50 mx-auto" />
+                <p className="text-xs font-medium text-slate-400">No working hypotheses mapped.</p>
+                <p className="text-[10px] text-slate-500">Record theoretical mechanisms and testable assertions.</p>
+              </div>
             )}
           </div>
         </div>
@@ -192,7 +202,11 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
               </div>
             ))}
             {(!data?.what_we_dont_know || data.what_we_dont_know.length === 0) && (
-              <div className="text-center py-8 text-xs text-slate-500 italic">No critical unknowns identified.</div>
+              <div className="text-center py-6 px-3 rounded-xl border border-dashed border-rose-900/40 bg-rose-950/10 space-y-1.5">
+                <ShieldAlert className="w-5 h-5 text-rose-500/50 mx-auto" />
+                <p className="text-xs font-medium text-slate-400">No critical unknowns identified.</p>
+                <p className="text-[10px] text-slate-500">Flag unmeasured variables, hardware limits, and risks.</p>
+              </div>
             )}
           </div>
         </div>
@@ -200,23 +214,37 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
 
       {/* Add Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-          <div className="w-full max-w-md rounded-2xl border border-slate-700 bg-slate-900 p-6 shadow-2xl">
-            <h4 className="text-base font-bold text-white mb-4">Add Item to Unknowns Map</h4>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+          <div className="w-full max-w-md rounded-2xl border border-slate-700/80 bg-slate-900 p-6 shadow-2xl relative space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <h4 className="text-sm font-bold text-white">Add Item to Unknowns Map</h4>
+              </div>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
             <form onSubmit={handleAdd} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-slate-400 mb-1">Statement</label>
+                <label className="block text-xs font-bold text-slate-300 mb-1.5 font-mono">Statement / Assertion</label>
                 <textarea
                   value={newStatement}
                   onChange={(e) => setNewStatement(e.target.value)}
-                  placeholder="e.g. Farmers will pay a monthly subscription fee for solar refrigeration..."
-                  className="w-full h-24 rounded-xl border border-slate-700 bg-slate-950 p-3 text-xs text-white placeholder-slate-600 focus:border-cyan-500 focus:outline-none"
+                  placeholder="e.g. Lightweight 8-bit quantized models will sustain inference throughput under 45°C ambient temperature..."
+                  rows={3}
+                  className="w-full rounded-xl border border-slate-700 bg-slate-950 p-3 text-xs text-white placeholder-slate-500 focus:border-cyan-500 focus:outline-none transition leading-relaxed"
                   required
                 />
               </div>
+
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Knowledge Bucket</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5 font-mono">Knowledge Bucket</label>
                   <select
                     value={newCategory}
                     onChange={(e: any) => setNewCategory(e.target.value)}
@@ -228,7 +256,7 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-1">Risk Level</label>
+                  <label className="block text-xs font-bold text-slate-300 mb-1.5 font-mono">Risk Level</label>
                   <select
                     value={newRisk}
                     onChange={(e: any) => setNewRisk(e.target.value)}
@@ -241,19 +269,20 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
                   </select>
                 </div>
               </div>
-              <div className="flex items-center justify-end gap-3 pt-2">
+
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowAddModal(false)}
-                  className="rounded-xl border border-slate-700 px-4 py-2 text-xs font-medium text-slate-400 hover:text-white"
+                  className="inline-flex items-center gap-1 rounded-xl border border-slate-700 px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800 transition-colors"
                 >
-                  Cancel
+                  <X className="w-3.5 h-3.5" /> Cancel
                 </button>
                 <button
                   type="submit"
-                  className="rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-900/40"
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-cyan-950/50 transition-all active:scale-95"
                 >
-                  Save to Unknowns Map
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Save to Unknowns Map
                 </button>
               </div>
             </form>

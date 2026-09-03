@@ -34,6 +34,8 @@ import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
 import { researchService, ResearchDomainRecord } from "@/services/researchService";
+import { unknownsApi } from "@/services/knowledgeService";
+import { Target, SearchCode } from "lucide-react";
 import { Filter, Users, Briefcase, FileCheck, Trash2, Database, X, Tag } from "lucide-react";
 
 interface ResearchWorkspaceViewProps {
@@ -96,6 +98,68 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const [isDiscovering, setIsDiscovering] = useState<boolean>(false);
   const [discoveredProblems, setDiscoveredProblems] = useState<ProblemRecord[]>([]);
   const [unknownsKey, setUnknownsKey] = useState<number>(0);
+
+  const handleDecomposeToUnknowns = async (prob: ProblemRecord) => {
+    try {
+      const pid = session?.project_id || "default_proj";
+      const sid = session?.session_id;
+
+      // 1. Fact
+      await unknownsApi.add({
+        project_id: pid,
+        session_id: sid,
+        category: "WHAT_WE_KNOW",
+        statement: `Setting & Friction: ${prob.sufferer_location || "Regional Setting"}. Baseline: ${prob.workaround || "Manual workflow"}. Consequence: ${prob.quantified_impact || "Observed telemetry breakdown"}`,
+        risk_level: "LOW",
+      });
+
+      // 2. Working Hypothesis
+      await unknownsApi.add({
+        project_id: pid,
+        session_id: sid,
+        category: "WHAT_WE_THINK",
+        statement: `Proposed Computational Focus: ${prob.problem_statement}`,
+        risk_level: "MEDIUM",
+      });
+
+      // 3. Critical Unknown
+      await unknownsApi.add({
+        project_id: pid,
+        session_id: sid,
+        category: "WHAT_WE_DONT_KNOW",
+        statement: `Unexplored Variables: Environmental hardware constraints, edge inference latency limits, and protocol throughput bottlenecks`,
+        risk_level: "HIGH",
+      });
+
+      setUnknownsKey((k) => k + 1);
+      toast.success(
+        `Auto-decomposed problem into Known Facts, Working Hypothesis, and Critical Risks!`,
+        "Unknowns Map Updated"
+      );
+    } catch (err: any) {
+      console.error("Failed to decompose into unknowns:", err);
+      toast.error(err?.message || "Failed to update Unknowns Map.", "Decomposition Error");
+    }
+  };
+
+  const handleSetPrimaryFocus = (prob: ProblemRecord) => {
+    if (session && onUpdateSession) {
+      onUpdateSession({
+        ...session,
+        problem_statement: prob.problem_statement,
+      });
+      toast.success(`Set "${prob.problem_statement.slice(0, 60)}..." as active project focus!`, "Project Focus Set");
+    } else {
+      toast.info(`Selected problem: ${prob.problem_statement}`, "Problem Selected");
+    }
+  };
+
+  const handleJumpToLiterature = (prob: ProblemRecord) => {
+    setActivePhaseId("C");
+    setSearchQuery(prob.problem_statement);
+    fetchMatrix(prob.problem_statement);
+    toast.info("Switched to Phase C: Generating literature matrix for selected problem...", "Scouting Literature");
+  };
 
   // Load database domains
   const fetchDomains = async () => {
@@ -697,7 +761,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
             {/* 3. Unknowns Map Embedded in Discovery */}
             <div className="pt-2">
-              <UnknownsMap key={unknownsKey} projectId={session?.project_id || "default_proj"} sessionId={session?.session_id} />
+              <UnknownsMap key={unknownsKey} refreshKey={unknownsKey} projectId={session?.project_id || "default_proj"} sessionId={session?.session_id} />
             </div>
           </div>
         )}
