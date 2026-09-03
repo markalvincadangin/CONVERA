@@ -1,3 +1,11 @@
+
+def tokenize_statement(text: str) -> set:
+    if not text:
+        return set()
+    words = re.findall(r"\b[a-zA-Z0-9]{3,}\b", text.lower())
+    stops = {"and", "the", "for", "with", "due", "causes", "lack", "from", "into", "their", "that", "this", "during", "requiring", "leads", "across", "severe", "high", "many"}
+    return {w for w in words if w not in stops}
+
 import json
 import sqlite3
 import os
@@ -529,23 +537,110 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
     # Problem Bank Methods
     # ------------------------------------------------------------------
 
+    def find_matching_problem(self, p: Dict[str, Any], threshold: float = 0.65) -> Optional[Dict[str, Any]]:
+        """Find an existing problem in the database that describes the same core issue."""
+        sector = p.get("sector")
+        stmt = clean_text(p.get("problem_statement") or "").lower()
+        if not stmt:
+            return None
+            
+        with self._get_connection() as conn:
+            query = "SELECT * FROM problems"
+            params = []
+            if sector:
+                query += " WHERE sector = ?"
+                params.append(sector)
+            rows = [dict(r) for r in conn.execute(query, params).fetchall()]
+            
+        for existing in rows:
+            ex_stmt = clean_text(existing.get("problem_statement") or "").lower()
+            if ex_stmt and (ex_stmt == stmt or ex_stmt in stmt or stmt in ex_stmt):
+                return existing
+                
+            t1 = tokenize_statement(stmt + " " + (p.get("sufferer_occupation") or ""))
+            t2 = tokenize_statement(ex_stmt + " " + (existing.get("sufferer_occupation") or ""))
+            if t1 and t2:
+                inter = len(t1.intersection(t2))
+                union = len(t1.union(t2))
+                min_len = min(len(t1), len(t2))
+                jaccard = inter / union if union > 0 else 0
+                overlap = inter / min_len if min_len > 0 else 0
+                if jaccard >= 0.50 or overlap >= 0.70:
+                    return existing
+                    
+        return None
+
     def add_problem(self, problem_data: Dict[str, Any]) -> Dict[str, Any]:
         p = dict(problem_data)
-        problem_id = clean_problem_id(p.get("id") or p.get("problem_id") or f"PRB-{uuid.uuid4().hex[:6].upper()}")
-        p["id"] = problem_id
-        p["sufferer_occupation"] = clean_text(p.get("sufferer_occupation"))
-        p["sufferer_location"] = clean_text(p.get("sufferer_location"))
-        p["problem_statement"] = clean_text(p.get("problem_statement"))
-        p["workaround"] = clean_text(p.get("workaround"))
-        p["quantified_impact"] = clean_text(p.get("quantified_impact"))
-        p["source_detail"] = clean_text(p.get("source_detail"))
+        sector = p.get("sector") or "Agriculture & Fisheries"
+        stmt = clean_text(p.get("problem_statement") or "")
+        p["problem_statement"] = stmt
+        p["sufferer_occupation"] = clean_text(p.get("sufferer_occupation") or "")
+        p["sufferer_location"] = clean_text(p.get("sufferer_location") or "")
+        p["workaround"] = clean_text(p.get("workaround") or "")
+        p["quantified_impact"] = clean_text(p.get("quantified_impact") or "")
+        p["source_detail"] = clean_text(p.get("source_detail") or "")
+        raw_id = p.get("id") or p.get("problem_id")
 
         sources = p.get("sources") or []
         breakdown = calculate_score_breakdown(p, sources)
         score = p.get("score") if p.get("score") is not None else breakdown["total_score"]
         p["score"] = score
-
         now = datetime.now(timezone.utc).isoformat()
+
+        # 1. If explicit ID provided, check if that ID exists in DB
+        existing_by_id = self.get_problem(clean_problem_id(raw_id)) if raw_id else None
+        
+        # 2. Check semantic overlap if not an explicit custom ID update
+        matching_problem = existing_by_id
+        if not matching_problem and not raw_id:
+            matching_problem = self.find_matching_problem(p)
+
+        if matching_problem:
+            target_id = matching_problem["id"]
+            if sources:
+                self.add_problem_sources(target_id, sources)
+            with self._get_connection() as conn:
+                conn.execute("""
+                    UPDATE problems SET
+                        score = max(score, ?),
+                        workaround = CASE WHEN length(?) > length(coalesce(workaround, '')) THEN ? ELSE workaround END,
+                        quantified_impact = CASE WHEN length(?) > length(coalesce(quantified_impact, '')) THEN ? ELSE quantified_impact END,
+                        source_detail = CASE WHEN length(?) > length(coalesce(source_detail, '')) THEN ? ELSE source_detail END,
+                        updated_at = ?
+                    WHERE id = ?
+                """, (
+                    score,
+                    p["workaround"], p["workaround"],
+                    p["quantified_impact"], p["quantified_impact"],
+                    p["source_detail"], p["source_detail"],
+                    now, target_id
+                ))
+            return self.get_problem(target_id) or matching_problem
+
+        # 3. Determine ID: use sanitized explicit ID if given, else assign sequential canonical ID
+        if raw_id:
+            problem_id = clean_problem_id(raw_id)
+        else:
+            sector_prefixes = {
+                "Agriculture & Fisheries": "AGR",
+                "Health & Wellness": "HLT",
+                "MSMEs & Retail": "RET",
+                "Education & Youth": "EDU",
+                "Transport & Logistics": "LOG",
+                "Housing & Utilities": "UTL",
+                "Government Services & Compliance": "GOV",
+                "Finance & Credit": "FIN",
+            }
+            prefix = sector_prefixes.get(sector, "PRB")
+            with self._get_connection() as conn:
+                row = conn.execute("SELECT COUNT(*) FROM problems WHERE sector = ?", (sector,)).fetchone()
+                count = (row[0] if row else 0) + 1
+                problem_id = f"{prefix}-{count:03d}"
+                while conn.execute("SELECT id FROM problems WHERE id = ?", (problem_id,)).fetchone():
+                    count += 1
+                    problem_id = f"{prefix}-{count:03d}"
+
         evidence_types_json = json.dumps(p.get("evidence_types") or p.get("evidence_type_list") or [])
         tags_json = json.dumps(p.get("tags") or [])
         da_json = json.dumps(p.get("devils_advocate_data")) if p.get("devils_advocate_data") else None
@@ -585,16 +680,16 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 problem_id,
                 p.get("project_id"),
                 p.get("session_id"),
-                p.get("sector") or "General",
-                p.get("sufferer_occupation") or "",
-                p.get("sufferer_location") or "",
-                p.get("problem_statement") or "",
+                sector,
+                p["sufferer_occupation"],
+                p["sufferer_location"],
+                p["problem_statement"],
                 p.get("evidence_tier") or "SIGNAL",
-                p.get("workaround") or "",
-                p.get("quantified_impact") or "",
+                p["workaround"],
+                p["quantified_impact"],
                 evidence_types_json,
-                p.get("source") or "llm_phase1",
-                p.get("source_detail") or "",
+                p.get("source") or "Phase 1 Discovery",
+                p["source_detail"],
                 tags_json,
                 p.get("status") or "discovered",
                 p.get("phase2_verdict"),
@@ -607,30 +702,35 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 now
             ))
 
-            if sources:
-                conn.execute("DELETE FROM problem_sources WHERE problem_id = ?", (problem_id,))
-                for s in sources:
-                    conn.execute("""
-                        INSERT INTO problem_sources (
-                            problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
-                        ) VALUES (?, ?, ?, ?, ?, ?)
-                    """, (
-                        problem_id,
-                        s.get("source_name") or s.get("description") or "Source",
-                        s.get("source_url") or s.get("url"),
-                        s.get("source_tier") or "B",
-                        s.get("evidence_type") or "Reference",
-                        s.get("quote_or_summary") or ""
-                    ))
+        if sources:
+            self.add_problem_sources(problem_id, sources)
 
         return self.get_problem(problem_id) or p
+
+    def add_problem_sources(self, problem_id: str, sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            for s in sources:
+                conn.execute("""
+                    INSERT INTO problem_sources (
+                        problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    problem_id,
+                    s.get("source_name") or s.get("description") or "Source",
+                    s.get("source_url") or s.get("url"),
+                    s.get("source_tier") or "B",
+                    s.get("evidence_type") or "Reference",
+                    s.get("quote_or_summary") or ""
+                ))
+        p = self.get_problem(problem_id)
+        return p.get("sources", []) if p else []
+
 
     def get_problem(self, problem_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute("SELECT * FROM problems WHERE id = ?", (problem_id,)).fetchone()
             if not row:
                 return None
-            
             p = dict(row)
             try:
                 p["evidence_types"] = json.loads(p.get("evidence_types") or "[]")
@@ -645,30 +745,24 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             except Exception:
                 p["devils_advocate_data"] = None
 
-            # Fetch sources
-            source_rows = conn.execute(
+            sources = conn.execute(
                 "SELECT * FROM problem_sources WHERE problem_id = ? ORDER BY id ASC",
                 (problem_id,)
             ).fetchall()
-            p["sources"] = [dict(s) for s in source_rows]
-
-            # Attach multi-dimensional score breakdown
+            p["sources"] = [dict(s) for s in sources]
             p["score_breakdown"] = calculate_score_breakdown(p, p["sources"])
 
-            # Fetch phase history
             history_rows = conn.execute(
                 "SELECT * FROM problem_phase_history WHERE problem_id = ? ORDER BY created_at ASC",
                 (problem_id,)
             ).fetchall()
             p["phase_history"] = [dict(h) for h in history_rows]
 
-            # Fetch comments
             comment_rows = conn.execute(
                 "SELECT * FROM problem_comments WHERE problem_id = ? ORDER BY created_at ASC",
                 (problem_id,)
             ).fetchall()
             p["comments"] = [dict(c) for c in comment_rows]
-
             return p
 
     def list_problems(
@@ -793,24 +887,6 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         with self._get_connection() as conn:
             cur = conn.execute("DELETE FROM problems WHERE id = ?", (problem_id,))
             return cur.rowcount > 0
-
-    def add_problem_sources(self, problem_id: str, sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        with self._get_connection() as conn:
-            for s in sources:
-                conn.execute("""
-                    INSERT INTO problem_sources (
-                        problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
-                    ) VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    problem_id,
-                    s.get("source_name") or s.get("description") or "Source",
-                    s.get("source_url") or s.get("url"),
-                    s.get("source_tier") or "B",
-                    s.get("evidence_type") or "Reference",
-                    s.get("quote_or_summary") or ""
-                ))
-        p = self.get_problem(problem_id)
-        return p.get("sources", []) if p else []
 
     def record_problem_history(
         self,
