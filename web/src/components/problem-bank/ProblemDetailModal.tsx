@@ -3,6 +3,8 @@
 import React, { useState } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
+import { ProblemCommentsSection } from "./ProblemCommentsSection";
+import { authService } from "@/services/authService";
 import { ProblemRecord } from "@/lib/types";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";

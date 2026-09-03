@@ -875,3 +875,83 @@ async def create_pitch_deck(session_id: str):
         return {"status": "success", "pitch_deck": deck}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Pitch Deck generation failed: {str(e)}")
+
+
+# ----------------------------------------------------------------------
+# Team Members, Passcodes, and Mentor Review Endpoints (Option A)
+# ----------------------------------------------------------------------
+
+class PasscodePayload(BaseModel):
+    passcode: str
+
+class MemberPayload(BaseModel):
+    id: Optional[str] = None
+    name: str
+    role: str = "RESEARCHER"
+    avatar: str = "👩‍💻"
+
+class CommentPayload(BaseModel):
+    user_name: str
+    user_role: str = "RESEARCHER"
+    user_avatar: str = "👩‍💻"
+    comment: str
+
+class MentorSignoffPayload(BaseModel):
+    phase_number: int
+    mentor_name: str
+    notes: Optional[str] = None
+
+
+@app.post("/api/projects/{project_id}/verify-passcode")
+async def verify_passcode(project_id: str, payload: PasscodePayload):
+    is_valid = storage.verify_project_passcode(project_id, payload.passcode)
+    return {"valid": is_valid, "project_id": project_id}
+
+
+@app.post("/api/projects/{project_id}/set-passcode")
+async def set_passcode(project_id: str, payload: PasscodePayload):
+    success = storage.set_project_passcode(project_id, payload.passcode)
+    if not success:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return {"status": "success", "message": "Passcode updated successfully"}
+
+
+@app.get("/api/projects/{project_id}/members")
+async def get_members(project_id: str):
+    members = storage.list_project_members(project_id)
+    return {"project_id": project_id, "members": members}
+
+
+@app.post("/api/projects/{project_id}/members")
+async def join_or_update_member(project_id: str, payload: MemberPayload):
+    member = storage.upsert_project_member(project_id, payload.model_dump())
+    return {"status": "success", "member": member}
+
+
+@app.get("/api/problems/{problem_id}/comments")
+async def get_comments(problem_id: str):
+    comments = storage.list_problem_comments(problem_id)
+    return {"problem_id": problem_id, "comments": comments}
+
+
+@app.post("/api/problems/{problem_id}/comments")
+async def add_comment(problem_id: str, payload: CommentPayload):
+    comment = storage.add_problem_comment(problem_id, payload.model_dump())
+    return {"status": "success", "comment": comment}
+
+
+@app.post("/api/projects/{project_id}/mentor-signoff")
+async def create_mentor_signoff(project_id: str, payload: MentorSignoffPayload):
+    signoff = storage.record_mentor_signoff(
+        project_id,
+        phase_number=payload.phase_number,
+        mentor_name=payload.mentor_name,
+        notes=payload.notes or "Phase validated and approved by mentor."
+    )
+    return {"status": "success", "signoff": signoff}
+
+
+@app.get("/api/projects/{project_id}/mentor-signoffs")
+async def get_mentor_signoffs(project_id: str):
+    signoffs = storage.list_mentor_signoffs(project_id)
+    return {"project_id": project_id, "signoffs": signoffs}

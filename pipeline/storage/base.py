@@ -109,3 +109,47 @@ class BaseStorageAdapter(ABC):
     def vote_problem(self, problem_id: str, vote_type: str = "up") -> Dict[str, Any]:
         """Record an upvote, downvote, or priority dot on a problem."""
         pass
+
+    # ------------------------------------------------------------------
+    # Team Members, Roles, Passcodes & Comments (Option A)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def verify_project_passcode(self, project_id: str, passcode: str) -> bool:
+        """Verify if the entered passcode matches the project passcode."""
+        pass
+
+    @abstractmethod
+    def set_project_passcode(self, project_id: str, passcode: Optional[str]) -> bool:
+        """Set or update a 4-digit PIN/passcode for a project room."""
+        pass
+
+    @abstractmethod
+    def list_project_members(self, project_id: str) -> List[Dict[str, Any]]:
+        """List all team members registered in a project workspace."""
+        pass
+
+    @abstractmethod
+    def upsert_project_member(self, project_id: str, member_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add or update a team member profile in a project."""
+        pass
+
+    @abstractmethod
+    def add_problem_comment(self, problem_id: str, comment_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add a discussion or mentor review comment to a problem."""
+        pass
+
+    @abstractmethod
+    def list_problem_comments(self, problem_id: str) -> List[Dict[str, Any]]:
+        """List all threaded comments on a problem."""
+        pass
+
+    @abstractmethod
+    def record_mentor_signoff(self, project_id: str, phase_number: int, mentor_name: str, notes: str) -> Dict[str, Any]:
+        """Record an official mentor/professor sign-off on a phase gate."""
+        pass
+
+    @abstractmethod
+    def list_mentor_signoffs(self, project_id: str) -> List[Dict[str, Any]]:
+        """List all mentor approvals/sign-offs for a project."""
+        pass

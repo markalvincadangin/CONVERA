@@ -134,6 +134,9 @@ export interface ProblemRecord {
   score?: number;
   votes?: number;
   devils_advocate_data?: DevilsAdvocateReport | null;
+  comments?: ProblemComment[];
+  created_by?: string;
+  updated_by?: string;
   score_breakdown?: ScoreBreakdown;
   sources?: ProblemSource[];
   phase_history?: ProblemPhaseHistory[];
@@ -217,6 +220,7 @@ export interface SessionMeta {
   project_id?: string;
   project_name?: string;
   share_code?: string;
+  has_passcode?: boolean;
   created_at?: string;
   updated_at?: string;
   phase1_complete?: boolean;
@@ -305,4 +309,51 @@ export interface Phase5AuditResponse {
   conversion_rate: number;
   model_meta?: ModelMetadata;
   state: SessionState;
+}
+
+
+// ----------------------------------------------------------------------
+// User Profiles, Roles, and Workspace Security (Option A)
+// ----------------------------------------------------------------------
+
+export type UserRole =
+  | "FOUNDER_LEAD"
+  | "RESEARCHER"
+  | "MENTOR_PROFESSOR"
+  | "EVALUATOR_JUDGE";
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  role: UserRole;
+  avatar: string;
+}
+
+export interface TeamMember {
+  id: string;
+  project_id: string;
+  name: string;
+  role: UserRole;
+  avatar: string;
+  last_active_at?: string;
+  created_at?: string;
+}
+
+export interface ProblemComment {
+  id?: number;
+  problem_id: string;
+  user_name: string;
+  user_role: UserRole;
+  user_avatar?: string;
+  comment: string;
+  created_at?: string;
+}
+
+export interface MentorSignoff {
+  id?: number;
+  project_id: string;
+  phase_number: number;
+  mentor_name: string;
+  notes?: string;
+  created_at?: string;
 }

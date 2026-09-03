@@ -38,9 +38,21 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     id TEXT PRIMARY KEY,
                     share_code TEXT UNIQUE NOT NULL,
                     name TEXT NOT NULL,
+                    passcode TEXT,
                     created_by TEXT DEFAULT 'Founder',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS project_members (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL,
+                    name TEXT NOT NULL,
+                    role TEXT NOT NULL DEFAULT 'RESEARCHER',
+                    avatar TEXT DEFAULT '👩‍💻',
+                    last_active_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
                 );
 
                 CREATE TABLE IF NOT EXISTS sessions (
@@ -124,6 +136,27 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
 
+                CREATE TABLE IF NOT EXISTS problem_comments (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    problem_id TEXT NOT NULL,
+                    user_name TEXT NOT NULL,
+                    user_role TEXT NOT NULL DEFAULT 'RESEARCHER',
+                    user_avatar TEXT DEFAULT '👩‍💻',
+                    comment TEXT NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS mentor_signoffs (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    project_id TEXT NOT NULL,
+                    phase_number INTEGER NOT NULL,
+                    mentor_name TEXT NOT NULL,
+                    notes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+                );
+
                 -- Indices
                 CREATE INDEX IF NOT EXISTS idx_projects_share_code ON projects(share_code);
                 CREATE INDEX IF NOT EXISTS idx_sessions_updated ON sessions(updated_at DESC);
@@ -151,18 +184,41 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
     # Session Management Methods
     # ------------------------------------------------------------------
 
+
+            try:
+                conn.execute("ALTER TABLE projects ADD COLUMN passcode TEXT;")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE problems ADD COLUMN created_by TEXT DEFAULT 'Founder';")
+            except sqlite3.OperationalError:
+                pass
+
+            try:
+                conn.execute("ALTER TABLE problems ADD COLUMN updated_by TEXT DEFAULT 'Founder';")
+            except sqlite3.OperationalError:
+                pass
+
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute(
-                "SELECT state_data, project_name, updated_at, created_at FROM sessions WHERE session_id = ?",
+                "SELECT session_id, project_id, state_data, project_name, updated_at, created_at FROM sessions WHERE session_id = ?",
                 (session_id,)
             ).fetchone()
             if not row:
                 return None
             try:
                 state = json.loads(row["state_data"])
+                state["session_id"] = row["session_id"]
+                state["project_id"] = row["project_id"]
                 if "project_name" not in state or not state["project_name"]:
                     state["project_name"] = row["project_name"]
+                if row["project_id"]:
+                    p_row = conn.execute("SELECT share_code, passcode FROM projects WHERE id = ?", (row["project_id"],)).fetchone()
+                    if p_row:
+                        state["share_code"] = p_row["share_code"]
+                        state["has_passcode"] = bool(p_row["passcode"])
                 return state
             except Exception:
                 return None
@@ -177,11 +233,21 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         p4 = 1 if state.get("phase4_complete") or state.get("phase4_response") else 0
         p5 = 1 if state.get("phase5_complete") or state.get("phase5_response") else 0
 
-        state_json = json.dumps(state)
         now = datetime.now(timezone.utc).isoformat()
 
         with self._get_connection() as conn:
-            if project_id:
+            if not project_id:
+                existing_sess = conn.execute("SELECT project_id FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
+                if existing_sess and existing_sess["project_id"]:
+                    project_id = existing_sess["project_id"]
+                else:
+                    project_id = f"proj_{uuid.uuid4().hex[:8]}"
+                    code = generate_share_code()
+                    conn.execute(
+                        "INSERT INTO projects (id, share_code, name) VALUES (?, ?, ?)",
+                        (project_id, code, project_name)
+                    )
+            else:
                 proj = conn.execute("SELECT id FROM projects WHERE id = ?", (project_id,)).fetchone()
                 if not proj:
                     code = generate_share_code()
@@ -189,6 +255,10 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                         "INSERT INTO projects (id, share_code, name) VALUES (?, ?, ?)",
                         (project_id, code, project_name)
                     )
+
+            state["project_id"] = project_id
+            state["session_id"] = session_id
+            state_json = json.dumps(state)
 
             conn.execute("""
                 INSERT INTO sessions (
@@ -303,6 +373,117 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             return dict(row)
 
     # ------------------------------------------------------------------
+
+    # ------------------------------------------------------------------
+    # Team Members, Passcodes, and Comments Operations
+    # ------------------------------------------------------------------
+
+    def verify_project_passcode(self, project_id: str, passcode: str) -> bool:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT passcode FROM projects WHERE id = ?",
+                (project_id,)
+            ).fetchone()
+            if not row or not row["passcode"]:
+                return True
+            return str(row["passcode"]).strip() == str(passcode).strip()
+
+    def set_project_passcode(self, project_id: str, passcode: Optional[str]) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute(
+                "UPDATE projects SET passcode = ? WHERE id = ?",
+                (passcode.strip() if passcode else None, project_id)
+            )
+            return cur.rowcount > 0
+
+    def list_project_members(self, project_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT * FROM project_members
+                WHERE project_id = ?
+                ORDER BY created_at ASC
+            """, (project_id,)).fetchall()
+            return [dict(r) for r in rows]
+
+    def upsert_project_member(self, project_id: str, member_data: Dict[str, Any]) -> Dict[str, Any]:
+        member_id = member_data.get("id") or f"mem_{uuid.uuid4().hex[:8]}"
+        name = member_data.get("name", "Team Member")
+        role = member_data.get("role", "RESEARCHER")
+        avatar = member_data.get("avatar", "👩‍💻")
+        now = datetime.now(timezone.utc).isoformat()
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO project_members (id, project_id, name, role, avatar, last_active_at, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    name=excluded.name,
+                    role=excluded.role,
+                    avatar=excluded.avatar,
+                    last_active_at=excluded.last_active_at
+            """, (member_id, project_id, name, role, avatar, now, now))
+
+            row = conn.execute("SELECT * FROM project_members WHERE id = ?", (member_id,)).fetchone()
+            return dict(row)
+
+    def add_problem_comment(self, problem_id: str, comment_data: Dict[str, Any]) -> Dict[str, Any]:
+        user_name = comment_data.get("user_name", "Team Member")
+        user_role = comment_data.get("user_role", "RESEARCHER")
+        user_avatar = comment_data.get("user_avatar", "👩‍💻")
+        comment = comment_data.get("comment", "").strip()
+        now = datetime.now(timezone.utc).isoformat()
+
+        with self._get_connection() as conn:
+            cur = conn.execute("""
+                INSERT INTO problem_comments (problem_id, user_name, user_role, user_avatar, comment, created_at)
+                VALUES (?, ?, ?, ?, ?, ?)
+            """, (problem_id, user_name, user_role, user_avatar, comment, now))
+            cid = cur.lastrowid
+            return {
+                "id": cid,
+                "problem_id": problem_id,
+                "user_name": user_name,
+                "user_role": user_role,
+                "user_avatar": user_avatar,
+                "comment": comment,
+                "created_at": now
+            }
+
+    def list_problem_comments(self, problem_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT * FROM problem_comments
+                WHERE problem_id = ?
+                ORDER BY created_at ASC
+            """, (problem_id,)).fetchall()
+            return [dict(r) for r in rows]
+
+    def record_mentor_signoff(self, project_id: str, phase_number: int, mentor_name: str, notes: str) -> Dict[str, Any]:
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            cur = conn.execute("""
+                INSERT INTO mentor_signoffs (project_id, phase_number, mentor_name, notes, created_at)
+                VALUES (?, ?, ?, ?, ?)
+            """, (project_id, phase_number, mentor_name, notes, now))
+            sid = cur.lastrowid
+            return {
+                "id": sid,
+                "project_id": project_id,
+                "phase_number": phase_number,
+                "mentor_name": mentor_name,
+                "notes": notes,
+                "created_at": now
+            }
+
+    def list_mentor_signoffs(self, project_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT * FROM mentor_signoffs
+                WHERE project_id = ?
+                ORDER BY created_at DESC
+            """, (project_id,)).fetchall()
+            return [dict(r) for r in rows]
+
     # Problem Bank Methods
     # ------------------------------------------------------------------
 
@@ -432,6 +613,13 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 (problem_id,)
             ).fetchall()
             p["phase_history"] = [dict(h) for h in history_rows]
+
+            # Fetch comments
+            comment_rows = conn.execute(
+                "SELECT * FROM problem_comments WHERE problem_id = ? ORDER BY created_at ASC",
+                (problem_id,)
+            ).fetchall()
+            p["comments"] = [dict(c) for c in comment_rows]
 
             return p
 
