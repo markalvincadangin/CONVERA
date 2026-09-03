@@ -8,7 +8,8 @@ from .connectors import router as connectors_router
 from .inbox import router as inbox_router
 from .agents import router as agents_router
 from .frameworks import router as frameworks_router
-from .problems import router as problems_router, research_router
+from .problems import router as problems_router
+from .research import router as research_router
 from .sessions import router as sessions_router
 from .pipeline import router as pipeline_router
 from .knowledge import router as knowledge_router

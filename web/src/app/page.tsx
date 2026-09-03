@@ -18,6 +18,7 @@ import {
 } from "@/components/phases";
 import { ProblemBankView } from "@/components/problem-bank/ProblemBankView";
 import { DeliverablesStudio } from "@/components/deliverables/DeliverablesStudio";
+import { ResearchWorkspaceView } from "@/components/frameworks/research/ResearchWorkspaceView";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";

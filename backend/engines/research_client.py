@@ -332,6 +332,21 @@ OUTPUT FORMAT (STRICT JSON ARRAY):
                 filtered.append(c)
             return filtered[:max_keep]
 
+    
+    async def search_all_async(self, query: str, limit_per_source: int = 3) -> List[Dict[str, Any]]:
+        """Concurrently search OpenAlex, Crossref, and EuropePMC."""
+        tasks = [
+            self.search_academic_openalex(query, limit=limit_per_source),
+            self.search_crossref(query, limit=limit_per_source),
+            self.search_europe_pmc(query, limit=limit_per_source),
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+        all_sources: List[Dict[str, Any]] = []
+        for res in results:
+            if isinstance(res, list):
+                all_sources.extend(res)
+        return all_sources
+
     async def auto_research_problem(
         self, problem: Dict[str, Any]
     ) -> Dict[str, List[Dict[str, Any]]]:
