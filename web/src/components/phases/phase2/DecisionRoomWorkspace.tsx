@@ -170,7 +170,7 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
       )}
 
       {/* Grid Comparison Cards */}
-      <div className={`grid grid-cols-1 md:grid-cols-${Math.min(candidates.length, 3)} gap-4`}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5">
         {candidates.map((cand) => {
           const isSelected = cand.id === selectedId;
           const score = cand.score || 85;
@@ -181,7 +181,7 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
             <div
               key={cand.id}
               onClick={() => setSelectedId(cand.id)}
-              className={`cursor-pointer transition-all duration-200 rounded-3xl p-5 flex flex-col justify-between border space-y-4 relative ${
+              className={`cursor-pointer transition-all duration-200 rounded-2xl p-4 flex flex-col justify-between border space-y-3 relative ${
                 isSelected
                   ? "bg-slate-900 border-cyan-500/60 shadow-xl shadow-cyan-500/10 ring-1 ring-cyan-500/30"
                   : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40"
@@ -215,7 +215,7 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
                 </p>
 
                 {/* Sufferer & Location */}
-                <div className="p-3 bg-slate-950 rounded-2xl border border-slate-800 space-y-1 text-[11px]">
+                <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 space-y-1 text-[11px]">
                   <div className="flex items-center gap-1.5 text-slate-300">
                     <User className="w-3 h-3 text-cyan-400 shrink-0" />
                     <span className="font-semibold text-white truncate">{cand.sufferer_occupation}</span>
@@ -228,14 +228,14 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
 
                 {/* Workaround & Impact */}
                 <div className="space-y-1.5 text-[11px]">
-                  <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800/80">
+                  <div className="p-2 bg-slate-950 rounded-lg border border-slate-800/80">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 block mb-0.5">
                       Active Workaround:
                     </span>
                     <p className="text-slate-300 line-clamp-2 leading-relaxed">{cand.workaround || "None documented"}</p>
                   </div>
 
-                  <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800/80">
+                  <div className="p-2 bg-slate-950 rounded-lg border border-slate-800/80">
                     <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 block mb-0.5">
                       Quantified Loss:
                     </span>
@@ -244,7 +244,7 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
                 </div>
 
                 {/* Empirical Evidence Badges */}
-                <div className="p-2.5 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between text-[11px] font-mono">
+                <div className="p-2 bg-slate-950 rounded-lg border border-slate-800 flex items-center justify-between text-[11px] font-mono">
                   <span className="text-slate-400 flex items-center gap-1.5">
                     <BookOpen className="w-3.5 h-3.5 text-cyan-400" /> Verified DOIs:
                   </span>
