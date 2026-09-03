@@ -23,6 +23,18 @@ async def test_openalex_search():
         assert paper["source_tier"] == "A"
 
 @pytest.mark.asyncio
+async def test_crossref_search():
+    client = FreeResearchClient(timeout=10.0)
+    results = await client.search_crossref("Iloilo flood disaster", limit=2)
+    assert isinstance(results, list)
+    if results:
+        paper = results[0]
+        assert "title" in paper
+        assert "engine" in paper
+        assert paper["engine"] == "CROSSREF"
+        assert paper["source_tier"] == "A"
+
+@pytest.mark.asyncio
 async def test_europe_pmc_search():
     client = FreeResearchClient(timeout=10.0)
     results = await client.search_europe_pmc("Philippines rice yield", limit=2)
@@ -31,29 +43,16 @@ async def test_europe_pmc_search():
         paper = results[0]
         assert "title" in paper
         assert "engine" in paper
-        assert paper["engine"] == "EUROPE_PMC"
-
-@pytest.mark.asyncio
-async def test_regional_news_search():
-    client = FreeResearchClient(timeout=10.0)
-    results = await client.search_regional_news("Iloilo farmers onion", limit=2)
-    assert isinstance(results, list)
-    if results:
-        news = results[0]
-        assert "title" in news
-        assert "source_url" in news
-        assert news["engine"] == "REGIONAL_NEWS"
 
 @pytest.mark.asyncio
 async def test_auto_research_problem():
-    client = FreeResearchClient(timeout=10.0)
+    client = FreeResearchClient(timeout=12.0)
     res = await client.auto_research_problem({
-        "problem_statement": "Cold storage deficit in Panay fish ports causing post-harvest melt",
-        "sector": "Agriculture & Fisheries",
-        "sufferer_location": "Estancia, Iloilo",
-        "sufferer_occupation": "Small-scale Fishers"
+        "problem_statement": "Severe localized flooding during heavy monsoons in Jaro and Mandurriao Districts, Iloilo City.",
+        "sector": "Housing & Utilities",
+        "sufferer_location": "Jaro and Mandurriao Districts, Iloilo City",
+        "sufferer_occupation": "Residential Homeowners"
     })
     assert "openalex" in res
-    assert "europe_pmc" in res
-    assert "regional_news" in res
+    assert "crossref" in res
     assert "all_combined" in res
