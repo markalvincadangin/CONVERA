@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { FolderOpen, Presentation, HelpCircle, RefreshCw, Download, Sparkles, ChevronDown, Check, CircleDot } from "lucide-react";
 import { Badge } from "@/components/common/Badge";
 import { Tooltip } from "@/components/common/Tooltip";
+import { VentureHealthBar } from "@/components/common/VentureHealthBar";
 import { SessionState } from "@/lib/types";
 
 interface NavbarProps {
@@ -58,7 +59,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 RatchetAI
               </span>
               <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 tracking-wide font-mono">
-                v2.0
+                v3.0
               </span>
             </div>
             <p className="text-[10px] text-slate-400 hidden md:block tracking-tight -mt-0.5">
@@ -67,7 +68,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
         </div>
 
-        {/* Center: Active Venture Workspace Switcher (Heuristic #2 & #7) */}
+        {/* Center: Active Venture Workspace Switcher */}
         <div className="flex-1 max-w-md hidden sm:flex justify-center">
           {session ? (
             <Tooltip content="Switch session, copy room share code, or restore milestone snapshots" position="bottom">
@@ -107,8 +108,11 @@ export const Navbar: React.FC<NavbarProps> = ({
           )}
         </div>
 
-        {/* Right: Unified Action Toolbar (Heuristic #13: Visual Hierarchy) */}
+        {/* Right: Unified Action Toolbar & Health Meter */}
         <div className="flex items-center gap-1.5 sm:gap-2">
+          {/* Venture Health Meter */}
+          <VentureHealthBar session={session} />
+
           {/* Help & Guide Button */}
           <Tooltip content="Open user manual, 5-phase playbook, snapshots guide & FAQs" position="bottom">
             <button
@@ -116,41 +120,30 @@ export const Navbar: React.FC<NavbarProps> = ({
               className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white transition-all shadow-sm"
             >
               <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
-              <span className="hidden md:inline">Help & Guide</span>
+              <span className="hidden md:inline">Help</span>
             </button>
           </Tooltip>
 
-          {/* Pitch Deck Button */}
-          <Tooltip content="Full-screen 6-slide presentation deck ready for pitch defense" position="bottom">
+          {/* Cheatsheet Button */}
+          <Tooltip content="Quick reference rules, banned words & scoring gates" position="bottom">
             <button
-              onClick={onOpenPresentation}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/30 hover:border-purple-500/60 hover:bg-purple-500/20 text-xs font-semibold text-purple-300 hover:text-purple-100 transition-all shadow-sm"
+              onClick={onOpenCheatsheet}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white transition-all shadow-sm"
             >
-              <Presentation className="w-3.5 h-3.5 text-purple-400" />
-              <span className="hidden sm:inline">Pitch Deck</span>
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden md:inline">Cheatsheet</span>
             </button>
           </Tooltip>
 
-          {/* Sessions & Snapshots Manager */}
-          <Tooltip content="All sessions, room codes, and rollback checkpoints" position="bottom">
-            <button
-              onClick={onOpenSessionManager}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white transition-all shadow-sm"
-            >
-              <RefreshCw className="w-3.5 h-3.5 text-slate-400" />
-              <span className="hidden lg:inline">Sessions</span>
-            </button>
-          </Tooltip>
-
-          {/* Primary Action: Export Dossier */}
-          <Tooltip content="Download comprehensive Markdown dossier report" position="bottom">
+          {/* Export Dossier Button */}
+          <Tooltip content="Export complete venture evidence dossier to Markdown" position="bottom">
             <button
               onClick={onExportDossier}
               disabled={isExporting}
-              className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-bold text-xs shadow-md shadow-emerald-500/20 hover:shadow-emerald-500/35 transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 hover:bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-emerald-400 transition-all shadow-sm"
             >
-              <Download className="w-3.5 h-3.5 text-slate-950" />
-              <span>{isExporting ? "Exporting..." : "Export Dossier"}</span>
+              <Download className={`w-3.5 h-3.5 text-emerald-400 ${isExporting ? "animate-bounce" : ""}`} />
+              <span className="hidden md:inline">Export</span>
             </button>
           </Tooltip>
         </div>

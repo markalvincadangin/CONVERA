@@ -22,8 +22,10 @@ import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { Card } from "@/components/common/Card";
-import { SessionState } from "@/lib/types";
+import { ContextualAiHint } from "@/components/common/ContextualAiHint";
+import { SessionState, ProblemRecord } from "@/lib/types";
 import { sessionService } from "@/services/sessionService";
+import { problemService } from "@/services/problemService";
 import {
   Download,
   Copy,
@@ -35,6 +37,7 @@ import {
 
 export default function Home() {
   const [session, setSession] = useState<SessionState | null>(null);
+  const [problems, setProblems] = useState<ProblemRecord[]>([]);
   const [activePhase, setActivePhase] = useState<number>(0); // 0 = Problem Bank, 1-5 = Phases, 6 = Studio
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [connectionError, setConnectionError] = useState(false);
@@ -55,16 +58,27 @@ export default function Home() {
     setConnectionError(false);
     try {
       const sessions = await sessionService.listSessions();
+      let activeSess: SessionState;
       if (sessions && sessions.length > 0) {
         const latestSessionId = sessions[0].session_id;
-        const fullState = await sessionService.getSession(latestSessionId);
-        setSession(fullState);
+        activeSess = await sessionService.getSession(latestSessionId);
       } else {
         const newSession = await sessionService.createSession(
           undefined,
           "Iloilo Technopreneurship Project"
         );
-        setSession(newSession.state);
+        activeSess = newSession.state;
+      }
+      setSession(activeSess);
+
+      // Fetch problems for health meter and AI hints
+      try {
+        const probList = await problemService.listProblems({
+          project_id: activeSess.project_id || undefined,
+        });
+        setProblems(probList);
+      } catch (pErr) {
+        console.warn("Could not load problems list:", pErr);
       }
     } catch (err: any) {
       console.warn("Backend unavailable, loading local fallback session:", err);
@@ -99,6 +113,10 @@ export default function Home() {
     try {
       const fullState = await sessionService.getSession(selectedSessionId);
       setSession(fullState);
+      const probList = await problemService.listProblems({
+        project_id: fullState.project_id || undefined,
+      });
+      setProblems(probList);
       setActivePhase(0);
       setIsSessionManagerOpen(false);
     } catch (err) {
@@ -199,7 +217,17 @@ export default function Home() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Contextual AI Hint Banner */}
+        {session && (
+          <ContextualAiHint
+            session={session}
+            problems={problems}
+            activePhase={activePhase}
+            onNavigate={(phase) => setActivePhase(phase)}
+          />
+        )}
+
         {isLoadingSession ? (
           <div className="py-24 flex items-center justify-center">
             <Spinner size="lg" label="Connecting to RatchetAI SQLite WAL backend..." />
