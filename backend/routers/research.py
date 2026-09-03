@@ -174,3 +174,95 @@ async def stage_a_discover(req: StageADiscoverRequest):
         "domains": req.domains,
         "count": len(saved_problems)
     }
+
+# ----------------------------------------------------------------------
+# Research Domains CRUD Endpoints
+# ----------------------------------------------------------------------
+
+class ResearchDomainCreateRequest(BaseModel):
+    id: Optional[str] = None
+    project_id: Optional[str] = None
+    title: str
+    domain_type: Optional[str] = "Sector"
+    description: Optional[str] = ""
+    scope_boundary: Optional[str] = ""
+    related_domain_ids: Optional[str] = ""
+    why_explore: Optional[str] = ""
+    context_setting: Optional[str] = ""
+    stakeholders: Optional[str] = ""
+    processes_to_explore: Optional[str] = ""
+    evidence_basis: Optional[str] = ""
+    sdg_relevance: Optional[str] = ""
+    initial_concerns: Optional[str] = ""
+    next_action: Optional[str] = ""
+
+
+class ResearchDomainUpdateRequest(BaseModel):
+    title: Optional[str] = None
+    domain_type: Optional[str] = None
+    description: Optional[str] = None
+    scope_boundary: Optional[str] = None
+    related_domain_ids: Optional[str] = None
+    why_explore: Optional[str] = None
+    context_setting: Optional[str] = None
+    stakeholders: Optional[str] = None
+    processes_to_explore: Optional[str] = None
+    evidence_basis: Optional[str] = None
+    sdg_relevance: Optional[str] = None
+    initial_concerns: Optional[str] = None
+    next_action: Optional[str] = None
+
+
+@router.get("/domains")
+async def list_research_domains(
+    project_id: Optional[str] = None,
+    domain_type: Optional[str] = None,
+    search: Optional[str] = None
+):
+    """List all research domains stored in the database."""
+    storage = get_storage()
+    domains = storage.list_research_domains(
+        project_id=project_id,
+        domain_type=domain_type,
+        search=search
+    )
+    return {"status": "success", "count": len(domains), "domains": domains}
+
+
+@router.get("/domains/{domain_id}")
+async def get_research_domain(domain_id: str):
+    """Get details of a single research domain."""
+    storage = get_storage()
+    domain = storage.get_research_domain(domain_id)
+    if not domain:
+        raise HTTPException(status_code=404, detail=f"Research domain '{domain_id}' not found")
+    return {"status": "success", "domain": domain}
+
+
+@router.post("/domains")
+async def create_research_domain(req: ResearchDomainCreateRequest):
+    """Create and persist a new custom research domain."""
+    storage = get_storage()
+    created = storage.create_research_domain(req.dict())
+    return {"status": "success", "domain": created}
+
+
+@router.put("/domains/{domain_id}")
+async def update_research_domain(domain_id: str, req: ResearchDomainUpdateRequest):
+    """Update an existing research domain."""
+    storage = get_storage()
+    updates = {k: v for k, v in req.dict().items() if v is not None}
+    updated = storage.update_research_domain(domain_id, updates)
+    if not updated:
+        raise HTTPException(status_code=404, detail=f"Research domain '{domain_id}' not found")
+    return {"status": "success", "domain": updated}
+
+
+@router.delete("/domains/{domain_id}")
+async def delete_research_domain(domain_id: str):
+    """Delete a custom research domain."""
+    storage = get_storage()
+    success = storage.delete_research_domain(domain_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Research domain '{domain_id}' not found")
+    return {"status": "success", "deleted": True, "domain_id": domain_id}

@@ -29,14 +29,12 @@ import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
 import { GateReviewModal } from "@/components/frameworks/research/GateReviewModal";
 import { CircumscriptionLoopView } from "@/components/frameworks/research/CircumscriptionLoopView";
 import { IntelligenceScorecardDrawer } from "@/components/knowledge/IntelligenceScorecardDrawer";
-import { researchService } from "@/services/researchService";
 import { SessionState, ProblemRecord } from "@/lib/types";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
-import { MASTER_RESEARCH_DOMAINS, MasterDomain } from "@/lib/masterDomains";
-import { Filter, Users, Briefcase, FileCheck } from "lucide-react";
-import { X, Tag } from "lucide-react";
+import { researchService, ResearchDomainRecord } from "@/services/researchService";
+import { Filter, Users, Briefcase, FileCheck, Trash2, Database, X, Tag } from "lucide-react";
 
 interface ResearchWorkspaceViewProps {
   session: SessionState | null;
@@ -75,93 +73,142 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const currentPhaseId = activePhase !== undefined ? phaseMap[activePhase] || "A" : activePhaseId;
   const activePhaseMeta = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
   
-  // Stage A Master Domain Explorer State
+  // Dynamic Database-Driven Research Domains State
+  const [domains, setDomains] = useState<ResearchDomainRecord[]>([]);
+  const [isLoadingDomains, setIsLoadingDomains] = useState<boolean>(false);
   const [domainSearchQuery, setDomainSearchQuery] = useState<string>("");
-  const [domainTypeFilter, setDomainTypeFilter] = useState<"ALL" | "Sector" | "Cross-cutting" | "Specialized">("ALL");
-  const [customDomains, setCustomDomains] = useState<string[]>([]);
-  const [newCustomDomainInput, setNewCustomDomainInput] = useState<string>("");
-  const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
+  const [domainTypeFilter, setDomainTypeFilter] = useState<"ALL" | "Sector" | "Cross-cutting" | "Specialized" | "Custom">("ALL");
+  
+  // Custom Domain Creator State
+  const [newCustomTitle, setNewCustomTitle] = useState<string>("");
+  const [newCustomContext, setNewCustomContext] = useState<string>("");
+  const [newCustomStakeholders, setNewCustomStakeholders] = useState<string>("");
+  const [newCustomProcesses, setNewCustomProcesses] = useState<string>("");
+  const [showCustomModal, setShowCustomModal] = useState<boolean>(false);
+  const [isSavingCustomDomain, setIsSavingCustomDomain] = useState<boolean>(false);
+
+  // Selected Domains for Discovery
   const [selectedDomains, setSelectedDomains] = useState<string[]>([
     "Agricultural Production and Farm Operations",
     "Fisheries and Aquaculture Production",
   ]);
-
-  // Filtered Master Domains (D01-D25)
-  const filteredMasterDomains = useMemo(() => {
-    return MASTER_RESEARCH_DOMAINS.filter((d) => {
-      const matchesType = domainTypeFilter === "ALL" || d.type === domainTypeFilter;
-      const q = domainSearchQuery.toLowerCase().trim();
-      const matchesQuery =
-        !q ||
-        d.id.toLowerCase().includes(q) ||
-        d.title.toLowerCase().includes(q) ||
-        d.description.toLowerCase().includes(q) ||
-        d.contextSetting.toLowerCase().includes(q) ||
-        d.stakeholders.toLowerCase().includes(q) ||
-        d.processesToExplore.toLowerCase().includes(q);
-      return matchesType && matchesQuery;
-    });
-  }, [domainTypeFilter, domainSearchQuery]);
-
-  const handleSelectAllFiltered = () => {
-    const titles = filteredMasterDomains.map((d: MasterDomain) => d.title);
-    setSelectedDomains((prev) => Array.from(new Set([...prev, ...titles])));
-  };
-
-  const handleLoadDomainContext = (domain: MasterDomain) => {
-    const observationSnippet = `${domain.title} (${domain.id}) | Context: ${domain.contextSetting} | Stakeholders: ${domain.stakeholders} | Processes to Explore: ${domain.processesToExplore} | Preliminary Policy Basis: ${domain.evidenceBasis}`;
-    setFieldObservations(observationSnippet);
-    if (!selectedDomains.includes(domain.title)) {
-      setSelectedDomains((prev) => [...prev, domain.title]);
-    }
-    toast.info(`Loaded authentic research context for ${domain.id}: ${domain.title}`, "Context Loaded");
-  };
-
-  const handleAddCustomDomain = () => {
-    const trimmed = newCustomDomainInput.trim();
-    if (!trimmed) return;
-    if (!customDomains.includes(trimmed)) {
-      setCustomDomains((prev) => [...prev, trimmed]);
-    }
-    if (!selectedDomains.includes(trimmed)) {
-      setSelectedDomains((prev) => [...prev, trimmed]);
-    }
-    setNewCustomDomainInput("");
-    setShowCustomInput(false);
-    toast.success(`Added custom research domain: "${trimmed}"`, "Domain Added");
-  };
-
-  const handleRemoveCustomDomain = (domain: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCustomDomains((prev) => prev.filter((d) => d !== domain));
-    setSelectedDomains((prev) => prev.filter((d) => d !== domain));
-  };
   const [fieldObservations, setFieldObservations] = useState<string>("");
   const [isDiscovering, setIsDiscovering] = useState<boolean>(false);
   const [discoveredProblems, setDiscoveredProblems] = useState<ProblemRecord[]>([]);
   const [unknownsKey, setUnknownsKey] = useState<number>(0);
 
-  // Stage C Literature Matrix State
-  const [searchQuery, setSearchQuery] = useState<string>("agricultural pest detection edge AI");
-  const [matrixRows, setMatrixRows] = useState<LiteratureRow[]>([]);
-  const [matrixGaps, setMatrixGaps] = useState<ResearchGapItem[]>([]);
-  const [isLoadingMatrix, setIsLoadingMatrix] = useState<boolean>(false);
-  const [isTraceabilityOpen, setIsTraceabilityOpen] = useState<boolean>(false);
-  const [isScorecardOpen, setIsScorecardOpen] = useState<boolean>(false);
-  const [activeGateModal, setActiveGateModal] = useState<"GATE_1" | "GATE_2" | "GATE_3" | "GATE_4" | null>(null);
+  // Load database domains
+  const fetchDomains = async () => {
+    try {
+      setIsLoadingDomains(true);
+      const res = await researchService.listDomains({ project_id: session?.project_id || undefined });
+      if (res.domains) {
+        setDomains(res.domains);
+      }
+    } catch (err: any) {
+      console.error("Failed to load research domains from DB:", err);
+    } finally {
+      setIsLoadingDomains(false);
+    }
+  };
 
-  // Default demo papers for initial view
   useEffect(() => {
+    fetchDomains();
     fetchMatrix(searchQuery);
-  }, []);
+  }, [session?.project_id]);
 
-  const toggleDomain = (domain: string) => {
+  // Client-side filtering of DB domains
+  const filteredDomains = useMemo(() => {
+    return domains.filter((d: ResearchDomainRecord) => {
+      const matchesType =
+        domainTypeFilter === "ALL" ||
+        d.domain_type === domainTypeFilter ||
+        (domainTypeFilter === "Custom" && Boolean(d.is_custom));
+
+      const q = domainSearchQuery.toLowerCase().trim();
+      const matchesQuery =
+        !q ||
+        d.id.toLowerCase().includes(q) ||
+        d.title.toLowerCase().includes(q) ||
+        (d.description && d.description.toLowerCase().includes(q)) ||
+        (d.context_setting && d.context_setting.toLowerCase().includes(q)) ||
+        (d.stakeholders && d.stakeholders.toLowerCase().includes(q)) ||
+        (d.processes_to_explore && d.processes_to_explore.toLowerCase().includes(q));
+
+      return matchesType && matchesQuery;
+    });
+  }, [domains, domainTypeFilter, domainSearchQuery]);
+
+  const toggleDomain = (domainTitle: string) => {
     setSelectedDomains((prev) =>
-      prev.includes(domain) ? prev.filter((d) => d !== domain) : [...prev, domain]
+      prev.includes(domainTitle) ? prev.filter((d) => d !== domainTitle) : [...prev, domainTitle]
     );
   };
 
+  const handleSelectAllFiltered = () => {
+    const titles = filteredDomains.map((d) => d.title);
+    setSelectedDomains((prev) => Array.from(new Set([...prev, ...titles])));
+  };
+
   const handleClearDomains = () => setSelectedDomains([]);
+
+  const handleCreateCustomDomain = async () => {
+    const trimmed = newCustomTitle.trim();
+    if (!trimmed) {
+      toast.warning("Please enter a domain title.", "Title Required");
+      return;
+    }
+    try {
+      setIsSavingCustomDomain(true);
+      const res = await researchService.createDomain({
+        title: trimmed,
+        domain_type: "Custom",
+        context_setting: newCustomContext.trim() || "Regional Operational Setting",
+        stakeholders: newCustomStakeholders.trim() || "Local Practitioners & Researchers",
+        processes_to_explore: newCustomProcesses.trim() || "Operational workflows and empirical telemetry",
+        project_id: session?.project_id || null,
+        is_custom: 1,
+      });
+
+      toast.success(`Saved domain "${res.domain.title}" to database!`, "Domain Created");
+      setNewCustomTitle("");
+      setNewCustomContext("");
+      setNewCustomStakeholders("");
+      setNewCustomProcesses("");
+      setShowCustomModal(false);
+      await fetchDomains();
+      if (!selectedDomains.includes(res.domain.title)) {
+        setSelectedDomains((prev) => [...prev, res.domain.title]);
+      }
+    } catch (err: any) {
+      console.error("Failed to create domain:", err);
+      toast.error(err?.message || "Failed to save custom domain.", "Database Error");
+    } finally {
+      setIsSavingCustomDomain(false);
+    }
+  };
+
+  const handleDeleteCustomDomain = async (domainId: string, title: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await researchService.deleteDomain(domainId);
+      toast.success(`Deleted custom domain "${title}"`, "Domain Removed");
+      setSelectedDomains((prev) => prev.filter((d) => d !== title));
+      fetchDomains();
+    } catch (err: any) {
+      console.error("Failed to delete domain:", err);
+      toast.error(err?.message || "Failed to delete domain.", "Database Error");
+    }
+  };
+
+  const handleLoadDomainContext = (domain: ResearchDomainRecord) => {
+    const observationSnippet = `${domain.title} (${domain.id}) | Context: ${domain.context_setting || "General Setting"} | Stakeholders: ${domain.stakeholders || "Domain Practitioners"} | Processes to Explore: ${domain.processes_to_explore || "Field telemetry & workflows"}${domain.evidence_basis ? ` | Evidence Basis: ${domain.evidence_basis}` : ""}`;
+    setFieldObservations(observationSnippet);
+    if (!selectedDomains.includes(domain.title)) {
+      setSelectedDomains((prev) => [...prev, domain.title]);
+    }
+    toast.info(`Loaded database research context for ${domain.id}: ${domain.title}`, "Context Loaded");
+  };
 
   const handleRunEmpiricalDiscovery = async () => {
     if (selectedDomains.length === 0) {
@@ -196,6 +243,15 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
       setIsDiscovering(false);
     }
   };
+
+  // Stage C Literature Matrix State
+  const [searchQuery, setSearchQuery] = useState<string>("agricultural pest detection edge AI");
+  const [matrixRows, setMatrixRows] = useState<LiteratureRow[]>([]);
+  const [matrixGaps, setMatrixGaps] = useState<ResearchGapItem[]>([]);
+  const [isLoadingMatrix, setIsLoadingMatrix] = useState<boolean>(false);
+  const [isTraceabilityOpen, setIsTraceabilityOpen] = useState<boolean>(false);
+  const [isScorecardOpen, setIsScorecardOpen] = useState<boolean>(false);
+  const [activeGateModal, setActiveGateModal] = useState<"GATE_1" | "GATE_2" | "GATE_3" | "GATE_4" | null>(null);
 
   const fetchMatrix = async (query: string) => {
     try {
@@ -270,28 +326,28 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         {/* PHASE A */}
         {currentPhaseId === "A" && (
           <div className="space-y-6">
-            {/* 1. Master Domain Explorer (D01-D25) & Scouting Discovery */}
+            {/* 1. Database-Driven Master Domain Explorer & Empirical Scanner */}
             <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 space-y-6 shadow-xl relative overflow-hidden">
               {/* Explorer Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-                    <Compass className="w-5 h-5" />
+                    <Database className="w-5 h-5" />
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-                      Master Research Domain Explorer &amp; Empirical Scanner
-                      <Badge variant="emerald" size="sm">25 Master Domains (D01–D25)</Badge>
+                      Database Research Domain Explorer &amp; Empirical Scanner
+                      <Badge variant="emerald" size="sm">Database CRUD Active • {domains.length} Domains</Badge>
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Ground computing research in authentic regional operational contexts, stakeholders, and measurable failure points.
+                      Scalable, database-backed research domains with full CRUD, local operational context, and 1-click scouting.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
                   <Button variant="ghost" size="sm" onClick={handleSelectAllFiltered} className="text-[11px]">
-                    Select Filtered ({filteredMasterDomains.length})
+                    Select Filtered ({filteredDomains.length})
                   </Button>
                   <Button variant="ghost" size="sm" onClick={handleClearDomains} className="text-[11px]">
                     Clear ({selectedDomains.length})
@@ -307,17 +363,18 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                     type="text"
                     value={domainSearchQuery}
                     onChange={(e) => setDomainSearchQuery(e.target.value)}
-                    placeholder="Search by domain name, context setting (Iloilo, farms, ports), or stakeholders..."
+                    placeholder="Search DB domains by name, context setting (Iloilo, farms, ports), or stakeholders..."
                     className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/60 shadow-inner"
                   />
                 </div>
 
                 <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                   {[
-                    { id: "ALL", label: `All (25)` },
-                    { id: "Sector", label: `Sectors (15)` },
-                    { id: "Cross-cutting", label: `Cross-cutting (5)` },
-                    { id: "Specialized", label: `Specialized (5)` },
+                    { id: "ALL", label: `All (${domains.length})` },
+                    { id: "Sector", label: "Sectors" },
+                    { id: "Cross-cutting", label: "Cross-cutting" },
+                    { id: "Specialized", label: "Specialized" },
+                    { id: "Custom", label: "Custom" },
                   ].map((t) => (
                     <button
                       key={t.id}
@@ -333,43 +390,88 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                   ))}
                 </div>
 
-                {!showCustomInput && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCustomInput(true)}
-                    className="border-emerald-500/30 text-emerald-400 hover:text-emerald-300 text-xs shrink-0"
-                  >
-                    <Plus className="w-3.5 h-3.5 mr-1" /> Custom Domain
-                  </Button>
-                )}
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => setShowCustomModal(true)}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs shrink-0 font-bold"
+                >
+                  <Plus className="w-3.5 h-3.5 mr-1" /> Add Domain to DB
+                </Button>
               </div>
 
-              {/* Inline Custom Domain Creator */}
-              {showCustomInput && (
-                <div className="p-3 bg-slate-950 border border-emerald-500/40 rounded-2xl flex items-center gap-2 animate-in fade-in duration-150">
-                  <input
-                    type="text"
-                    value={newCustomDomainInput}
-                    onChange={(e) => setNewCustomDomainInput(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        handleAddCustomDomain();
-                      } else if (e.key === "Escape") {
-                        setShowCustomInput(false);
-                      }
-                    }}
-                    placeholder="Type custom research domain (e.g. 'Quantum Key Distribution & Cryptography')..."
-                    className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                    autoFocus
-                  />
-                  <Button variant="primary" size="sm" onClick={handleAddCustomDomain} className="text-xs font-bold">
-                    Add Domain
-                  </Button>
-                  <Button variant="ghost" size="sm" onClick={() => setShowCustomInput(false)} className="text-xs">
-                    Cancel
-                  </Button>
+              {/* Custom Domain Intake Modal */}
+              {showCustomModal && (
+                <div className="p-4 bg-slate-950 border border-emerald-500/40 rounded-2xl space-y-3 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h4 className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                      <Plus className="w-3.5 h-3.5 text-emerald-400" /> Create &amp; Persist Custom Research Domain (CRUD)
+                    </h4>
+                    <button onClick={() => setShowCustomModal(false)} className="text-slate-500 hover:text-slate-300">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="text-[10px] font-mono text-slate-400 font-bold uppercase">Domain Title *</label>
+                      <input
+                        type="text"
+                        value={newCustomTitle}
+                        onChange={(e) => setNewCustomTitle(e.target.value)}
+                        placeholder="e.g. 'Quantum Sensor Telemetry & Key Distribution'"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono text-slate-400 font-bold uppercase">Context / Setting</label>
+                      <input
+                        type="text"
+                        value={newCustomContext}
+                        onChange={(e) => setNewCustomContext(e.target.value)}
+                        placeholder="e.g. 'Guimaras Strait Maritime Labs'"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-mono text-slate-400 font-bold uppercase">Target Stakeholders</label>
+                      <input
+                        type="text"
+                        value={newCustomStakeholders}
+                        onChange={(e) => setNewCustomStakeholders(e.target.value)}
+                        placeholder="e.g. 'Maritime communications officers & naval engineers'"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+
+                    <div className="space-y-1 sm:col-span-2">
+                      <label className="text-[10px] font-mono text-slate-400 font-bold uppercase">Processes Worth Exploring</label>
+                      <input
+                        type="text"
+                        value={newCustomProcesses}
+                        onChange={(e) => setNewCustomProcesses(e.target.value)}
+                        placeholder="e.g. 'Photon decoherence logging, QBER calibration drift, mesh synchronization'"
+                        className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+                    <Button variant="ghost" size="sm" onClick={() => setShowCustomModal(false)} className="text-xs">
+                      Cancel
+                    </Button>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={handleCreateCustomDomain}
+                      isLoading={isSavingCustomDomain}
+                      className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
+                    >
+                      Save to Database
+                    </Button>
+                  </div>
                 </div>
               )}
 
@@ -379,105 +481,124 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                   <span className="text-xs font-bold text-emerald-300 font-mono flex items-center gap-1">
                     <Tag className="w-3.5 h-3.5" /> Active for Discovery ({selectedDomains.length}):
                   </span>
-                  {selectedDomains.map((title) => {
-                    const isCustom = customDomains.includes(title);
-                    return (
-                      <span
-                        key={title}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-900/40 border border-emerald-700/60 text-emerald-200 text-xs font-medium"
+                  {selectedDomains.map((title) => (
+                    <span
+                      key={title}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-900/40 border border-emerald-700/60 text-emerald-200 text-xs font-medium"
+                    >
+                      <span>{title}</span>
+                      <button
+                        onClick={() => toggleDomain(title)}
+                        className="hover:text-rose-300 text-slate-400 ml-0.5"
+                        title="Remove from active discovery"
                       >
-                        <span>{title}</span>
-                        <button
-                          onClick={() => toggleDomain(title)}
-                          className="hover:text-rose-300 text-slate-400 ml-0.5"
-                          title="Remove from active discovery"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    );
-                  })}
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
               )}
 
-              {/* Master Domains Grid (D01-D25) */}
+              {/* Database Domains Grid */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-300 font-mono">
-                  <span>Showing {filteredMasterDomains.length} Master Domains</span>
+                  <span>Showing {filteredDomains.length} Research Domains in Database</span>
                   <span className="text-slate-500">Click card to load research context • Click toggle to select</span>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pr-1 no-scrollbar">
-                  {filteredMasterDomains.map((domain) => {
-                    const isSelected = selectedDomains.includes(domain.title);
-                    return (
-                      <div
-                        key={domain.id}
-                        className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative group ${
-                          isSelected
-                            ? "bg-emerald-950/30 border-emerald-500/50 shadow-md shadow-emerald-950/30 ring-1 ring-emerald-500/30"
-                            : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/60"
-                        }`}
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between gap-1">
-                            <span className="font-mono font-bold text-xs text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded-md">
-                              {domain.id}
-                            </span>
-                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
-                              domain.type === "Sector"
-                                ? "bg-blue-950/50 text-blue-300 border-blue-800"
-                                : domain.type === "Cross-cutting"
-                                ? "bg-purple-950/50 text-purple-300 border-purple-800"
-                                : "bg-amber-950/50 text-amber-300 border-amber-800"
-                            }`}>
-                              {domain.type}
-                            </span>
+                {isLoadingDomains ? (
+                  <div className="py-12 text-center space-y-2">
+                    <RefreshCw className="w-6 h-6 text-emerald-400 animate-spin mx-auto" />
+                    <p className="text-xs text-slate-400 font-mono">Querying database research domains...</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pr-1 no-scrollbar">
+                    {filteredDomains.map((domain) => {
+                      const isSelected = selectedDomains.includes(domain.title);
+                      return (
+                        <div
+                          key={domain.id}
+                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative group ${
+                            isSelected
+                              ? "bg-emerald-950/30 border-emerald-500/50 shadow-md shadow-emerald-950/30 ring-1 ring-emerald-500/30"
+                              : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/60"
+                          }`}
+                        >
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-1">
+                              <span className="font-mono font-bold text-xs text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded-md">
+                                {domain.id}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                                  domain.domain_type === "Sector"
+                                    ? "bg-blue-950/50 text-blue-300 border-blue-800"
+                                    : domain.domain_type === "Cross-cutting"
+                                    ? "bg-purple-950/50 text-purple-300 border-purple-800"
+                                    : domain.domain_type === "Custom"
+                                    ? "bg-pink-950/50 text-pink-300 border-pink-800"
+                                    : "bg-amber-950/50 text-amber-300 border-amber-800"
+                                }`}>
+                                  {domain.domain_type}
+                                </span>
+                                {Boolean(domain.is_custom) && (
+                                  <button
+                                    onClick={(e) => handleDeleteCustomDomain(domain.id, domain.title, e)}
+                                    className="p-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                                    title="Delete custom domain from database"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <h4 className="text-xs font-bold text-slate-100 leading-snug group-hover:text-emerald-300 transition-colors">
+                              {domain.title}
+                            </h4>
+
+                            {domain.description && (
+                              <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                                {domain.description}
+                              </p>
+                            )}
+
+                            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-1 text-[10px]">
+                              <div className="flex items-center gap-1.5 text-slate-400 truncate">
+                                <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+                                <span className="truncate"><strong>Context:</strong> {domain.context_setting || "Operational Setting"}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-slate-400 truncate">
+                                <Users className="w-3 h-3 text-cyan-400 shrink-0" />
+                                <span className="truncate"><strong>Stakeholders:</strong> {domain.stakeholders || "Practitioners"}</span>
+                              </div>
+                            </div>
                           </div>
 
-                          <h4 className="text-xs font-bold text-slate-100 leading-snug group-hover:text-emerald-300 transition-colors">
-                            {domain.title}
-                          </h4>
+                          <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2">
+                            <button
+                              onClick={() => handleLoadDomainContext(domain)}
+                              className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+                            >
+                              <FileCheck className="w-3 h-3" /> Load Context
+                            </button>
 
-                          <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
-                            {domain.description}
-                          </p>
-
-                          <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-1 text-[10px]">
-                            <div className="flex items-center gap-1.5 text-slate-400 truncate">
-                              <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
-                              <span className="truncate"><strong>Context:</strong> {domain.contextSetting}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5 text-slate-400 truncate">
-                              <Users className="w-3 h-3 text-cyan-400 shrink-0" />
-                              <span className="truncate"><strong>Stakeholders:</strong> {domain.stakeholders}</span>
-                            </div>
+                            <button
+                              onClick={() => toggleDomain(domain.title)}
+                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                                isSelected
+                                  ? "bg-emerald-500 text-slate-950 shadow-sm"
+                                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                              }`}
+                            >
+                              {isSelected ? "✓ Selected" : "+ Select"}
+                            </button>
                           </div>
                         </div>
-
-                        <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2">
-                          <button
-                            onClick={() => handleLoadDomainContext(domain)}
-                            className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
-                          >
-                            <FileCheck className="w-3 h-3" /> Load Context
-                          </button>
-
-                          <button
-                            onClick={() => toggleDomain(domain.title)}
-                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
-                              isSelected
-                                ? "bg-emerald-500 text-slate-950 shadow-sm"
-                                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
-                            }`}
-                          >
-                            {isSelected ? "✓ Selected" : "+ Select"}
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
 
               {/* Raw Field Observation / Context Input */}

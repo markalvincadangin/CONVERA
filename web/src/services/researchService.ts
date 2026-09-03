@@ -1,3 +1,30 @@
+export interface ResearchDomainRecord {
+  id: string;
+  project_id?: string | null;
+  title: string;
+  domain_type: "Sector" | "Cross-cutting" | "Specialized" | "Custom";
+  description?: string;
+  scope_boundary?: string;
+  related_domain_ids?: string;
+  why_explore?: string;
+  context_setting?: string;
+  stakeholders?: string;
+  processes_to_explore?: string;
+  evidence_basis?: string;
+  sdg_relevance?: string;
+  initial_concerns?: string;
+  next_action?: string;
+  is_custom?: number;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ListDomainsResponse {
+  status: string;
+  count: number;
+  domains: ResearchDomainRecord[];
+}
+
 ﻿import { fetchApi } from "@/lib/api-client";
 import { LiteratureRow, ResearchGapItem } from "@/components/research/LiteratureMatrixTable";
 import { ProblemRecord } from "@/lib/types";
@@ -41,6 +68,39 @@ export const researchService = {
     return fetchApi<StageADiscoverResponse>("/api/research/stage-a/discover", {
       method: "POST",
       body: JSON.stringify(payload),
+    });
+  },
+
+  listDomains: async (params?: { project_id?: string; domain_type?: string; search?: string }): Promise<ListDomainsResponse> => {
+    const qs = new URLSearchParams();
+    if (params?.project_id) qs.set("project_id", params.project_id);
+    if (params?.domain_type && params.domain_type !== "ALL") qs.set("domain_type", params.domain_type);
+    if (params?.search) qs.set("search", params.search);
+    const query = qs.toString();
+    return fetchApi<ListDomainsResponse>(`/api/research/domains${query ? `?${query}` : ""}`);
+  },
+
+  getDomain: async (domainId: string): Promise<{ status: string; domain: ResearchDomainRecord }> => {
+    return fetchApi<{ status: string; domain: ResearchDomainRecord }>(`/api/research/domains/${domainId}`);
+  },
+
+  createDomain: async (domain: Partial<ResearchDomainRecord>): Promise<{ status: string; domain: ResearchDomainRecord }> => {
+    return fetchApi<{ status: string; domain: ResearchDomainRecord }>("/api/research/domains", {
+      method: "POST",
+      body: JSON.stringify(domain),
+    });
+  },
+
+  updateDomain: async (domainId: string, updates: Partial<ResearchDomainRecord>): Promise<{ status: string; domain: ResearchDomainRecord }> => {
+    return fetchApi<{ status: string; domain: ResearchDomainRecord }>(`/api/research/domains/${domainId}`, {
+      method: "PUT",
+      body: JSON.stringify(updates),
+    });
+  },
+
+  deleteDomain: async (domainId: string): Promise<{ status: string; deleted: boolean; domain_id: string }> => {
+    return fetchApi<{ status: string; deleted: boolean; domain_id: string }>(`/api/research/domains/${domainId}`, {
+      method: "DELETE",
     });
   },
 };

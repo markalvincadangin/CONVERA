@@ -363,6 +363,30 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TEXT NOT NULL,
                     updated_at TEXT NOT NULL
                 );
+                
+                CREATE TABLE IF NOT EXISTS research_domains (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT,
+                    title TEXT NOT NULL,
+                    domain_type TEXT NOT NULL DEFAULT 'Sector',
+                    description TEXT,
+                    scope_boundary TEXT,
+                    related_domain_ids TEXT,
+                    why_explore TEXT,
+                    context_setting TEXT,
+                    stakeholders TEXT,
+                    processes_to_explore TEXT,
+                    evidence_basis TEXT,
+                    sdg_relevance TEXT,
+                    initial_concerns TEXT,
+                    next_action TEXT,
+                    is_custom INTEGER DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_research_domains_proj ON research_domains(project_id);
+                CREATE INDEX IF NOT EXISTS idx_research_domains_type ON research_domains(domain_type);
+
                 CREATE TABLE IF NOT EXISTS circumscription_iterations (
                     id TEXT PRIMARY KEY,
                     project_id TEXT NOT NULL,
@@ -388,6 +412,51 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_assumption_tests ON assumption_validation_tests(assumption_id);
                 CREATE INDEX IF NOT EXISTS idx_impact_events_status ON impact_invalidation_events(resolution_status, created_at DESC);
             """)
+
+            # Seed default 25 research domains from Master Sheet if table is empty
+            try:
+                cur = conn.execute("SELECT COUNT(*) FROM research_domains")
+                if cur.fetchone()[0] == 0:
+                    import csv, os
+                    csv_path = "docs/Research Concept Master Sheet - 01_Domain_Explorer (1).csv"
+                    if not os.path.exists(csv_path):
+                        csv_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "docs", "Research Concept Master Sheet - 01_Domain_Explorer (1).csv")
+                    
+                    if os.path.exists(csv_path):
+                        with open(csv_path, "r", encoding="utf-8", errors="ignore") as f:
+                            reader = csv.DictReader(f)
+                            for r in reader:
+                                d_id = r.get("Domain ID", "").strip()
+                                if not d_id:
+                                    continue
+                                now = datetime.utcnow().isoformat()
+                                conn.execute("""
+                                    INSERT INTO research_domains (
+                                        id, project_id, title, domain_type, description,
+                                        scope_boundary, related_domain_ids, why_explore,
+                                        context_setting, stakeholders, processes_to_explore,
+                                        evidence_basis, sdg_relevance, initial_concerns,
+                                        next_action, is_custom, created_at, updated_at
+                                    ) VALUES (?, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                                """, (
+                                    d_id,
+                                    r.get("Application Domain", "").strip(),
+                                    r.get("Domain Type", "Sector").strip(),
+                                    r.get("Domain Description", "").strip(),
+                                    r.get("Scope Boundary / Exclusions", "").strip(),
+                                    r.get("Parent / Related Domain IDs", "").strip(),
+                                    r.get("Why Explore This Domain?", "").strip(),
+                                    r.get("Possible Context / Setting", "").strip(),
+                                    r.get("Potential Stakeholders", "").strip(),
+                                    r.get("Processes Worth Exploring", "").strip(),
+                                    r.get("Preliminary Evidence / Source Basis", "").strip(),
+                                    r.get("Possible SDG Relevance – Preliminary", r.get("Possible SDG Relevance � Preliminary", "")).strip(),
+                                    r.get("Initial Concerns / Constraints", "").strip(),
+                                    r.get("Next Validation Action", "").strip(),
+                                    now, now
+                                ))
+            except Exception as e:
+                print(f"[!] Warning: Failed to seed research domains: {e}")
 
             # Migration safe check for newly added columns if table already existed
             try:
@@ -2238,3 +2307,119 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         with self._get_connection() as conn:
             rows = conn.execute(query, tuple(params)).fetchall()
             return [dict(r) for r in rows]
+
+
+    # ------------------------------------------------------------------
+    # Research Domains CRUD Methods
+    # ------------------------------------------------------------------
+
+    def list_research_domains(
+        self,
+        project_id: Optional[str] = None,
+        domain_type: Optional[str] = None,
+        search: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """List research domains (global + project custom)."""
+        with self._get_connection() as conn:
+            query = "SELECT * FROM research_domains WHERE 1=1"
+            params: List[Any] = []
+            
+            if project_id:
+                query += " AND (project_id = ? OR project_id IS NULL)"
+                params.append(project_id)
+            else:
+                query += " AND project_id IS NULL"
+
+            if domain_type and domain_type != "ALL":
+                query += " AND domain_type = ?"
+                params.append(domain_type)
+
+            if search:
+                query += " AND (title LIKE ? OR context_setting LIKE ? OR stakeholders LIKE ? OR processes_to_explore LIKE ? OR id LIKE ?)"
+                term = f"%{search}%"
+                params.extend([term, term, term, term, term])
+
+            query += " ORDER BY id ASC"
+            cursor = conn.execute(query, params)
+            return [dict(r) for r in cursor.fetchall()]
+
+    def get_research_domain(self, domain_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a single research domain by ID."""
+        with self._get_connection() as conn:
+            cursor = conn.execute("SELECT * FROM research_domains WHERE id = ?", (domain_id,))
+            row = cursor.fetchone()
+            return dict(row) if row else None
+
+    def create_research_domain(self, domain_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new research domain (custom or project-specific)."""
+        now = datetime.utcnow().isoformat()
+        domain_id = domain_data.get("id")
+        if not domain_id:
+            import uuid
+            domain_id = f"CUST-{uuid.uuid4().hex[:6].upper()}"
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO research_domains (
+                    id, project_id, title, domain_type, description,
+                    scope_boundary, related_domain_ids, why_explore,
+                    context_setting, stakeholders, processes_to_explore,
+                    evidence_basis, sdg_relevance, initial_concerns,
+                    next_action, is_custom, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                domain_id,
+                domain_data.get("project_id"),
+                domain_data.get("title", "Untitled Custom Domain"),
+                domain_data.get("domain_type", "Custom"),
+                domain_data.get("description", ""),
+                domain_data.get("scope_boundary", ""),
+                domain_data.get("related_domain_ids", ""),
+                domain_data.get("why_explore", ""),
+                domain_data.get("context_setting", ""),
+                domain_data.get("stakeholders", ""),
+                domain_data.get("processes_to_explore", ""),
+                domain_data.get("evidence_basis", ""),
+                domain_data.get("sdg_relevance", ""),
+                domain_data.get("initial_concerns", ""),
+                domain_data.get("next_action", ""),
+                1 if domain_data.get("is_custom", True) else 0,
+                now, now
+            ))
+            conn.commit()
+            return self.get_research_domain(domain_id)
+
+    def update_research_domain(self, domain_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update an existing research domain."""
+        now = datetime.utcnow().isoformat()
+        allowed = [
+            "title", "domain_type", "description", "scope_boundary",
+            "related_domain_ids", "why_explore", "context_setting",
+            "stakeholders", "processes_to_explore", "evidence_basis",
+            "sdg_relevance", "initial_concerns", "next_action"
+        ]
+        set_clauses = []
+        params = []
+        for k in allowed:
+            if k in updates:
+                set_clauses.append(f"{k} = ?")
+                params.append(updates[k])
+
+        if not set_clauses:
+            return self.get_research_domain(domain_id)
+
+        set_clauses.append("updated_at = ?")
+        params.append(now)
+        params.append(domain_id)
+
+        with self._get_connection() as conn:
+            conn.execute(f"UPDATE research_domains SET {', '.join(set_clauses)} WHERE id = ?", params)
+            conn.commit()
+            return self.get_research_domain(domain_id)
+
+    def delete_research_domain(self, domain_id: str) -> bool:
+        """Delete a custom research domain."""
+        with self._get_connection() as conn:
+            cursor = conn.execute("DELETE FROM research_domains WHERE id = ?", (domain_id,))
+            conn.commit()
+            return cursor.rowcount > 0
