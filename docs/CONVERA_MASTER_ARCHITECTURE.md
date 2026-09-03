@@ -113,54 +113,24 @@ Teams lack an effective way to transform fragmented ideas, information, evidence
 
 ## 4. Core Transformation
 
-CONVERA transforms:
+```mermaid
+graph TD
+    A["Fragmented Information"] --> B["Connected Knowledge"]
+    B --> C["Structured Understanding"]
+    C --> D["Explicit Uncertainty"]
+    D --> E["Targeted Investigation"]
+    E --> F["Empirical Evidence"]
+    F --> G["Rigorous Validation"]
+    G --> H["Comparable Options"]
+    H --> I["Traceable Decisions"]
+    I --> J["Justified Direction"]
+    J --> K["Decisive Action"]
 
-```text
-FRAGMENTED INFORMATION
-        v
-CONNECTED KNOWLEDGE
-        v
-STRUCTURED UNDERSTANDING
-        v
-EXPLICIT UNCERTAINTY
-        v
-TARGETED INVESTIGATION
-        v
-EVIDENCE
-        v
-VALIDATION
-        v
-COMPARABLE OPTIONS
-        v
-TRACEABLE DECISION
-        v
-JUSTIFIED DIRECTION
-        v
-ACTION
-```
-
-The conceptual product journey is:
-
-```text
-POSSIBILITY
-    v
-UNDERSTANDING
-    v
-UNCERTAINTY
-    v
-INVESTIGATION
-    v
-VALIDATION
-    v
-OPTIONS
-    v
-EVALUATION
-    v
-DECISION
-    v
-DIRECTION
-    v
-ACTION
+    style A fill:#0f172a,stroke:#334155,stroke-width:1px,color:#94a3b8
+    style F fill:#0c4a6e,stroke:#0284c7,stroke-width:1px,color:#e0f2fe
+    style I fill:#1e1b4b,stroke:#6366f1,stroke-width:1px,color:#e0e7ff
+    style J fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#d1fae5
+    style K fill:#0066ff,stroke:#60a5fa,stroke-width:2px,color:#ffffff
 ```
 
 ---
@@ -225,89 +195,93 @@ The **CONVERA Concept Development Standard (CCDS)** is the governing methodologi
 
 ## 7. Product and Framework Hierarchy
 
-```text
-EMAERX (Parent Brand)
-  |
-  `-- CONVERA (Platform)
-       |
-       |-- CCDS (Governing Standard)
-       |
-       `-- Frameworks
-             |-- Research Framework
-             |-- Innovation Framework
-             |-- Product Framework
-             |-- Capstone Framework
-             `-- Custom Framework
+```mermaid
+graph TD
+    EMAERX["EMAERX (Parent Brand)"] --> CONVERA["CONVERA (Platform)"]
+    CONVERA --> CCDS["CCDS (Governing Standard)"]
+    CONVERA --> FW["Domain Frameworks"]
+    
+    subgraph Frameworks["First-Class Frameworks"]
+        RF["Research Framework<br/><i>Computing Research Concepts</i>"]
+        IF["Innovation Framework<br/><i>Startup & Opportunity Validation</i>"]
+        PF["Product Framework<br/><i>Product Discovery & UX</i>"]
+        CF["Capstone Framework<br/><i>Academic Thesis & SRS</i>"]
+        CUST["Custom Framework<br/><i>User-Defined Workflows</i>"]
+    end
+    
+    FW --> RF
+    FW --> IF
+    FW --> PF
+    FW --> CF
+    FW --> CUST
+    
+    style EMAERX fill:#0b0f14,stroke:#0066ff,stroke-width:2px,color:#ffffff
+    style CONVERA fill:#0066ff,stroke:#60a5fa,stroke-width:2px,color:#ffffff
+    style CCDS fill:#064e3b,stroke:#10b981,stroke-width:1.5px,color:#d1fae5
 ```
-
-### 7.1 Standard vs Framework
-- **Standard (CCDS):** Defines what good concept development must fundamentally satisfy.
-- **Framework:** Defines how those principles are operationalized for a specific project domain.
-- **Workflow:** Defines what the user actually does at a particular point in the framework.
 
 ---
 
 ## 8. Four Core Engines
 
-### 8.1 Knowledge Engine
-- **Purpose:** Connect everything the team knows.
-- **Responsibilities:** Maintain project knowledge, connect related entities, detect relationships, preserve history, support reuse across stages and frameworks, and provide project context to AI and decision functions.
-- **Core Knowledge Entities:** Problems, Ideas, Claims, Evidence, Sources, Stakeholders, Assumptions, Alternatives, Solutions, Requirements, Decisions, Tests, Results, Artifacts.
-
-### 8.2 Evidence Engine
-- **Purpose:** Determine what the team can reasonably believe.
-- **Responsibilities:** Evidence Ledger, Evidence Cards, Claim-to-evidence relationships, Source provenance, Evidence quality, Contradiction detection, Evidence status, Research traceability, Interview evidence, Validation evidence.
-- **Evidence State Progression:**
-  ```text
-  UNKNOWN -> HYPOTHESIS -> SUPPORTED -> VALIDATED (or CONTRADICTED)
-  ```
-- *AI confidence must remain strictly separate from empirical evidence strength.*
-
-### 8.3 Framework Engine
-- **Purpose:** Determine what should happen next.
-- **Responsibilities:** Framework selection, versioning, stage management, activities, criteria, required artifacts, gates, transition rules, framework-specific AI roles and validation methods.
-
-### 8.4 Decision Engine
-- **Purpose:** Help teams determine what they should do.
-- **Responsibilities:** Compare alternatives, apply criteria, score options, preserve trade-offs, record decisions, record rejected alternatives, record rationale, link decisions to evidence, support pivots, and reopen decisions when evidence changes.
-- **Core Questions Answered:**
-  - *Why was this selected?*
-  - *What evidence supported the decision?*
-  - *What would cause us to reconsider it?*
+```mermaid
+graph TD
+    subgraph CoreEngines["The Four Core Engines of CONVERA"]
+        KE["<b>1. Knowledge Engine</b><br/><i>'What do we know?'</i><br/>Connects Problems, Ideas, Claims, Evidence, Stakeholders, Assumptions, & Decisions"]
+        EE["<b>2. Evidence Engine</b><br/><i>'Why should we believe it?'</i><br/>Maintains Ledgers, Cards, Provenance, Verification, & Contradictions"]
+        FE["<b>3. Framework Engine</b><br/><i>'What should happen next?'</i><br/>Orchestrates Stages, Activities, Criteria, Gates, & Transitions"]
+        DE["<b>4. Decision Engine</b><br/><i>'What should we choose?'</i><br/>Drives Comparisons, Scoring, Trade-Offs, & Decision Records"]
+    end
+    
+    style KE fill:#0f172a,stroke:#0284c7,stroke-width:1.5px,color:#f8fafc
+    style EE fill:#0f172a,stroke:#10b981,stroke-width:1.5px,color:#f8fafc
+    style FE fill:#0f172a,stroke:#f59e0b,stroke-width:1.5px,color:#f8fafc
+    style DE fill:#0f172a,stroke:#6366f1,stroke-width:1.5px,color:#f8fafc
+```
 
 ---
 
 ## 9. Cross-Cutting Mechanisms
 
-### 9.1 Ratchet
+### 9.1 Ratchet Progression Control
 Ratchet is an internal CONVERA governance mechanism controlling progression:
-- `PASS` -> Advance to next stage
-- `REVISE` -> Improve current stage requirements
-- `HOLD` -> Pause for additional field evidence
-- `FAIL` -> Return, reject, or archive
+- `PASS` → Advance to next stage
+- `REVISE` → Improve current stage requirements
+- `HOLD` → Pause for additional field evidence
+- `FAIL` → Return, reject, or archive
 
 ### 9.2 Learning Loop
 The Learning Loop manages iteration and re-evaluation when new field evidence invalidates an upstream premise:
-```text
-VALIDATION
-    v
-NEW EVIDENCE
-    v
-ASSUMPTION CONTRADICTED
-    v
-DOWNSTREAM KNOWLEDGE AFFECTED
-    v
-DECISION REOPENED
-    v
-RETURN TO APPROPRIATE STAGE
-    v
-RE-EVALUATE
+
+```mermaid
+graph TD
+    VAL["Validation / Testing Stage"] --> NE["New Field Evidence Collected"]
+    NE --> AC["Original Assumption Contradicted"]
+    AC --> DK["Downstream Knowledge Affected"]
+    DK --> DR["Decision Reopened & Logged"]
+    DR --> RT["Return to Appropriate Stage"]
+    RT --> RE["Re-Evaluate with Preserved History"]
+
+    style AC fill:#4c0519,stroke:#f43f5e,stroke-width:1.5px,color:#ffe4e6
+    style DR fill:#451a03,stroke:#f59e0b,stroke-width:1.5px,color:#fef3c7
+    style RE fill:#064e3b,stroke:#10b981,stroke-width:1.5px,color:#d1fae5
 ```
 
 ### 9.3 Impact Propagation
 When a foundational claim or assumption changes, CONVERA identifies downstream entities affected by that change:
-```text
-Evidence Changes -> Claim Updated -> Assumption Invalidated -> Validation Shifted -> Decision Affected -> Artifact Marked Stale -> Gate Reopened
+
+```mermaid
+graph LR
+    EV["Evidence Changes"] --> CL["Claim Updated"]
+    CL --> AS["Assumption Invalidated"]
+    AS --> VR["Validation Shifted"]
+    VR --> DC["Decision Reopened"]
+    DC --> AR["Artifact Marked Stale"]
+    AR --> GT["Gate Requires Review"]
+    
+    style AS fill:#4c0519,stroke:#f43f5e,color:#ffe4e6
+    style AR fill:#451a03,stroke:#f59e0b,color:#fef3c7
+    style GT fill:#1e1b4b,stroke:#818cf8,color:#e0e7ff
 ```
 
 ---
@@ -321,31 +295,32 @@ CONVERA uses a relational database with explicit foreign key relationships rathe
 - Sub-millisecond queries
 
 ### 10.1 Conceptual Graph Structure
-```text
-PROBLEM
-   |
-   |-- CLAIM
-   |     `-- EVIDENCE
-   |           `-- SOURCE
-   |
-   |-- ASSUMPTION
-   |     `-- TEST
-   |           `-- RESULT
-   |
-   |-- STAKEHOLDER
-   |
-   |-- EXISTING ALTERNATIVE
-   |
-   |-- IDEA
-   |
-   |-- SOLUTION
-   |
-   |-- REQUIREMENT
-   |
-   `-- DECISION
-         |-- RATIONALE
-         |-- SUPPORTING EVIDENCE
-         `-- REJECTED ALTERNATIVES
+
+```mermaid
+graph TD
+    P["PROBLEM / OPPORTUNITY"] --> C["CLAIMS"]
+    C --> E["EVIDENCE & SOURCES"]
+    
+    P --> A["ASSUMPTIONS"]
+    A --> T["TESTS & MOM TEST QUESTIONS"]
+    T --> R["RESULTS"]
+    
+    P --> S["STAKEHOLDERS"]
+    P --> ALT["EXISTING ALTERNATIVES"]
+    P --> IDEA["IDEAS & MECHANISMS"]
+    IDEA --> SOL["SOLUTIONS"]
+    SOL --> REQ["TECHNICAL REQUIREMENTS"]
+    
+    P --> DEC["DECISION RECORDS"]
+    DEC --> RAT["Rationale & Trade-Offs"]
+    DEC --> SE["Supporting Evidence"]
+    DEC --> REJ["Rejected Alternatives"]
+
+    style P fill:#0066ff,stroke:#60a5fa,stroke-width:2px,color:#ffffff
+    style C fill:#0f172a,stroke:#38bdf8,color:#f8fafc
+    style E fill:#0f172a,stroke:#34d399,color:#f8fafc
+    style A fill:#0f172a,stroke:#fbbf24,color:#f8fafc
+    style DEC fill:#1e1b4b,stroke:#818cf8,color:#f8fafc
 ```
 
 ---
@@ -370,6 +345,7 @@ PROBLEM
 ## 12. Recommended Database Schema Structure
 
 ```sql
+-- Workspaces & Frameworks
 workspaces
 frameworks
 framework_versions
@@ -379,12 +355,14 @@ gates
 criteria
 transition_rules
 
+-- Core Knowledge Entities
 concepts
 problems
 ideas
 solutions
 stakeholders
 
+-- Evidence & Epistemics
 claims
 evidence
 sources
@@ -392,19 +370,18 @@ assumptions
 tests
 test_results
 
+-- Decisioning & Specifications
 alternatives
 requirements
-
 reviews
 decisions
 decision_records
 
+-- Artifacts & Audit Trail
 artifacts
 artifact_versions
-
 ai_runs
 audit_events
-
 users
 teams
 permissions
@@ -415,8 +392,17 @@ permissions
 ## 13. Evidence Ledger
 
 Every important project claim is represented explicitly:
-```text
-CLAIM -> EVIDENCE -> SOURCE -> INTERPRETATION -> STATUS
+
+```mermaid
+graph LR
+    CL["CLAIM"] --> EV["EVIDENCE"]
+    EV --> SR["SOURCE / DOI"]
+    SR --> INT["INTERPRETATION"]
+    INT --> ST["STATUS"]
+    
+    style CL fill:#0f172a,stroke:#38bdf8,color:#f8fafc
+    style EV fill:#0f172a,stroke:#34d399,color:#f8fafc
+    style ST fill:#064e3b,stroke:#10b981,color:#d1fae5
 ```
 
 - **Evidence Types:** Discovery signal, Contextual evidence, Validation evidence.
@@ -427,8 +413,16 @@ CLAIM -> EVIDENCE -> SOURCE -> INTERPRETATION -> STATUS
 ## 14. Assumption Radar
 
 Turns critical uncertainty into testable propositions:
-```text
-CLAIM -> ASSUMPTION -> RISK (CRITICAL/HIGH/MED/LOW) -> MOM TEST QUESTION -> RESULT
+
+```mermaid
+graph LR
+    CL["CLAIM"] --> AS["ASSUMPTION"]
+    AS --> RK["RISK TIER (Critical/High/Med/Low)"]
+    RK --> MT["MOM TEST BEHAVIORAL QUESTION"]
+    MT --> RS["VALIDATION RESULT"]
+    
+    style AS fill:#451a03,stroke:#fbbf24,color:#fef3c7
+    style MT fill:#1e1b4b,stroke:#818cf8,color:#e0e7ff
 ```
 
 ---
@@ -436,6 +430,15 @@ CLAIM -> ASSUMPTION -> RISK (CRITICAL/HIGH/MED/LOW) -> MOM TEST QUESTION -> RESU
 ## 15. AI / Research Inbox
 
 Reduces manual entry friction. Users dump raw material (text, AI chats, URLs, DOIs, PDFs, interview transcripts, notes, screenshots) and CONVERA automatically extracts, classifies, and connects them into the Knowledge Graph subject to human review.
+
+```mermaid
+graph TD
+    RAW["Raw Input (Text, URLs, DOIs, PDFs, Transcripts)"] --> EXT["AI Extraction & Classification"]
+    EXT --> CLAS["Entity Mapping (Claims, Evidence, Assumptions)"]
+    CLAS --> REL["Relationship Detection"]
+    REL --> REV["Human Verification & Approval"]
+    REV --> KG[("Project Knowledge Graph")]
+```
 
 ---
 
@@ -448,8 +451,17 @@ Identifies duplicate ideas, semantically similar problems, related concepts, rep
 ## 17. Idea Genealogy
 
 Preserves the complete lineage of concept evolution:
-```text
-RAW IDEA -> PROBLEM INTERPRETATION -> RESEARCH -> EVIDENCE -> ALTERNATIVE -> VALIDATION -> PIVOT -> NEW CONCEPT -> FINAL DIRECTION
+
+```mermaid
+graph LR
+    RAW["Raw Idea"] --> PROB["Problem Frame"]
+    PROB --> RES["Research & DOI"]
+    RES --> EVD["Evidence Ledger"]
+    EVD --> ALT["Alternative Hypothesis"]
+    ALT --> VAL["Field Validation"]
+    VAL --> PIV["Pivot Loop"]
+    PIV --> NEW["Refined Concept"]
+    NEW --> FIN["Final Decision & SRS"]
 ```
 
 ---
@@ -473,8 +485,26 @@ Artifacts are derived project outputs indicating their freshness:
 
 ## 20. Traceability Architecture
 
-- **Requirement Traceability:** Requirement -> Feature -> User Need -> Validated Problem -> Claim -> Evidence -> Source/Interview
-- **Decision Traceability:** Final Decision -> Decision Record -> Criteria -> Evidence -> Claims -> Sources/Tests
+```mermaid
+graph TD
+    subgraph ReqTrace["Requirement Traceability (Forward & Backward)"]
+        REQ["SRS Requirement (FR-001)"] --> FEAT["System Feature"]
+        FEAT --> UN["User Need"]
+        UN --> VP["Validated Problem"]
+        VP --> CLM["Empirical Claim"]
+        CLM --> EVD["Evidence & Sources"]
+    end
+```
+
+```mermaid
+graph TD
+    subgraph DecTrace["Decision Traceability"]
+        DEC["Final Project Direction"] --> DR["Decision Record"]
+        DR --> CRIT["Evaluation Criteria & Scores"]
+        CRIT --> EVD2["Supporting Evidence"]
+        CRIT --> REJ2["Rejected Alternatives"]
+    end
+```
 
 ---
 
@@ -483,7 +513,7 @@ Artifacts are derived project outputs indicating their freshness:
 Preserves all previous claims, evidence interpretations, assumptions, decisions, framework versions, artifacts, and gate decisions.
 
 ```text
-WHO - WHAT - WHEN - WHY - BASED ON WHAT
+WHO · WHAT · WHEN · WHY · BASED ON WHAT
 ```
 
 ---
@@ -507,32 +537,57 @@ Frameworks are configurable and versioned schemas.
 
 ## 24. Research Framework
 Stages:
-```text
-A — PROBLEM DISCOVERY -> B — PROBLEM VALIDATION -> [GATE 1] -> C — RESEARCH OPPORTUNITY -> [GATE 2] -> D — SOLUTION FORMULATION -> E — EVALUATION DESIGN -> [GATE 3] -> F — RELEVANCE & FEASIBILITY -> [GATE 4] -> COMPLETED RESEARCH CONCEPT
+```mermaid
+graph LR
+    A["A: Problem Discovery"] --> B["B: Problem Validation"]
+    B --> G1{"Gate 1"}
+    G1 --> C["C: Research Opportunity"]
+    C --> G2{"Gate 2"}
+    G2 --> D["D: Solution Formulation"]
+    D --> E["E: Evaluation Design"]
+    E --> G3{"Gate 3"}
+    G3 --> F["F: Relevance & Feasibility"]
+    F --> G4{"Gate 4"}
+    G4 --> RES["Completed Research Concept"]
 ```
 
 ---
 
 ## 25. Innovation Framework
 Stages:
-```text
-Problem Discovery -> Problem Screening -> Problem Validation -> Existing Solution Analysis -> Opportunity Definition -> Solution Ideation -> MVP Definition -> Behavioral Commitment -> Business Model -> Decision -> Startup Direction
+```mermaid
+graph LR
+    P1["1. Problem Discovery"] --> P2["2. Screening & Sizing"]
+    P2 --> P3["3. Field Mom Test"]
+    P3 --> P4["4. Mechanism Design"]
+    P4 --> P5["5. Unit Economics & Audit"]
+    P5 --> P6["6. Venture Direction"]
 ```
 
 ---
 
 ## 26. Product Framework
 Stages:
-```text
-User / Market Context -> Problem Discovery -> User Research -> Problem Validation -> Opportunity Definition -> Solution Exploration -> Requirements -> MVP -> UX / Product Evaluation -> Product Direction
+```mermaid
+graph LR
+    PR1["1. Market Context"] --> PR2["2. Problem Discovery"]
+    PR2 --> PR3["3. User Research"]
+    PR3 --> PR4["4. Opportunity Scope"]
+    PR4 --> PR5["5. Requirements & UX"]
+    PR5 --> PR6["6. MVP Specification"]
 ```
 
 ---
 
 ## 27. Capstone Framework
 Stages:
-```text
-Academic Problem -> Scope Definition -> Evidence / Research Basis -> Requirements -> Architecture -> Implementation Direction -> Testing / Evaluation -> Documentation -> Capstone Completion
+```mermaid
+graph LR
+    CP1["1. Academic Problem"] --> CP2["2. Scope & Thesis Basis"]
+    CP2 --> CP3["3. IEEE 830 SRS Specs"]
+    CP3 --> CP4["4. System Architecture"]
+    CP4 --> CP5["5. Evaluation Protocol"]
+    CP5 --> CP6["6. Capstone Defense Ready"]
 ```
 
 ---
@@ -563,15 +618,15 @@ Persistent workspace exposing: Overview, Framework, Knowledge, Evidence, Assumpt
 ---
 
 ## 33. Existing System Mapping
-- Problem Discovery -> Discovery capability
-- 10-Column Screening -> Assessment engine
-- Mom Test -> Validation methodology
-- Evidence Ledger -> Evidence Engine
-- Devil's Advocate -> Assumption Radar
-- Decision Log -> Governance
-- Ratchet -> Progression engine
-- Learning Loop -> Re-evaluation engine
-- SRS Generator -> Artifact / Deliverable Engine
+- Problem Discovery → Discovery capability
+- 10-Column Screening → Assessment engine
+- Mom Test → Validation methodology
+- Evidence Ledger → Evidence Engine
+- Devil's Advocate → Assumption Radar
+- Decision Log → Governance
+- Ratchet → Progression engine
+- Learning Loop → Re-evaluation engine
+- SRS Generator → Artifact / Deliverable Engine
 
 ---
 
@@ -588,8 +643,17 @@ Persistent workspace exposing: Overview, Framework, Knowledge, Evidence, Assumpt
 ---
 
 ## 36. Framework Execution Model
-```text
-Load Workspace -> Stage -> Inputs -> Activities -> AI Assist -> Human Review -> Criteria -> Gate -> Decision (Advance / Revise / Hold / Return)
+```mermaid
+graph TD
+    LW["Load Workspace"] --> LF["Load Framework Version"]
+    LF --> CS["Identify Current Stage"]
+    CS --> LI["Load Required Inputs"]
+    LI --> CK["Check Knowledge & Evidence"]
+    CK --> ACT["Run Activities & AI Assistance"]
+    ACT --> HR["Human Review & Validation"]
+    HR --> EC["Evaluate Criteria"]
+    EC --> GT["Run Ratchet Gate"]
+    GT --> DEC["Record Decision: PASS / REVISE / HOLD / FAIL"]
 ```
 
 ---
@@ -628,7 +692,7 @@ Markdown, PDF, JSON, and CSV exports with provenance and version context.
 ## 42. Three Mandatory Engineering Guardrails
 
 1. **Guardrail 1 — Avoid the Generic Workflow DSL Trap:** Build Innovation, Research, Capstone, and Product as structured schemas first.
-2. **Guardrail 2 — Minimize Manual Ingestion:** Prioritize Raw Input -> AI Extraction -> Classification -> Linking -> Human Review.
+2. **Guardrail 2 — Minimize Manual Ingestion:** Prioritize Raw Input → AI Extraction → Classification → Linking → Human Review.
 3. **Guardrail 3 — Separate AI Confidence from Evidence Strength:** Never display AI confidence as empirical validation.
 
 ---
@@ -645,54 +709,71 @@ Complete when CONVERA is the official product identity, CCDS is the governing st
 
 ## 45. Final Architecture Diagram
 
-```text
-                              EMAERX
-                                 |
-                              CONVERA
-                                 |
-                 +---------------+----------------+
-                 |                                |
-                CCDS                         FRAMEWORKS
-                 |                                |
-                 |                +---------------┼---------------+
-                 |                v               v               v
-                 |            RESEARCH       INNOVATION       PRODUCT
-                 |                |
-                 |                `-------- CAPSTONE
-                 |
-                 v
-          FRAMEWORK ENGINE
-                 |
-                 v
-    +------------┼------------+
-    v            v            v
-KNOWLEDGE     EVIDENCE     DECISION
- ENGINE        ENGINE       ENGINE
-    |            |            |
-    `------------┼------------+
-                 v
-       PERSISTENT PROJECT
-          KNOWLEDGE GRAPH
-                 |
-       +---------┼---------+
-       v         v         v
-     CLAIMS    EVIDENCE  ASSUMPTIONS
-       |         |         |
-       `---------┼---------+
-                 v
-              DECISIONS
-                 v
-             ARTIFACTS
-                 v
-              DIRECTION
+```mermaid
+graph TD
+    EMAERX["<b>EMAERX</b><br/><i>'Where What's Next Begins'</i>"] --> CONVERA["<b>CONVERA</b><br/><i>'Where Possibilities Converge into Direction'</i>"]
+    
+    CONVERA --> CCDS["<b>CCDS</b><br/>Governing Standard"]
+    CONVERA --> FE["<b>Framework Engine</b><br/>Orchestrates Workflows"]
+    
+    subgraph Frameworks["First-Class Domain Frameworks"]
+        RF["Research Framework"]
+        IF["Innovation Framework"]
+        PF["Product Framework"]
+        CF["Capstone Framework"]
+    end
+    
+    FE --> Frameworks
+    
+    subgraph Engines["The Four Core Engines"]
+        KE["<b>Knowledge Engine</b><br/><i>'What do we know?'</i>"]
+        EE["<b>Evidence Engine</b><br/><i>'Why should we believe it?'</i>"]
+        DE["<b>Decision Engine</b><br/><i>'What should we choose?'</i>"]
+    end
+    
+    FE --> Engines
+    
+    Engines --> KG[("<b>Persistent Relational Knowledge Graph</b><br/>(Zero-Ops SQLite WAL)")]
+    
+    subgraph GraphEntities["Knowledge Graph Entities"]
+        C["Claims & Ledgers"]
+        E["Evidence & DOIs"]
+        A["Assumptions & Mom Test"]
+        D["Decision Records & History"]
+    end
+    
+    KG --> GraphEntities
+    GraphEntities --> ART["Derived Artifacts & SRS Specs"]
+    ART --> DIR["<b>JUSTIFIED DIRECTION & ACTION</b>"]
+
+    style EMAERX fill:#0b0f14,stroke:#0066ff,stroke-width:2px,color:#ffffff
+    style CONVERA fill:#0066ff,stroke:#60a5fa,stroke-width:2px,color:#ffffff
+    style CCDS fill:#064e3b,stroke:#10b981,stroke-width:1.5px,color:#d1fae5
+    style KG fill:#1e1b4b,stroke:#818cf8,stroke-width:2px,color:#ffffff
+    style DIR fill:#064e3b,stroke:#34d399,stroke-width:2px,color:#ffffff
 ```
 
 ---
 
 ## 46. The CONVERA Operating Loop
 
-```text
-CAPTURE -> CONNECT -> UNDERSTAND -> IDENTIFY UNCERTAINTY -> INVESTIGATE -> COLLECT EVIDENCE -> TEST ASSUMPTIONS -> EVALUATE OPTIONS -> DECIDE -> ADVANCE -> LEARN -> RE-EVALUATE
+```mermaid
+graph LR
+    CAP["1. Capture"] --> CON["2. Connect"]
+    CON --> UND["3. Understand"]
+    UND --> UNC["4. Identify Uncertainty"]
+    UNC --> INV["5. Investigate"]
+    INV --> EVD["6. Collect Evidence"]
+    EVD --> TST["7. Test Assumptions"]
+    TST --> EVL["8. Evaluate Options"]
+    EVL --> DEC["9. Decide"]
+    DEC --> ADV["10. Advance"]
+    ADV --> LRN["11. Learn & Re-evaluate"]
+    
+    style CAP fill:#0f172a,stroke:#38bdf8,color:#f8fafc
+    style EVD fill:#0f172a,stroke:#34d399,color:#f8fafc
+    style DEC fill:#1e1b4b,stroke:#818cf8,color:#f8fafc
+    style ADV fill:#064e3b,stroke:#10b981,color:#d1fae5
 ```
 
 ---
@@ -720,20 +801,19 @@ CAPTURE -> CONNECT -> UNDERSTAND -> IDENTIFY UNCERTAINTY -> INVESTIGATE -> COLLE
 
 CONVERA is a framework-driven project intelligence system that connects knowledge, evidence, uncertainty, decisions, and action.
 
-```text
-WHAT DO WE KNOW?
-       v
-WHAT DON'T WE KNOW?
-       v
-WHAT SHOULD WE TEST?
-       v
-WHAT DOES THE EVIDENCE ACTUALLY SAY?
-       v
-WHAT OPTIONS DO WE HAVE?
-       v
-WHY SHOULD WE CHOOSE ONE?
-       v
-WHAT SHOULD WE DO NEXT?
+```mermaid
+graph TD
+    Q1["WHAT DO WE KNOW?"] --> Q2["WHAT DON'T WE KNOW?"]
+    Q2 --> Q3["WHAT SHOULD WE TEST?"]
+    Q3 --> Q4["WHAT DOES THE EVIDENCE ACTUALLY SAY?"]
+    Q4 --> Q5["WHAT OPTIONS DO WE HAVE?"]
+    Q5 --> Q6["WHY SHOULD WE CHOOSE ONE?"]
+    Q6 --> Q7["WHAT SHOULD WE DO NEXT?"]
+    
+    style Q1 fill:#0f172a,stroke:#38bdf8,color:#f8fafc
+    style Q4 fill:#0c4a6e,stroke:#0284c7,color:#e0f2fe
+    style Q6 fill:#1e1b4b,stroke:#818cf8,color:#e0e7ff
+    style Q7 fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#d1fae5
 ```
 
 **CONVERA: WHERE POSSIBILITIES CONVERGE INTO DIRECTION.**

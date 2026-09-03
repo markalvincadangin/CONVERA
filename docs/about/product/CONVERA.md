@@ -796,25 +796,29 @@ TEAM
 DECIDES
 
 
-# 28. Core Product Architecture
+## 28. Core Product Architecture
 
-CONVERA's architecture consists conceptually of:
+CONVERA's architecture is governed by the **CONVERA Concept Development Standard (CCDS)** and the core principle:
 
-INPUT
-    ↓
-KNOWLEDGE
-    ↓
-EVIDENCE
-    ↓
-VALIDATION
-    ↓
-DECISION
-    ↓
-ADVANCEMENT
+> **Knowledge != Workflow**
 
+Project knowledge persists in a relational knowledge graph, while domain workflows are powered by four core engines:
 
-Information is continuously transformed into increasingly structured project knowledge.
+```mermaid
+graph TD
+    KE["1. Knowledge Engine ('What do we know?')"]
+    EE["2. Evidence Engine ('Why should we believe it?')"]
+    FE["3. Framework Engine ('What should happen next?')"]
+    DE["4. Decision Engine ('What should we choose?')"]
+```
 
+The system operates across four first-class frameworks:
+1. **Research Framework:** Scientific & Computing Research Concept Development
+2. **Innovation Framework:** Venture & Opportunity Validation
+3. **Product Framework:** Product Discovery & UX Specification
+4. **Capstone Framework:** Academic Thesis & Technical SRS Blueprints
+
+For the exhaustive 49-section technical blueprint, refer to [CONVERA Master Architecture Specification (v1.0)](../../CONVERA_MASTER_ARCHITECTURE.md).
 
 # 29. Current Technical Architecture
 
