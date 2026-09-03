@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { Compass, Sparkles, Plus, ArrowRight, CheckCircle2, RotateCcw, Lightbulb, MapPin, FolderOpen } from "lucide-react";
+import { Compass, Sparkles, Plus, RefreshCw, Layers, ArrowRight, CheckCircle2, RotateCcw, Lightbulb, MapPin, FolderOpen } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
@@ -291,15 +291,21 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
               {session.phase1_ingestion_summary ? (
                 <div className="pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
                   {session.phase1_ingestion_summary.new_created_count > 0 && (
-                    <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center justify-between">
-                      <span>🌿 {session.phase1_ingestion_summary.new_created_count} New Problems Added:</span>
-                      <span className="font-bold text-white">{session.phase1_ingestion_summary.created_ids.join(", ")}</span>
+                    <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <Plus className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                        <span>{session.phase1_ingestion_summary.new_created_count} New Problems Added:</span>
+                      </span>
+                      <span className="font-bold text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800">{session.phase1_ingestion_summary.created_ids.join(", ")}</span>
                     </div>
                   )}
                   {session.phase1_ingestion_summary.merged_count > 0 && (
-                    <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 flex items-center justify-between">
-                      <span>🔄 {session.phase1_ingestion_summary.merged_count} Overlapping Problems Merged:</span>
-                      <span className="font-bold text-white" title="Citations and workarounds merged into primary records">{session.phase1_ingestion_summary.merged_ids.join(", ")}</span>
+                    <div className="p-2.5 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5">
+                        <RefreshCw className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                        <span>{session.phase1_ingestion_summary.merged_count} Overlapping Merged:</span>
+                      </span>
+                      <span className="font-bold text-white px-2 py-0.5 rounded bg-slate-900 border border-slate-800" title="Citations and workarounds merged into primary records">{session.phase1_ingestion_summary.merged_ids.join(", ")}</span>
                     </div>
                   )}
                 </div>

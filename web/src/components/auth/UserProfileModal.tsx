@@ -170,10 +170,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             <div className="flex flex-wrap items-center gap-1 font-mono text-[10px]">
               {[
                 { id: "ALL", label: "All (24)" },
-                { id: "ROLES", label: "👑 Roles" },
-                { id: "BUILDERS", label: "⚡ Builders" },
-                { id: "DOMAINS", label: "🌾 Domains" },
-                { id: "STRATEGY", label: "🎯 Strategy" },
+                { id: "ROLES", label: "Roles" },
+                { id: "BUILDERS", label: "Builders" },
+                { id: "DOMAINS", label: "Domains" },
+                { id: "STRATEGY", label: "Strategy" },
               ].map((cat) => (
                 <button
                   key={cat.id}
