@@ -19,25 +19,24 @@ Its purpose is to help teams transform fragmented ideas, research, assumptions, 
 
 CONVERA is not merely an AI idea generator, chatbot, research notebook, or project management tool. Its central capability is the structured transformation of uncertainty into justified direction.
 
-The architectural breakthrough is the separation of:
+The foundational architectural principle is:
 
-$$\text{Knowledge} \neq \text{Workflow}$$
+> ### **Knowledge != Workflow**
 
 Knowledge persists across a project, while workflows are defined by configurable frameworks.
 
 This allows the same CONVERA infrastructure to support:
-- Research
-- Innovation / startup development
-- Product development
-- Academic capstones
-- Other project-development methodologies
-- Future custom frameworks
+- **Research:** Scientific & Computing Research Concept Development
+- **Innovation:** Startup & Opportunity Validation
+- **Product:** Product Discovery & Development
+- **Capstone:** Academic Capstone & Thesis Development
+- **Custom Frameworks:** User-defined methodologies
 
 The system is governed by the **CONVERA Concept Development Standard (CCDS)** and implemented through four core engines:
-1. **Knowledge Engine**
-2. **Evidence Engine**
-3. **Framework Engine**
-4. **Decision Engine**
+1. **Knowledge Engine** (Connects: Problems <-> Claims <-> Evidence)
+2. **Evidence Engine** (Verifies: Ledgers, Provenance, Contradictions)
+3. **Framework Engine** (Orchestrates: Stages, Gates, Ratchet, Learning Loop)
+4. **Decision Engine** (Evaluates: Trade-offs, Decision Room, Pivots)
 
 Cross-cutting mechanisms include:
 - Ratchet progression control
@@ -66,13 +65,13 @@ Cross-cutting mechanisms include:
 CONVERA is an EMAERX framework-driven project intelligence platform that helps teams transform fragmented possibilities, knowledge, evidence, assumptions, and research into validated, traceable, and decision-ready direction.
 
 ### 2.4 Core Question
-**"WHAT IS ACTUALLY WORTH PURSUING?"**
+> **"WHAT IS ACTUALLY WORTH PURSUING?"**
 
 ### 2.5 North Star
-**"TURN UNCERTAINTY INTO JUSTIFIED DIRECTION."**
+> **"TURN UNCERTAINTY INTO JUSTIFIED DIRECTION."**
 
 ### 2.6 Core Philosophy
-*"Don't make the user organize the information for the system. Make the system organize the information for the user."*
+> *"Don't make the user organize the information for the system. Make the system organize the information for the user."*
 
 ---
 
@@ -116,51 +115,51 @@ Teams lack an effective way to transform fragmented ideas, information, evidence
 
 CONVERA transforms:
 
-```
+```text
 FRAGMENTED INFORMATION
-        ↓
+        v
 CONNECTED KNOWLEDGE
-        ↓
+        v
 STRUCTURED UNDERSTANDING
-        ↓
+        v
 EXPLICIT UNCERTAINTY
-        ↓
+        v
 TARGETED INVESTIGATION
-        ↓
+        v
 EVIDENCE
-        ↓
+        v
 VALIDATION
-        ↓
+        v
 COMPARABLE OPTIONS
-        ↓
+        v
 TRACEABLE DECISION
-        ↓
+        v
 JUSTIFIED DIRECTION
-        ↓
+        v
 ACTION
 ```
 
 The conceptual product journey is:
 
-```
+```text
 POSSIBILITY
-    ↓
+    v
 UNDERSTANDING
-    ↓
+    v
 UNCERTAINTY
-    ↓
+    v
 INVESTIGATION
-    ↓
+    v
 VALIDATION
-    ↓
+    v
 OPTIONS
-    ↓
+    v
 EVALUATION
-    ↓
+    v
 DECISION
-    ↓
+    v
 DIRECTION
-    ↓
+    v
 ACTION
 ```
 
@@ -206,47 +205,44 @@ Generated documents should be treated as structured views/syntheses of underlyin
 The **CONVERA Concept Development Standard (CCDS)** is the governing methodological standard for CONVERA. CCDS defines the principles that all frameworks must follow while allowing each framework to define its own domain-specific workflow.
 
 ### 6.2 Standard Principles
-1. Evidence before assertion.
-2. Problem before solution.
-3. Assumptions must be explicit.
-4. Claims must have traceable support.
-5. Evidence must preserve provenance.
-6. Contradictory evidence must not be hidden.
-7. Alternatives should be considered.
-8. Decisions require explicit rationale.
-9. Progress requires defined criteria.
-10. Human judgment remains authoritative.
-11. AI assists rather than replaces decision authority.
-12. New evidence can trigger re-evaluation.
-13. Knowledge persists independently of workflow.
-14. Feasibility and responsible-use constraints matter.
-15. Important decisions and revisions must be traceable.
-
-*CCDS is the common foundation. Frameworks determine the domain-specific implementation.*
+1. **Evidence before assertion:** No claim stands without empirical grounding.
+2. **Problem before solution:** Solutioning is locked until friction is proven.
+3. **Assumptions must be explicit:** Hidden risk is extracted into testable hypotheses.
+4. **Claims must have traceable support:** Provenance linked to primary sources.
+5. **Evidence must preserve provenance:** DOIs, timestamps, and interview records.
+6. **Contradictory evidence must not be hidden:** Conflicting signals are highlighted.
+7. **Alternatives should be considered:** Workarounds and competitors benchmarked.
+8. **Decisions require explicit rationale:** Immutable selection and rejection logs.
+9. **Progress requires defined criteria:** Objective thresholds per stage.
+10. **Human judgment remains authoritative:** AI advises; founders decide.
+11. **AI assists rather than replaces decision authority:** Guardrails against autonomy.
+12. **New evidence can trigger re-evaluation:** Learning loops reverse stale choices.
+13. **Knowledge persists independently of workflow:** Relational graph continuity.
+14. **Feasibility and responsible-use constraints matter:** Real-world delivery limits.
+15. **Important decisions and revisions must be traceable:** Bidirectional audit trail.
 
 ---
 
 ## 7. Product and Framework Hierarchy
 
-```
-EMAERX
-  │
-  └── CONVERA
-       │
-       ├── CCDS (Governing Standard)
-       │
-       └── Frameworks
-             │
-             ├── Research Framework
-             ├── Innovation Framework
-             ├── Product Framework
-             ├── Capstone Framework
-             └── Custom Framework
+```text
+EMAERX (Parent Brand)
+  |
+  `-- CONVERA (Platform)
+       |
+       |-- CCDS (Governing Standard)
+       |
+       `-- Frameworks
+             |-- Research Framework
+             |-- Innovation Framework
+             |-- Product Framework
+             |-- Capstone Framework
+             `-- Custom Framework
 ```
 
 ### 7.1 Standard vs Framework
-- **Standard:** Defines what good concept development must fundamentally satisfy.
-- **Framework:** Defines how those principles are operationalized for a specific type of project.
+- **Standard (CCDS):** Defines what good concept development must fundamentally satisfy.
+- **Framework:** Defines how those principles are operationalized for a specific project domain.
 - **Workflow:** Defines what the user actually does at a particular point in the framework.
 
 ---
@@ -256,14 +252,16 @@ EMAERX
 ### 8.1 Knowledge Engine
 - **Purpose:** Connect everything the team knows.
 - **Responsibilities:** Maintain project knowledge, connect related entities, detect relationships, preserve history, support reuse across stages and frameworks, and provide project context to AI and decision functions.
-- **Core Knowledge:** Problems, Ideas, Claims, Evidence, Sources, Stakeholders, Assumptions, Alternatives, Solutions, Requirements, Decisions, Tests, Results, Artifacts.
+- **Core Knowledge Entities:** Problems, Ideas, Claims, Evidence, Sources, Stakeholders, Assumptions, Alternatives, Solutions, Requirements, Decisions, Tests, Results, Artifacts.
 
 ### 8.2 Evidence Engine
 - **Purpose:** Determine what the team can reasonably believe.
 - **Responsibilities:** Evidence Ledger, Evidence Cards, Claim-to-evidence relationships, Source provenance, Evidence quality, Contradiction detection, Evidence status, Research traceability, Interview evidence, Validation evidence.
 - **Evidence State Progression:**
-  $$\text{UNKNOWN} \longrightarrow \text{HYPOTHESIS} \longrightarrow \text{SUPPORTED} \longrightarrow \text{VALIDATED} \quad (\text{or } \text{CONTRADICTED})$$
-- *AI confidence must remain separate from empirical evidence strength.*
+  ```text
+  UNKNOWN -> HYPOTHESIS -> SUPPORTED -> VALIDATED (or CONTRADICTED)
+  ```
+- *AI confidence must remain strictly separate from empirical evidence strength.*
 
 ### 8.3 Framework Engine
 - **Purpose:** Determine what should happen next.
@@ -283,21 +281,33 @@ EMAERX
 
 ### 9.1 Ratchet
 Ratchet is an internal CONVERA governance mechanism controlling progression:
-- `PASS` $\longrightarrow$ Advance
-- `REVISE` $\longrightarrow$ Improve current stage
-- `HOLD` $\longrightarrow$ Pause
-- `FAIL` $\longrightarrow$ Return / Reject / Archive
+- `PASS` -> Advance to next stage
+- `REVISE` -> Improve current stage requirements
+- `HOLD` -> Pause for additional field evidence
+- `FAIL` -> Return, reject, or archive
 
 ### 9.2 Learning Loop
 The Learning Loop manages iteration and re-evaluation when new field evidence invalidates an upstream premise:
-```
-VALIDATION → NEW EVIDENCE → ASSUMPTION CONTRADICTED → DOWNSTREAM KNOWLEDGE AFFECTED → DECISION REOPENED → RETURN TO APPROPRIATE STAGE → RE-EVALUATE
+```text
+VALIDATION
+    v
+NEW EVIDENCE
+    v
+ASSUMPTION CONTRADICTED
+    v
+DOWNSTREAM KNOWLEDGE AFFECTED
+    v
+DECISION REOPENED
+    v
+RETURN TO APPROPRIATE STAGE
+    v
+RE-EVALUATE
 ```
 
 ### 9.3 Impact Propagation
 When a foundational claim or assumption changes, CONVERA identifies downstream entities affected by that change:
-```
-Evidence changes → Claim changes → Assumption invalidated → Validation result changes → Decision affected → Artifact becomes stale → Gate requires review
+```text
+Evidence Changes -> Claim Updated -> Assumption Invalidated -> Validation Shifted -> Decision Affected -> Artifact Marked Stale -> Gate Reopened
 ```
 
 ---
@@ -310,32 +320,32 @@ CONVERA uses a relational database with explicit foreign key relationships rathe
 - Strict relational integrity & cascading foreign keys
 - Sub-millisecond queries
 
-### 10.1 Conceptual Graph
-```
+### 10.1 Conceptual Graph Structure
+```text
 PROBLEM
-   │
-   ├── CLAIM
-   │     └── EVIDENCE
-   │           └── SOURCE
-   │
-   ├── ASSUMPTION
-   │     └── TEST
-   │           └── RESULT
-   │
-   ├── STAKEHOLDER
-   │
-   ├── EXISTING ALTERNATIVE
-   │
-   ├── IDEA
-   │
-   ├── SOLUTION
-   │
-   ├── REQUIREMENT
-   │
-   └── DECISION
-         ├── RATIONALE
-         ├── SUPPORTING EVIDENCE
-         └── REJECTED ALTERNATIVES
+   |
+   |-- CLAIM
+   |     `-- EVIDENCE
+   |           `-- SOURCE
+   |
+   |-- ASSUMPTION
+   |     `-- TEST
+   |           `-- RESULT
+   |
+   |-- STAKEHOLDER
+   |
+   |-- EXISTING ALTERNATIVE
+   |
+   |-- IDEA
+   |
+   |-- SOLUTION
+   |
+   |-- REQUIREMENT
+   |
+   `-- DECISION
+         |-- RATIONALE
+         |-- SUPPORTING EVIDENCE
+         `-- REJECTED ALTERNATIVES
 ```
 
 ---
@@ -405,7 +415,9 @@ permissions
 ## 13. Evidence Ledger
 
 Every important project claim is represented explicitly:
-$$\text{CLAIM} \longrightarrow \text{EVIDENCE} \longrightarrow \text{SOURCE} \longrightarrow \text{INTERPRETATION} \longrightarrow \text{STATUS}$$
+```text
+CLAIM -> EVIDENCE -> SOURCE -> INTERPRETATION -> STATUS
+```
 
 - **Evidence Types:** Discovery signal, Contextual evidence, Validation evidence.
 - **Evidence Quality Metrics:** Credibility, relevance, scope, date, definition, limitations, methodology, context, consistency with other evidence.
@@ -415,7 +427,9 @@ $$\text{CLAIM} \longrightarrow \text{EVIDENCE} \longrightarrow \text{SOURCE} \lo
 ## 14. Assumption Radar
 
 Turns critical uncertainty into testable propositions:
-$$\text{CLAIM} \longrightarrow \text{ASSUMPTION} \longrightarrow \text{RISK (CRITICAL/HIGH/MED/LOW)} \longrightarrow \text{MOM TEST QUESTION} \longrightarrow \text{RESULT}$$
+```text
+CLAIM -> ASSUMPTION -> RISK (CRITICAL/HIGH/MED/LOW) -> MOM TEST QUESTION -> RESULT
+```
 
 ---
 
@@ -434,7 +448,9 @@ Identifies duplicate ideas, semantically similar problems, related concepts, rep
 ## 17. Idea Genealogy
 
 Preserves the complete lineage of concept evolution:
-$$\text{RAW IDEA} \to \text{PROBLEM INTERPRETATION} \to \text{RESEARCH} \to \text{EVIDENCE} \to \text{ALTERNATIVE} \to \text{VALIDATION} \to \text{PIVOT} \to \text{NEW CONCEPT} \to \text{FINAL DIRECTION}$$
+```text
+RAW IDEA -> PROBLEM INTERPRETATION -> RESEARCH -> EVIDENCE -> ALTERNATIVE -> VALIDATION -> PIVOT -> NEW CONCEPT -> FINAL DIRECTION
+```
 
 ---
 
@@ -457,8 +473,8 @@ Artifacts are derived project outputs indicating their freshness:
 
 ## 20. Traceability Architecture
 
-- **Requirement Traceability:** $\text{Requirement} \to \text{Feature} \to \text{User Need} \to \text{Validated Problem} \to \text{Claim} \to \text{Evidence} \to \text{Source/Interview}$
-- **Decision Traceability:** $\text{Final Decision} \to \text{Decision Record} \to \text{Criteria} \to \text{Evidence} \to \text{Claims} \to \text{Sources/Tests}$
+- **Requirement Traceability:** Requirement -> Feature -> User Need -> Validated Problem -> Claim -> Evidence -> Source/Interview
+- **Decision Traceability:** Final Decision -> Decision Record -> Criteria -> Evidence -> Claims -> Sources/Tests
 
 ---
 
@@ -466,7 +482,9 @@ Artifacts are derived project outputs indicating their freshness:
 
 Preserves all previous claims, evidence interpretations, assumptions, decisions, framework versions, artifacts, and gate decisions.
 
-$$\text{WHO} \cdot \text{WHAT} \cdot \text{WHEN} \cdot \text{WHY} \cdot \text{BASED ON WHAT}$$
+```text
+WHO - WHAT - WHEN - WHY - BASED ON WHAT
+```
 
 ---
 
@@ -474,7 +492,7 @@ $$\text{WHO} \cdot \text{WHAT} \cdot \text{WHEN} \cdot \text{WHY} \cdot \text{BA
 
 - **AI May:** Discover, summarize, extract, compare, analyze, critique, generate hypotheses, generate questions, draft artifacts, suggest relationships.
 - **Humans Decide:** Evidence acceptability, problem validity, research significance, assumption acceptance, framework advancement, pivot, rejection, ethical acceptability, practical feasibility.
-- Statuses: `AI_DRAFT`, `AI_SUGGESTION`, `AI_ANALYSIS`, `HUMAN_REVIEWED`, `HUMAN_APPROVED`.
+- **Statuses:** `AI_DRAFT`, `AI_SUGGESTION`, `AI_ANALYSIS`, `HUMAN_REVIEWED`, `HUMAN_APPROVED`.
 
 ---
 
@@ -489,32 +507,32 @@ Frameworks are configurable and versioned schemas.
 
 ## 24. Research Framework
 Stages:
-```
-A — PROBLEM DISCOVERY → B — PROBLEM VALIDATION → [GATE 1] → C — RESEARCH OPPORTUNITY → [GATE 2] → D — SOLUTION FORMULATION → E — EVALUATION DESIGN → [GATE 3] → F — RELEVANCE & FEASIBILITY → [GATE 4] → COMPLETED RESEARCH CONCEPT
+```text
+A — PROBLEM DISCOVERY -> B — PROBLEM VALIDATION -> [GATE 1] -> C — RESEARCH OPPORTUNITY -> [GATE 2] -> D — SOLUTION FORMULATION -> E — EVALUATION DESIGN -> [GATE 3] -> F — RELEVANCE & FEASIBILITY -> [GATE 4] -> COMPLETED RESEARCH CONCEPT
 ```
 
 ---
 
 ## 25. Innovation Framework
 Stages:
-```
-Problem Discovery → Problem Screening → Problem Validation → Existing Solution Analysis → Opportunity Definition → Solution Ideation → MVP Definition → Behavioral Commitment → Business Model → Decision → Startup Direction
+```text
+Problem Discovery -> Problem Screening -> Problem Validation -> Existing Solution Analysis -> Opportunity Definition -> Solution Ideation -> MVP Definition -> Behavioral Commitment -> Business Model -> Decision -> Startup Direction
 ```
 
 ---
 
 ## 26. Product Framework
 Stages:
-```
-User / Market Context → Problem Discovery → User Research → Problem Validation → Opportunity Definition → Solution Exploration → Requirements → MVP → UX / Product Evaluation → Product Direction
+```text
+User / Market Context -> Problem Discovery -> User Research -> Problem Validation -> Opportunity Definition -> Solution Exploration -> Requirements -> MVP -> UX / Product Evaluation -> Product Direction
 ```
 
 ---
 
 ## 27. Capstone Framework
 Stages:
-```
-Academic Problem → Scope Definition → Evidence / Research Basis → Requirements → Architecture → Implementation Direction → Testing / Evaluation → Documentation → Capstone Completion
+```text
+Academic Problem -> Scope Definition -> Evidence / Research Basis -> Requirements -> Architecture -> Implementation Direction -> Testing / Evaluation -> Documentation -> Capstone Completion
 ```
 
 ---
@@ -545,15 +563,15 @@ Persistent workspace exposing: Overview, Framework, Knowledge, Evidence, Assumpt
 ---
 
 ## 33. Existing System Mapping
-- Problem Discovery $	o$ Discovery capability
-- 10-Column Screening $	o$ Assessment engine
-- Mom Test $	o$ Validation methodology
-- Evidence Ledger $	o$ Evidence Engine
-- Devil's Advocate $	o$ Assumption Radar
-- Decision Log $	o$ Governance
-- Ratchet $	o$ Progression engine
-- Learning Loop $	o$ Re-evaluation engine
-- SRS Generator $	o$ Artifact / Deliverable Engine
+- Problem Discovery -> Discovery capability
+- 10-Column Screening -> Assessment engine
+- Mom Test -> Validation methodology
+- Evidence Ledger -> Evidence Engine
+- Devil's Advocate -> Assumption Radar
+- Decision Log -> Governance
+- Ratchet -> Progression engine
+- Learning Loop -> Re-evaluation engine
+- SRS Generator -> Artifact / Deliverable Engine
 
 ---
 
@@ -570,7 +588,9 @@ Persistent workspace exposing: Overview, Framework, Knowledge, Evidence, Assumpt
 ---
 
 ## 36. Framework Execution Model
-$$\text{Load Workspace} \to \text{Stage} \to \text{Inputs} \to \text{Activities} \to \text{AI Assist} \to \text{Human Review} \to \text{Criteria} \to \text{Gate} \to \text{Decision (Advance/Revise/Hold/Return)}$$
+```text
+Load Workspace -> Stage -> Inputs -> Activities -> AI Assist -> Human Review -> Criteria -> Gate -> Decision (Advance / Revise / Hold / Return)
+```
 
 ---
 
@@ -608,7 +628,7 @@ Markdown, PDF, JSON, and CSV exports with provenance and version context.
 ## 42. Three Mandatory Engineering Guardrails
 
 1. **Guardrail 1 — Avoid the Generic Workflow DSL Trap:** Build Innovation, Research, Capstone, and Product as structured schemas first.
-2. **Guardrail 2 — Minimize Manual Ingestion:** Prioritize Raw Input $	o$ AI Extraction $	o$ Classification $	o$ Linking $	o$ Human Review.
+2. **Guardrail 2 — Minimize Manual Ingestion:** Prioritize Raw Input -> AI Extraction -> Classification -> Linking -> Human Review.
 3. **Guardrail 3 — Separate AI Confidence from Evidence Strength:** Never display AI confidence as empirical validation.
 
 ---
@@ -625,45 +645,45 @@ Complete when CONVERA is the official product identity, CCDS is the governing st
 
 ## 45. Final Architecture Diagram
 
-```
+```text
                               EMAERX
-                                 │
+                                 |
                               CONVERA
-                                 │
-                 ┌───────────────┴────────────────┐
-                 │                                │
+                                 |
+                 +---------------+----------------+
+                 |                                |
                 CCDS                         FRAMEWORKS
-                 │                                │
-                 │                ┌───────────────┼───────────────┐
-                 │                ↓               ↓               ↓
-                 │            RESEARCH       INNOVATION       PRODUCT
-                 │                │
-                 │                └──────── CAPSTONE
-                 │
-                 ↓
+                 |                                |
+                 |                +---------------┼---------------+
+                 |                v               v               v
+                 |            RESEARCH       INNOVATION       PRODUCT
+                 |                |
+                 |                `-------- CAPSTONE
+                 |
+                 v
           FRAMEWORK ENGINE
-                 │
-                 ↓
-    ┌────────────┼────────────┐
-    ↓            ↓            ↓
+                 |
+                 v
+    +------------┼------------+
+    v            v            v
 KNOWLEDGE     EVIDENCE     DECISION
  ENGINE        ENGINE       ENGINE
-    │            │            │
-    └────────────┼────────────┘
-                 ↓
+    |            |            |
+    `------------┼------------+
+                 v
        PERSISTENT PROJECT
           KNOWLEDGE GRAPH
-                 │
-       ┌─────────┼─────────┐
-       ↓         ↓         ↓
+                 |
+       +---------┼---------+
+       v         v         v
      CLAIMS    EVIDENCE  ASSUMPTIONS
-       │         │         │
-       └─────────┼─────────┘
-                 ↓
+       |         |         |
+       `---------┼---------+
+                 v
               DECISIONS
-                 ↓
+                 v
              ARTIFACTS
-                 ↓
+                 v
               DIRECTION
 ```
 
@@ -671,8 +691,8 @@ KNOWLEDGE     EVIDENCE     DECISION
 
 ## 46. The CONVERA Operating Loop
 
-```
-CAPTURE → CONNECT → UNDERSTAND → IDENTIFY UNCERTAINTY → INVESTIGATE → COLLECT EVIDENCE → TEST ASSUMPTIONS → EVALUATE OPTIONS → DECIDE → ADVANCE → LEARN → RE-EVALUATE
+```text
+CAPTURE -> CONNECT -> UNDERSTAND -> IDENTIFY UNCERTAINTY -> INVESTIGATE -> COLLECT EVIDENCE -> TEST ASSUMPTIONS -> EVALUATE OPTIONS -> DECIDE -> ADVANCE -> LEARN -> RE-EVALUATE
 ```
 
 ---
@@ -700,6 +720,20 @@ CAPTURE → CONNECT → UNDERSTAND → IDENTIFY UNCERTAINTY → INVESTIGATE → 
 
 CONVERA is a framework-driven project intelligence system that connects knowledge, evidence, uncertainty, decisions, and action.
 
-$$\text{WHAT DO WE KNOW?} \longrightarrow \text{WHAT DON'T WE KNOW?} \longrightarrow \text{WHAT SHOULD WE TEST?} \longrightarrow \text{WHAT DOES EVIDENCE SAY?} \longrightarrow \text{WHAT OPTIONS DO WE HAVE?} \longrightarrow \text{WHY CHOOSE ONE?} \longrightarrow \text{WHAT SHOULD WE DO NEXT?}$$
+```text
+WHAT DO WE KNOW?
+       v
+WHAT DON'T WE KNOW?
+       v
+WHAT SHOULD WE TEST?
+       v
+WHAT DOES THE EVIDENCE ACTUALLY SAY?
+       v
+WHAT OPTIONS DO WE HAVE?
+       v
+WHY SHOULD WE CHOOSE ONE?
+       v
+WHAT SHOULD WE DO NEXT?
+```
 
 **CONVERA: WHERE POSSIBILITIES CONVERGE INTO DIRECTION.**
