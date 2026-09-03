@@ -27,7 +27,8 @@
     <a href="#-the-convera-3-step-framework">3-Step Framework</a> • 
     <a href="#-system-architecture">Architecture</a> • 
     <a href="#-5-phase-validation-pipeline">5-Phase Pipeline</a> • 
-    <a href="docs/SRSDS.md">Specifications (SRSDS)</a> • 
+    <a href="docs/CONVERA_MASTER_ARCHITECTURE.md">Master Architecture</a> • 
+    <a href="docs/SRSDS.md">Technical Specs (SRSDS)</a> • 
     <a href="docs/about/product/CONVERA.md">Product Profile</a>
   </p>
 

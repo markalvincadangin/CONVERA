@@ -2,10 +2,12 @@
 
 **Project:** CONVERA - Evidence-Driven Project Intelligence and Opportunity Validation System  
 **Parent Brand:** EMAERX (Technology and Innovation Team)  
+**Governing Baseline:** [CONVERA Master Architecture Specification (v1.0)](./CONVERA_MASTER_ARCHITECTURE.md)  
+**Standard:** CONVERA Concept Development Standard (CCDS) / IEEE 830 / ISO/IEC/IEEE 29148 / IEEE 1016-2009 / CHED CICT Standards  
 **Version:** 3.0.0 (Unified Evidence Ledger, Decision Intelligence & Project Translation)  
-**Standard Compliance:** IEEE 830 / ISO/IEC/IEEE 29148 / IEEE 1016-2009 / CHED CICT Capstone Standards / Nielsen Norman Heuristics  
 **Status:** Approved / Production Verified  
 **Last Updated:** September 3, 2026  
+
 
 ---
 

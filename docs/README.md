@@ -11,7 +11,8 @@
 
 | Document | Purpose & Standards | Status |
 |---|---|---|
-| **[docs/SRSDS.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/SRSDS.md)** | **Software Requirements & System Design Specification (SRSDS v3.0.0)**<br>Compliant with IEEE 830, ISO/IEC/IEEE 29148, and CHED CICT Capstone Standards. Covers 3-tier architecture, SQLite WAL persistence, Step 1 Evidence Ledgers, Step 2 Decision Room, Step 3 SRS Generator, and multi-device collaboration. | 🟢 Approved |
+| **[docs/CONVERA_MASTER_ARCHITECTURE.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/CONVERA_MASTER_ARCHITECTURE.md)** | **CONVERA Master Architecture Specification (v1.0)**<br>The authoritative 49-section product, conceptual, and systems blueprint. Defines the CCDS standard, Knowledge ≠ Workflow separation, 4 Core Engines, Cross-Cutting Mechanisms, and 10-Phase Roadmap. | 🟢 Master Blueprint |
+| **[docs/SRSDS.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/SRSDS.md)** | **Software Requirements & System Design Specification (SRSDS v3.0.0)**<br>Technical implementation standard compliant with IEEE 830, ISO/IEC/IEEE 29148, and CHED CICT Capstone Standards. Covers 3-tier architecture, SQLite WAL persistence, Step 1 Evidence Ledgers, Step 2 Decision Room, Step 3 SRS Generator, and multi-device collaboration. | 🟢 Approved |
 | **[docs/DESIGN_SYSTEM.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/DESIGN_SYSTEM.md)** | **CONVERA 60-30-10 Design System Manual**<br>EMAERX Electric Blue (`#0066FF`), Obsidian Black (`#0B0F14`), Exo 2 & Inter typography, WCAG 2.2 AA/AAA contrast ratios, Glassmorphism, and Nielsen Norman Usability Heuristics. | 🟢 Active |
 
 ---
