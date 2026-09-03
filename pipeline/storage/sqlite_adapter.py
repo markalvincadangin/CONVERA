@@ -151,6 +151,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
+            
+
 
                 CREATE TABLE IF NOT EXISTS problem_phase_history (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -163,6 +165,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
+            
+
 
                                 -- -----------------------------------------------------------
                 -- Relational Knowledge Graph Tables (Step 1 Foundation)
@@ -179,6 +183,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
+            
+
 
                 CREATE TABLE IF NOT EXISTS problem_assumptions (
                     id TEXT PRIMARY KEY,
@@ -191,6 +197,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
+            
+
 
                 CREATE TABLE IF NOT EXISTS problem_alternatives (
                     id TEXT PRIMARY KEY,
@@ -201,6 +209,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
+            
+
 
                 CREATE TABLE IF NOT EXISTS decision_records (
                     id TEXT PRIMARY KEY,
@@ -223,6 +233,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
+            
+
 
                 CREATE TABLE IF NOT EXISTS mentor_signoffs (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -1364,3 +1376,12 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                         pass
                 results.append(item)
             return results
+
+
+    def switch_session_framework(self, session_id: str, framework_id: str) -> Optional[Dict[str, Any]]:
+        """Switch the active framework methodology for a session while preserving all knowledge entities."""
+        session_data = self.get_session(session_id)
+        if not session_data:
+            return None
+        session_data["framework_id"] = framework_id.upper()
+        return self.save_session(session_id, session_data)

@@ -21,6 +21,8 @@ import { getRoleMeta } from "@/components/auth/UserRoleBadge";
 import { IconAvatar } from "@/components/common/IconAvatar";
 import { UserProfileModal } from "@/components/auth/UserProfileModal";
 import { RoomSecurityModal } from "@/components/auth/RoomSecurityModal";
+import { FrameworkSelectorModal } from "@/components/common/FrameworkSelectorModal";
+import { BookOpen, Zap, Compass, GraduationCap } from "lucide-react";
 import { SessionState, UserProfile } from "@/lib/types";
 import { authService, DEFAULT_USER } from "@/services/authService";
 
@@ -32,6 +34,7 @@ interface NavbarProps {
   onOpenPresentation: () => void;
   onExportDossier: () => void;
   isExporting?: boolean;
+  onFrameworkChanged?: (updatedSession: SessionState) => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -42,11 +45,13 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenPresentation,
   onExportDossier,
   isExporting = false,
+  onFrameworkChanged,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+  const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -57,6 +62,22 @@ export const Navbar: React.FC<NavbarProps> = ({
   const projectId = session?.project_id || session?.session_id || "proj_default";
   const shareCode = session?.share_code || "";
   const roleMeta = getRoleMeta(userProfile.role);
+
+  const frameworkId = session?.framework_id?.toUpperCase() || "INNOVATION";
+  const getFrameworkBadge = () => {
+    switch (frameworkId) {
+      case "RESEARCH":
+        return { label: "Research", icon: <BookOpen className="w-3.5 h-3.5 text-emerald-400" />, border: "border-emerald-500/40 text-emerald-300 bg-emerald-950/40" };
+      case "CAPSTONE":
+        return { label: "Capstone", icon: <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />, border: "border-indigo-500/40 text-indigo-300 bg-indigo-950/40" };
+      case "PRODUCT":
+        return { label: "Product", icon: <Compass className="w-3.5 h-3.5 text-amber-400" />, border: "border-amber-500/40 text-amber-300 bg-amber-950/40" };
+      default:
+        return { label: "Innovation", icon: <Zap className="w-3.5 h-3.5 text-blue-400" />, border: "border-blue-500/40 text-blue-300 bg-blue-950/40" };
+    }
+  };
+  const fwBadge = getFrameworkBadge();
+
 
   return (
     <>
@@ -99,10 +120,23 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
+
           {/* ========================================================= */}
-          {/* 2. CENTER: Polished Active Workspace Selector Card        */}
+          {/* 2. CENTER: Active Workspace & Framework Selector Cards    */}
           {/* ========================================================= */}
-          <div className="flex-1 max-w-sm hidden md:flex justify-center">
+          <div className="flex-1 max-w-md hidden md:flex items-center justify-center gap-2">
+            {/* Framework Selector Pill */}
+            <Tooltip content="Switch methodology framework (Innovation, Research, Capstone, Product)" position="bottom">
+              <button
+                onClick={() => setIsFrameworkModalOpen(true)}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold hover:opacity-90 transition-all shadow-sm ${fwBadge.border}`}
+              >
+                {fwBadge.icon}
+                <span className="font-mono tracking-wide">{fwBadge.label}</span>
+                <ChevronDown className="w-3 h-3 opacity-60" />
+              </button>
+            </Tooltip>
+
             {session ? (
               <Tooltip content="Switch workspace, manage snapshots, or copy room share code" position="bottom">
                 <button

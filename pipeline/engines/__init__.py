@@ -1,35 +1,63 @@
 """
-CONVERA Specialized Intelligence Engines Package
+CONVERA Pipeline Specialized Engines Package
+============================================
+Exposes all specialized intelligence and reasoning engines under a clean module namespace.
 """
 
 from .assumption_engine import extract_claims_and_assumptions
+from .blind_spot_detector import detect_portfolio_blind_spots
 from .decision_engine import synthesize_decision_room, execute_pivot_loop
+from .deliverables_generator import extract_session_dossier_text, generate_lean_canvas, generate_swot_analysis, generate_pitch_deck
+from .devils_advocate import challenge_problem_with_agent
+from .evidence_scorer import calculate_score_breakdown
+from .framework_engine import (
+    FrameworkCategory,
+    GateAction,
+    Activity,
+    Criteria,
+    Gate,
+    Stage,
+    Framework,
+    list_frameworks,
+    get_framework,
+    FRAMEWORK_REGISTRY
+)
+from .problem_enricher import enrich_manual_problem_input
+from .problem_parser import clean_text, clean_problem_id, canonicalize_problem_id, infer_sector, parse_phase1_markdown
+from .research_client import extract_core_topic, extract_keywords, extract_clean_location, FreeResearchClient
 from .srs_generator import generate_project_srs, format_srs_markdown
-from .deliverables_generator import generate_lean_canvas, generate_swot_analysis, generate_pitch_deck
-from .research_client import search_academic_papers, search_openalex, search_europe_pmc, search_crossref, ground_problem_with_research
-from .evidence_scorer import score_problem_statement
-from .devils_advocate import generate_devils_advocate_critique
-from .blind_spot_detector import detect_blind_spots
-from .problem_enricher import enrich_problem_statement
-from .problem_parser import parse_unstructured_problems
 
 __all__ = [
     "extract_claims_and_assumptions",
+    "detect_portfolio_blind_spots",
     "synthesize_decision_room",
     "execute_pivot_loop",
-    "generate_project_srs",
-    "format_srs_markdown",
+    "extract_session_dossier_text",
     "generate_lean_canvas",
     "generate_swot_analysis",
     "generate_pitch_deck",
-    "search_academic_papers",
-    "search_openalex",
-    "search_europe_pmc",
-    "search_crossref",
-    "ground_problem_with_research",
-    "score_problem_statement",
-    "generate_devils_advocate_critique",
-    "detect_blind_spots",
-    "enrich_problem_statement",
-    "parse_unstructured_problems",
+    "challenge_problem_with_agent",
+    "calculate_score_breakdown",
+    "FrameworkCategory",
+    "GateAction",
+    "Activity",
+    "Criteria",
+    "Gate",
+    "Stage",
+    "Framework",
+    "list_frameworks",
+    "get_framework",
+    "FRAMEWORK_REGISTRY",
+    "enrich_manual_problem_input",
+    "clean_text",
+    "clean_problem_id",
+    "canonicalize_problem_id",
+    "infer_sector",
+    "parse_phase1_markdown",
+    "extract_core_topic",
+    "extract_keywords",
+    "extract_clean_location",
+    "FreeResearchClient",
+    "generate_project_srs",
+    "format_srs_markdown",
 ]

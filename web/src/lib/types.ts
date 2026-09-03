@@ -217,6 +217,8 @@ export interface PitchDeckData {
 
 export interface SessionMeta {
   session_id: string;
+  framework_id?: string;
+  current_stage_id?: string;
   project_id?: string;
   project_name?: string;
   share_code?: string;
@@ -233,6 +235,8 @@ export interface SessionMeta {
 }
 
 export interface SessionState extends SessionMeta {
+  framework_id?: string;
+  current_stage_id?: string;
   phase1_response?: string;
   phase1_sectors?: string[];
   phase1_model_meta?: ModelMetadata;
@@ -482,4 +486,72 @@ export interface SrsSpecification {
     verification_method: string;
   }[];
   markdown_document: string;
+}
+
+
+// ===========================================================================
+// CONVERA FRAMEWORK ENGINE TYPES
+// ===========================================================================
+
+export interface FrameworkSummary {
+  id: string;
+  name: string;
+  version: string;
+  category: "INNOVATION" | "RESEARCH" | "CAPSTONE" | "PRODUCT" | "CUSTOM";
+  tagline: string;
+  description: string;
+  stage_count: number;
+  gate_count: number;
+  target_audience: string;
+}
+
+export interface FrameworkActivity {
+  id: string;
+  label: string;
+  action_type: string;
+  description: string;
+  required?: boolean;
+}
+
+export interface FrameworkCriteria {
+  id: string;
+  name: string;
+  description: string;
+  weight: number;
+  threshold_description: string;
+}
+
+export interface FrameworkGate {
+  id: string;
+  name: string;
+  stage_id: string;
+  evaluator_role: string;
+  required_evidence_types: string[];
+  passing_criteria: FrameworkCriteria[];
+  description: string;
+}
+
+export interface FrameworkStage {
+  id: string;
+  number: number;
+  code: string;
+  label: string;
+  short_description: string;
+  activities: FrameworkActivity[];
+  gate_id?: string | null;
+  output_artifacts: string[];
+}
+
+export interface FrameworkDetail {
+  id: string;
+  name: string;
+  version: string;
+  category: "INNOVATION" | "RESEARCH" | "CAPSTONE" | "PRODUCT" | "CUSTOM";
+  tagline: string;
+  description: string;
+  governing_standard: string;
+  target_audience: string;
+  stages: FrameworkStage[];
+  gates: FrameworkGate[];
+  required_artifacts: string[];
 }

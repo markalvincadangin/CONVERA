@@ -12,6 +12,12 @@ import {
   CheckCircle2,
   FolderOpen,
   ChevronRight,
+  BookOpen,
+  FileSearch,
+  Search,
+  Cpu,
+  BarChart2,
+  FileCheck,
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { SessionState } from "@/lib/types";
@@ -27,6 +33,8 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   onSelectPhase,
   session,
 }) => {
+  const frameworkId = session?.framework_id?.toUpperCase() || "INNOVATION";
+
   const completedCount = [
     session?.phase1_complete,
     session?.phase2_complete,
@@ -37,7 +45,8 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
 
   const progressPercent = Math.round((completedCount / 5) * 100);
 
-  const phases = [
+  // Innovation framework phases
+  const innovationPhases = [
     {
       id: 0,
       name: "Bank",
@@ -101,138 +110,207 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       icon: Activity,
       isComplete: Boolean(session?.phase5_complete),
       isAvailable: Boolean(session?.phase4_complete),
-      lockReason: "Locked by Mechanical Ratchet. Formulate your SVB hypotheses in Phase 4 first.",
+      lockReason: "Locked by Mechanical Ratchet. Map mechanism & SVB in Phase 4 first.",
       isBank: false,
     },
     {
       id: 6,
       name: "Studio",
       title: "Deliverables",
-      desc: "Canvas & Pitch",
+      desc: "Pitch deck & SRS",
       icon: Sparkles,
-      isComplete: Boolean(session?.deliverable_lean_canvas || session?.deliverable_pitch_deck),
+      isComplete: Boolean(session?.phase5_complete),
+      isAvailable: true,
+      lockReason: "",
+      isBank: false,
+      isStudio: true,
+    },
+  ];
+
+  // Research framework stages
+  const researchPhases = [
+    {
+      id: 0,
+      name: "Bank",
+      title: "Problem Bank",
+      desc: "Intake & discovery",
+      icon: FolderOpen,
+      isComplete: false,
+      isAvailable: true,
+      lockReason: "",
+      isBank: true,
+    },
+    {
+      id: 1,
+      name: "Stage A",
+      title: "Problem Discovery",
+      desc: "Empirical signals",
+      icon: Search,
+      isComplete: Boolean(session?.phase1_complete),
       isAvailable: true,
       lockReason: "",
       isBank: false,
     },
+    {
+      id: 2,
+      name: "Stage B",
+      title: "Validation [G1]",
+      desc: "Lit & DOI evidence",
+      icon: FileSearch,
+      isComplete: Boolean(session?.phase2_complete),
+      isAvailable: true,
+      lockReason: "",
+      isBank: false,
+    },
+    {
+      id: 3,
+      name: "Stage C",
+      title: "Opportunity [G2]",
+      desc: "Gaps & RQ matrix",
+      icon: BookOpen,
+      isComplete: Boolean(session?.phase3_complete),
+      isAvailable: Boolean(session?.phase1_complete || session?.phase2_complete || session?.phase3_problem),
+      lockReason: "Validate research problem in Stage B first.",
+      isBank: false,
+    },
+    {
+      id: 4,
+      name: "Stage D",
+      title: "Formulation",
+      desc: "Artifact architecture",
+      icon: Cpu,
+      isComplete: Boolean(session?.phase4_complete),
+      isAvailable: Boolean(session?.phase3_complete),
+      lockReason: "Establish research gap & questions in Stage C first.",
+      isBank: false,
+    },
+    {
+      id: 5,
+      name: "Stage E",
+      title: "Evaluation [G3]",
+      desc: "Metrics & baselines",
+      icon: BarChart2,
+      isComplete: Boolean(session?.phase5_complete),
+      isAvailable: Boolean(session?.phase4_complete),
+      lockReason: "Formulate computing artifact in Stage D first.",
+      isBank: false,
+    },
+    {
+      id: 6,
+      name: "Studio",
+      title: "Deliverables [G4]",
+      desc: "Proposals & SRS",
+      icon: FileCheck,
+      isComplete: Boolean(session?.phase5_complete),
+      isAvailable: true,
+      lockReason: "",
+      isBank: false,
+      isStudio: true,
+    },
   ];
 
+  const phases = frameworkId === "RESEARCH" ? researchPhases : innovationPhases;
+
   return (
-    <div className="w-full bg-slate-900/80 border-b border-slate-800/80 py-3 sm:py-4 px-3 sm:px-6 lg:px-8 backdrop-blur-md sticky top-16 z-30 shadow-md">
-      <div className="max-w-7xl mx-auto space-y-2.5 sm:space-y-3">
-        {/* Progress bar header */}
-        <div className="flex items-center justify-between text-xs">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 rounded-2xl p-2.5 shadow-xl shadow-black/20 flex flex-col gap-2">
+        
+        {/* Progress header */}
+        <div className="flex items-center justify-between px-2 text-xs text-slate-400">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-300 text-[11px] sm:text-xs">Venture Validation Engine:</span>
-            <span className="font-mono text-cyan-400 font-bold text-[11px] sm:text-xs">{completedCount} of 5 Gates Passed</span>
+            <span className="font-bold uppercase tracking-wider text-[10px] text-slate-300 font-mono">
+              {frameworkId === "RESEARCH" ? "Research Framework (CCDS v1.0)" : "Venture Ratchet Pipeline (CCDS v1.0)"}
+            </span>
+            <span className="text-slate-600">•</span>
+            <span className="text-slate-400 font-mono text-[11px]">
+              {completedCount} of 5 Gates Cleared
+            </span>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-20 sm:w-40 h-2 bg-slate-800 rounded-full overflow-hidden p-[1px]">
+          <div className="flex items-center gap-2 font-mono text-[11px]">
+            <div className="w-24 h-1.5 bg-slate-800 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 rounded-full transition-all duration-500 shadow-sm shadow-cyan-500/50"
-                style={{ width: `${Math.max(5, progressPercent)}%` }}
+                className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 transition-all duration-500"
+                style={{ width: `${progressPercent}%` }}
               />
             </div>
-            <span className="font-mono text-xs font-bold text-slate-400">{progressPercent}%</span>
+            <span className="text-cyan-400 font-bold">{progressPercent}%</span>
           </div>
         </div>
 
-        {/* Responsive Stepper Navigation: Horizontal Swipeable on Mobile, Grid on Desktop */}
-        <nav aria-label="Pipeline Progress" className="w-full max-w-full overflow-hidden">
-          <ol className="flex md:grid md:grid-cols-7 gap-2 overflow-x-auto no-scrollbar pb-1 w-full max-w-full snap-x snap-mandatory touch-pan-x">
-            {phases.map((phase) => {
-              const Icon = phase.icon;
-              const isActive = activePhase === phase.id;
+        {/* Stepper pills */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5">
+          {phases.map((phase) => {
+            const Icon = phase.icon;
+            const isActive = activePhase === phase.id;
+            const isComplete = phase.isComplete;
+            const isLocked = !phase.isAvailable;
 
-              const cardButton = (
+            return (
+              <Tooltip key={phase.id} content={isLocked ? phase.lockReason : phase.desc} position="bottom">
                 <button
-                  onClick={() => phase.isAvailable && onSelectPhase(phase.id)}
-                  disabled={!phase.isAvailable}
-                  aria-current={isActive ? "step" : undefined}
-                  className={`w-full text-left p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 flex flex-col justify-between gap-1 relative shrink-0 min-w-[125px] sm:min-w-[135px] md:min-w-0 snap-start active:scale-[0.98] ${
+                  onClick={() => !isLocked && onSelectPhase(phase.id)}
+                  disabled={isLocked}
+                  className={`w-full text-left p-2.5 rounded-xl border transition-all duration-200 flex flex-col justify-between min-h-[64px] relative overflow-hidden group ${
                     isActive
-                      ? "bg-slate-850 border-cyan-500/60 shadow-lg shadow-cyan-500/10 ring-2 ring-cyan-500/40"
-                      : phase.isBank
-                      ? "bg-slate-900/90 border-cyan-500/20 hover:border-cyan-500/40 hover:bg-slate-800/70"
-                      : phase.id === 6
-                      ? "bg-slate-900/90 border-purple-500/25 hover:border-purple-500/50 hover:bg-slate-800/70"
-                      : phase.isComplete
-                      ? "bg-slate-900/80 border-emerald-500/30 hover:border-emerald-500/60 hover:bg-slate-800/60"
-                      : phase.isAvailable
-                      ? "bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/60"
-                      : "bg-slate-950/30 border-slate-900 opacity-60 cursor-not-allowed"
+                      ? "bg-gradient-to-b from-cyan-500/15 to-blue-600/10 border-cyan-500/50 shadow-md shadow-cyan-950/40 ring-1 ring-cyan-500/30"
+                      : isLocked
+                      ? "bg-slate-950/40 border-slate-850 opacity-50 cursor-not-allowed"
+                      : isComplete
+                      ? "bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-500/50"
+                      : "bg-slate-900/70 border-slate-800 hover:border-slate-700 hover:bg-slate-850"
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <div
-                      className={`w-5 h-5 rounded-lg flex items-center justify-center text-xs font-bold transition-transform ${
+                  <div className="flex items-center justify-between w-full">
+                    <span
+                      className={`text-[10px] font-bold font-mono tracking-wider ${
                         isActive
-                          ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 scale-105"
-                          : phase.isBank
-                          ? "bg-cyan-500/15 text-cyan-300 border border-cyan-500/30"
-                          : phase.id === 6
-                          ? "bg-purple-500/15 text-purple-300 border border-purple-500/30"
-                          : phase.isComplete
-                          ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/40"
-                          : phase.isAvailable
-                          ? "bg-slate-800 text-slate-300 border border-slate-700"
-                          : "bg-slate-900 text-slate-600 border border-slate-800"
+                          ? "text-cyan-300"
+                          : isComplete
+                          ? "text-emerald-400"
+                          : isLocked
+                          ? "text-slate-600"
+                          : "text-slate-400"
                       }`}
                     >
-                      <Icon className="w-3 h-3" />
-                    </div>
+                      {phase.name}
+                    </span>
 
-                    {phase.isComplete ? (
-                      <span className="flex items-center gap-0.5 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded-full border border-emerald-500/20">
-                        <CheckCircle2 className="w-2.5 h-2.5" /> Done
-                      </span>
-                    ) : isActive ? (
-                      <span className="text-[9px] font-semibold text-cyan-300 bg-cyan-500/10 px-1.5 py-0.2 rounded-full border border-cyan-500/30 animate-pulse">
-                        Active
-                      </span>
-                    ) : phase.isBank ? (
-                      <span className="text-[9px] font-semibold text-cyan-400/80 bg-cyan-500/5 px-1 py-0.2 rounded-full border border-cyan-500/15">
-                        Bank
-                      </span>
-                    ) : phase.id === 6 ? (
-                      <span className="text-[9px] font-semibold text-purple-400/80 bg-purple-500/5 px-1 py-0.2 rounded-full border border-purple-500/15">
-                        Studio
-                      </span>
-                    ) : !phase.isAvailable ? (
-                      <span className="text-[9px] text-slate-500 flex items-center gap-0.5">
-                        <Lock className="w-2.5 h-2.5 text-slate-600" /> Lock
-                      </span>
+                    {isLocked ? (
+                      <Lock className="w-3 h-3 text-slate-600" />
+                    ) : isComplete ? (
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                     ) : (
-                      <span className="text-[9px] text-slate-400 font-mono">Ready</span>
+                      <Icon
+                        className={`w-3.5 h-3.5 ${
+                          isActive
+                            ? "text-cyan-400"
+                            : "text-slate-500 group-hover:text-slate-300"
+                        } transition-colors`}
+                      />
                     )}
                   </div>
 
-                  <div className="mt-0.5">
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block font-mono">
-                      {phase.name}
-                    </span>
-                    <h4 className="text-[11px] font-bold text-white tracking-tight truncate leading-tight">
+                  <div className="mt-1">
+                    <div
+                      className={`text-xs font-bold truncate leading-tight ${
+                        isActive
+                          ? "text-white"
+                          : isLocked
+                          ? "text-slate-600"
+                          : "text-slate-200 group-hover:text-white"
+                      }`}
+                    >
                       {phase.title}
-                    </h4>
-                    <p className="text-[9px] text-slate-400 truncate mt-0.2 font-sans">{phase.desc}</p>
+                    </div>
+                    <div className="text-[10px] text-slate-400 truncate leading-tight mt-0.5">
+                      {phase.desc}
+                    </div>
                   </div>
                 </button>
-              );
-
-              return (
-                <li key={phase.id} className="relative shrink-0 md:shrink">
-                  {!phase.isAvailable ? (
-                    <Tooltip content={phase.lockReason} position="bottom">
-                      {cardButton}
-                    </Tooltip>
-                  ) : (
-                    cardButton
-                  )}
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
+              </Tooltip>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

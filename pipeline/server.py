@@ -1366,3 +1366,61 @@ async def create_mentor_signoff(project_id: str, payload: MentorSignoffPayload):
 async def get_mentor_signoffs(project_id: str):
     signoffs = storage.list_mentor_signoffs(project_id)
     return {"project_id": project_id, "signoffs": signoffs}
+
+
+# ===========================================================================
+# CONVERA FRAMEWORK ENGINE REST API
+# ===========================================================================
+
+@app.get("/api/frameworks")
+async def api_list_frameworks():
+    """List all registered CONVERA frameworks (Innovation, Research, Capstone, Product)."""
+    return {"frameworks": list_frameworks()}
+
+@app.get("/api/frameworks/{framework_id}")
+async def api_get_framework(framework_id: str):
+    """Retrieve full specification, stages, activities, and gates for a framework."""
+    fw = get_framework(framework_id)
+    if not fw:
+        raise HTTPException(status_code=404, detail=f"Framework '{framework_id}' not found")
+    return fw.model_dump()
+
+class CreateFrameworkSessionRequest(BaseModel):
+    project_name: Optional[str] = "Venture Project"
+    framework_id: str = "INNOVATION"
+    project_id: Optional[str] = None
+
+@app.post("/api/sessions/create-with-framework")
+async def api_create_framework_session(req: CreateFrameworkSessionRequest):
+    """Initialize a project session under a specific framework methodology."""
+    fw = get_framework(req.framework_id)
+    if not fw:
+        raise HTTPException(status_code=400, detail=f"Invalid framework_id: {req.framework_id}")
+    
+    session_id = f"sess_{uuid.uuid4().hex[:12]}"
+    initial_state = {
+        "session_id": session_id,
+        "project_id": req.project_id,
+        "project_name": req.project_name,
+        "framework_id": fw.id,
+        "current_stage_id": fw.stages[0].id if fw.stages else "discovery",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+        "updated_at": datetime.now(timezone.utc).isoformat()
+    }
+    saved = storage.save_session(session_id, initial_state)
+    return {"session_id": session_id, "state": saved, "framework": fw.model_dump()}
+
+class SwitchFrameworkRequest(BaseModel):
+    framework_id: str
+
+@app.post("/api/sessions/{session_id}/switch-framework")
+async def api_switch_framework(session_id: str, req: SwitchFrameworkRequest):
+    """Switch the framework for an active session while preserving the underlying knowledge graph."""
+    fw = get_framework(req.framework_id)
+    if not fw:
+        raise HTTPException(status_code=400, detail=f"Invalid framework_id: {req.framework_id}")
+    
+    updated = storage.switch_session_framework(session_id, req.framework_id)
+    if not updated:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
+    return {"status": "success", "session_id": session_id, "framework_id": fw.id, "state": updated}
