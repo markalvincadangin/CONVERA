@@ -333,7 +333,8 @@ OUTPUT FORMAT (STRICT JSON ARRAY):
             return filtered[:max_keep]
 
     
-    async def search_all_async(self, query: str, limit_per_source: int = 3) -> List[Dict[str, Any]]:
+    async def search_all_async(self, query: str, limit_per_source: int = 3, **kwargs) -> List[Dict[str, Any]]:
+        limit = kwargs.get('limit', limit_per_source)
         """Concurrently search OpenAlex, Crossref, and EuropePMC."""
         tasks = [
             self.search_academic_openalex(query, limit=limit_per_source),
