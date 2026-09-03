@@ -10,6 +10,8 @@ async def client():
 
 @pytest.mark.asyncio
 async def test_problem_bank_api_crud(client: AsyncClient):
+    # Clean up before
+    await client.delete("/api/problems/API-TEST-001")
     # 1. Create a problem
     payload = {
         "id": "API-TEST-001",

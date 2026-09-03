@@ -9,6 +9,8 @@ import { ProblemRecord } from "@/lib/types";
 import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
+import { SocraticCriticModal } from "./SocraticCriticModal";
+import { CitationVerifierModal } from "./CitationVerifierModal";
 import { ResearchEvidenceModal } from "./ResearchEvidenceModal";
 import { EvidenceLedgerCard } from "./EvidenceLedgerCard";
 import { AssumptionRadarCard } from "./AssumptionRadarCard";
@@ -95,6 +97,8 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
+  const [isCriticOpen, setIsCriticOpen] = useState(false);
+  const [isVerifierOpen, setIsVerifierOpen] = useState(false);
   const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
 
