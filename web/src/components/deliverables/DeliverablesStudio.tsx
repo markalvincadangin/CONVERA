@@ -5,6 +5,7 @@ import { SessionState } from "@/lib/types";
 import { LeanCanvasView } from "./LeanCanvasView";
 import { SwotMatrixView } from "./SwotMatrixView";
 import { PitchDeckView } from "./PitchDeckView";
+import { Phase2DossierCard } from "./Phase2DossierCard";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { Button } from "@/components/common/Button";
 import {
@@ -211,7 +212,7 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
                 Phase-by-Phase Venture Dossier &amp; Evidence Audit
               </span>
               <p className="text-[11px] text-slate-400">
-                Formatted markdown briefings and raw JSON logs from your multi-agent execution pipeline.
+                Formatted briefings, interactive screening matrices, and raw execution logs.
               </p>
             </div>
             <Button
@@ -224,14 +225,14 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
             {/* Phase 1 Card */}
-            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between shadow-lg">
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
                       Phase 1: Discovery Landscape
                     </span>
                   </div>
@@ -248,16 +249,16 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
 
                 {session.phase1_response ? (
                   rawViewMode["p1"] ? (
-                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
+                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-[500px] overflow-y-auto whitespace-pre-wrap">
                       {session.phase1_response}
                     </pre>
                   ) : (
-                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
+                    <div className="max-h-[500px] overflow-y-auto pr-2 text-xs text-slate-300">
                       <MarkdownRenderer content={session.phase1_response} />
                     </div>
                   )
                 ) : (
-                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                  <div className="p-8 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
                     <p className="text-xs text-slate-400">Phase 1 discovery has not been completed yet.</p>
                     {onNavigatePhase && (
                       <Button variant="primary" size="sm" onClick={() => onNavigatePhase(1)} leftIcon={<ArrowRight className="w-3 h-3" />}>
@@ -269,39 +270,25 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
               </div>
             </div>
 
-            {/* Phase 2 Card */}
-            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+            {/* Phase 2 Card (Interactive Shortlist & Triage Card) */}
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-teal-500/30 space-y-3 flex flex-col justify-between shadow-lg">
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-teal-400 shadow-sm shadow-teal-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
-                      Phase 2: Screening &amp; Shortlist
+                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                      Phase 2: Screening &amp; Shortlist Matrix
                     </span>
                   </div>
-                  {session.phase2_response && (
-                    <button
-                      onClick={() => toggleRaw("p2")}
-                      className="text-[10px] font-mono text-slate-400 hover:text-teal-400 flex items-center gap-1"
-                    >
-                      <Code2 className="w-3 h-3" />
-                      {rawViewMode["p2"] ? "Formatted" : "Raw"}
-                    </button>
-                  )}
+                  <span className="text-[10px] font-mono bg-teal-500/10 text-teal-300 px-2 py-0.5 rounded border border-teal-500/20 font-bold">
+                    Triage Matrix
+                  </span>
                 </div>
 
                 {session.phase2_response ? (
-                  rawViewMode["p2"] ? (
-                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
-                      {session.phase2_response}
-                    </pre>
-                  ) : (
-                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
-                      <MarkdownRenderer content={session.phase2_response} />
-                    </div>
-                  )
+                  <Phase2DossierCard rawContent={session.phase2_response} />
                 ) : (
-                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                  <div className="p-8 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
                     <p className="text-xs text-slate-400">Phase 2 screening has not been completed yet.</p>
                     {onNavigatePhase && (
                       <Button variant="primary" size="sm" onClick={() => onNavigatePhase(2)} leftIcon={<ArrowRight className="w-3 h-3" />}>
@@ -314,12 +301,12 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
             </div>
 
             {/* Phase 3 Card */}
-            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between shadow-lg">
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
                       Phase 3: Socratic Mom Test
                     </span>
                   </div>
@@ -336,16 +323,16 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
 
                 {session.phase3_response ? (
                   rawViewMode["p3"] ? (
-                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
+                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-[500px] overflow-y-auto whitespace-pre-wrap">
                       {session.phase3_response}
                     </pre>
                   ) : (
-                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
+                    <div className="max-h-[500px] overflow-y-auto pr-2 text-xs text-slate-300">
                       <MarkdownRenderer content={session.phase3_response} />
                     </div>
                   )
                 ) : (
-                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                  <div className="p-8 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
                     <p className="text-xs text-slate-400">Phase 3 Socratic validation has not been completed yet.</p>
                     {onNavigatePhase && (
                       <Button variant="primary" size="sm" onClick={() => onNavigatePhase(3)} leftIcon={<ArrowRight className="w-3 h-3" />}>
@@ -358,12 +345,12 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
             </div>
 
             {/* Phase 4 & 5 Card */}
-            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between shadow-lg">
               <div className="space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-purple-400 shadow-sm shadow-purple-400" />
-                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
                       Phase 4 &amp; 5: Solution &amp; MVP Audit
                     </span>
                   </div>
@@ -380,16 +367,16 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
 
                 {session.phase4_response || session.phase5_response ? (
                   rawViewMode["p45"] ? (
-                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
+                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-[500px] overflow-y-auto whitespace-pre-wrap">
                       {session.phase4_response || session.phase5_response}
                     </pre>
                   ) : (
-                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
+                    <div className="max-h-[500px] overflow-y-auto pr-2 text-xs text-slate-300">
                       <MarkdownRenderer content={session.phase4_response || session.phase5_response || ""} />
                     </div>
                   )
                 ) : (
-                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                  <div className="p-8 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
                     <p className="text-xs text-slate-400">Phase 4 &amp; 5 solutioning and MVP audit are pending.</p>
                     {onNavigatePhase && (
                       <Button variant="primary" size="sm" onClick={() => onNavigatePhase(4)} leftIcon={<ArrowRight className="w-3 h-3" />}>
