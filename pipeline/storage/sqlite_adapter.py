@@ -969,3 +969,76 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             conn.execute(f"DELETE FROM problem_sources WHERE problem_id IN ({placeholders})", clean_ids)
             conn.commit()
             return cur.rowcount
+
+
+    def find_duplicates(self, project_id: Optional[str] = None, threshold: float = 0.5) -> List[Dict[str, Any]]:
+        """Detects pairs of duplicate or highly overlapping problem records."""
+        problems = self.list_problems(project_id=project_id)
+        
+        def tokenize(text: str) -> set:
+            if not text:
+                return set()
+            words = re.findall(r"\b[a-zA-Z0-9]{3,}\b", text.lower())
+            stops = {"and", "the", "for", "with", "due", "causes", "lack", "from", "into", "their", "that", "this", "during", "requiring", "leads", "across", "severe"}
+            return {w for w in words if w not in stops}
+
+        pairs = []
+        for i in range(len(problems)):
+            for j in range(i + 1, len(problems)):
+                p1 = problems[i]
+                p2 = problems[j]
+                
+                # Check exact statement match
+                exact = p1.get("problem_statement", "").strip().lower() == p2.get("problem_statement", "").strip().lower()
+                
+                t1 = tokenize(p1.get("problem_statement", "") + " " + (p1.get("sufferer_occupation") or ""))
+                t2 = tokenize(p2.get("problem_statement", "") + " " + (p2.get("sufferer_occupation") or ""))
+                
+                if exact:
+                    sim = 1.0
+                elif not t1 or not t2:
+                    sim = 0.0
+                else:
+                    inter = len(t1.intersection(t2))
+                    union = len(t1.union(t2))
+                    sim = inter / union if union > 0 else 0.0
+                    if p1.get("sector") == p2.get("sector"):
+                        sim += 0.15
+                        
+                sim = min(round(sim, 2), 1.0)
+                
+                if sim >= threshold or exact:
+                    # Choose primary (higher score or more votes)
+                    p1_score = (p1.get("score") or 0) + (p1.get("votes") or 0) * 10
+                    p2_score = (p2.get("score") or 0) + (p2.get("votes") or 0) * 10
+                    primary = p1 if p1_score >= p2_score else p2
+                    duplicate = p2 if primary == p1 else p1
+                    
+                    pairs.append({
+                        "primary_id": primary["id"],
+                        "duplicate_id": duplicate["id"],
+                        "primary_statement": primary["problem_statement"],
+                        "duplicate_statement": duplicate["problem_statement"],
+                        "sector": primary["sector"],
+                        "similarity_score": int(sim * 100),
+                        "is_exact_match": exact or sim >= 0.90
+                    })
+                    
+        return pairs
+
+    def auto_merge_exact_duplicates(self, project_id: Optional[str] = None) -> int:
+        """Automatically merges all 90%+ and 100% exact duplicate problem records."""
+        dups = self.find_duplicates(project_id=project_id, threshold=0.85)
+        merged_count = 0
+        seen_deleted = set()
+        
+        for d in dups:
+            dup_id = d["duplicate_id"]
+            primary_id = d["primary_id"]
+            if dup_id in seen_deleted or primary_id in seen_deleted:
+                continue
+            self.merge_problems(primary_id, [dup_id])
+            seen_deleted.add(dup_id)
+            merged_count += 1
+            
+        return merged_count

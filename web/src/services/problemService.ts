@@ -68,6 +68,19 @@ export const problemService = {
   },
 
   
+  
+  async detectDuplicates(projectId?: string): Promise<{ status: string; duplicates: any[] }> {
+    const qs = projectId ? `?project_id=${projectId}` : "";
+    return fetchApi<{ status: string; duplicates: any[] }>(`/api/problems/detect-duplicates${qs}`);
+  },
+
+  async autoMergeExact(projectId?: string): Promise<{ status: string; merged_count: number; problems: ProblemRecord[] }> {
+    return fetchApi<{ status: string; merged_count: number; problems: ProblemRecord[] }>("/api/problems/auto-merge-exact", {
+      method: "POST",
+      body: JSON.stringify({ project_id: projectId }),
+    });
+  },
+
   async reindexIds(projectId?: string): Promise<{ status: string; count: number; problems: ProblemRecord[] }> {
     return fetchApi<{ status: string; count: number; problems: ProblemRecord[] }>("/api/problems/reindex-ids", {
       method: "POST",

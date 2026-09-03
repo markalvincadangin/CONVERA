@@ -524,6 +524,23 @@ async def enrich_manual_note(req: EnrichProblemRequest):
 
 
 
+
+@app.get("/api/problems/detect-duplicates")
+async def detect_duplicates_endpoint(project_id: Optional[str] = None):
+    """Analyze database for duplicate or overlapping problem ideas."""
+    storage = get_storage()
+    duplicates = storage.find_duplicates(project_id=project_id, threshold=0.55)
+    return {"status": "success", "duplicates": duplicates}
+
+@app.post("/api/problems/auto-merge-exact")
+async def auto_merge_exact_endpoint(req: ReindexRequest):
+    """Automatically consolidate 90%+ and 100% exact duplicate problem records."""
+    storage = get_storage()
+    merged_count = storage.auto_merge_exact_duplicates(project_id=req.project_id)
+    # Reindex sequentially
+    updated = storage.normalize_problem_ids(project_id=req.project_id)
+    return {"status": "success", "merged_count": merged_count, "problems": updated}
+
 @app.post("/api/problems/reindex-ids")
 async def reindex_problem_ids(req: ReindexRequest):
     """Re-index all problem IDs into canonical, sequential sector codes (AGR-001, HLT-001, etc.)."""
