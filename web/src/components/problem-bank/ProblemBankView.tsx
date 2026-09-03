@@ -14,6 +14,7 @@ import { ProblemDetailModal } from "./ProblemDetailModal";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { BlindSpotModal } from "./BlindSpotModal";
 import { RawBrainstormIngestModal } from "./RawBrainstormIngestModal";
+import { ResearchEvidenceModal } from "./ResearchEvidenceModal";
 import { ResearchInboxDrawer } from "@/components/common/ResearchInboxDrawer";
 import { ImpactAlertBanner } from "./ImpactAlertBanner";
 import { Inbox } from "lucide-react";
@@ -41,6 +42,8 @@ import {
   Merge,
   Wand2,
   Check,
+  BookOpen,
+  Compass,
 } from "lucide-react";
 
 interface ProblemBankViewProps {
@@ -113,6 +116,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [isBlindSpotModalOpen, setIsBlindSpotModalOpen] = useState(false);
   const [challengeTargetProblem, setChallengeTargetProblem] = useState<ProblemRecord | null>(null);
   const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
+  const [isResearchEvidenceOpen, setIsResearchEvidenceOpen] = useState(false);
   const [isRawIngestOpen, setIsRawIngestOpen] = useState(false);
   const [isInboxDrawerOpen, setIsInboxDrawerOpen] = useState(false);
 
@@ -911,15 +915,29 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                   </span>
 
                   <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <button
-                      onClick={() => {
-                        setChallengeTargetProblem(p);
-                        setIsDevilsAdvocateOpen(true);
-                      }}
-                      className="text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold hover:underline"
-                    >
-                      <Flame className="w-3 h-3" /> Stress Test
-                    </button>
+                    {isResearch ? (
+                      <button
+                        onClick={() => {
+                          setChallengeTargetProblem(p);
+                          setIsResearchEvidenceOpen(true);
+                        }}
+                        className="text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-semibold hover:underline"
+                        title="Ground problem with Peer-Reviewed Literature & DOI evidence"
+                      >
+                        <BookOpen className="w-3 h-3 text-emerald-400" /> Lit Evidence
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setChallengeTargetProblem(p);
+                          setIsDevilsAdvocateOpen(true);
+                        }}
+                        className="text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold hover:underline"
+                        title="Run Devil's Advocate Stress Test"
+                      >
+                        <Flame className="w-3 h-3 text-rose-400" /> Stress Test
+                      </button>
+                    )}
 
                     <button
                       onClick={() => {

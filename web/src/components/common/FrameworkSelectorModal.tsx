@@ -35,6 +35,7 @@ export const FrameworkSelectorModal: React.FC<FrameworkSelectorModalProps> = ({
   const [loading, setLoading] = useState(false);
   const [switchingId, setSwitchingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [targetTransitionFw, setTargetTransitionFw] = useState<FrameworkSummary | null>(null);
 
   const activeFrameworkId = session?.framework_id?.toUpperCase() || "INNOVATION";
 
@@ -57,11 +58,17 @@ export const FrameworkSelectorModal: React.FC<FrameworkSelectorModalProps> = ({
     }
   };
 
-  const handleSelectFramework = async (targetId: string) => {
-    if (targetId === activeFrameworkId || !session?.session_id) {
+  const handleInitiateTransition = (fw: FrameworkSummary) => {
+    if (fw.id === activeFrameworkId) {
       onClose();
       return;
     }
+    setTargetTransitionFw(fw);
+  };
+
+  const handleConfirmTransition = async () => {
+    if (!targetTransitionFw || !session?.session_id) return;
+    const targetId = targetTransitionFw.id;
 
     setSwitchingId(targetId);
     setError(null);
@@ -70,6 +77,7 @@ export const FrameworkSelectorModal: React.FC<FrameworkSelectorModalProps> = ({
       if (res?.state) {
         onFrameworkChanged(res.state);
       }
+      setTargetTransitionFw(null);
       onClose();
     } catch (err: any) {
       setError(err?.message || "Failed to switch framework.");
@@ -101,6 +109,64 @@ export const FrameworkSelectorModal: React.FC<FrameworkSelectorModalProps> = ({
       maxWidth="2xl"
     >
       <div className="space-y-4">
+                {targetTransitionFw && (
+          <div className="p-4 rounded-2xl bg-slate-950 border border-cyan-500/40 shadow-2xl space-y-3 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-cyan-400" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-white font-mono">
+                  Controlled Methodology Transition
+                </h4>
+              </div>
+              <span className="text-[10px] font-mono text-cyan-400 font-bold px-2 py-0.5 rounded bg-cyan-500/10 border border-cyan-500/20">
+                {activeFrameworkId} → {targetTransitionFw.id}
+              </span>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              You are switching your workspace methodology to <strong className="text-white">{targetTransitionFw.name}</strong>.
+            </p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-[11px] text-slate-300">
+              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                <div className="text-emerald-400 font-bold font-mono text-[10px] uppercase flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Knowledge Intact
+                </div>
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  Problem Bank records, claims, citations, and assumptions remain 100% persistent.
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                <div className="text-indigo-400 font-bold font-mono text-[10px] uppercase flex items-center gap-1">
+                  <Layers className="w-3 h-3" /> Progress Isolated
+                </div>
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  Current milestone progress is saved. New framework gates evaluate under its own criteria.
+                </p>
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
+                <div className="text-amber-400 font-bold font-mono text-[10px] uppercase flex items-center gap-1">
+                  <Sparkles className="w-3 h-3" /> Snapshot Saved
+                </div>
+                <p className="text-[10px] text-slate-400 leading-tight">
+                  An automatic rollback checkpoint will be created before activation.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-800/80">
+              <Button size="sm" variant="ghost" onClick={() => setTargetTransitionFw(null)} disabled={Boolean(switchingId)}>
+                Cancel
+              </Button>
+              <Button size="sm" variant="primary" onClick={handleConfirmTransition} isLoading={Boolean(switchingId)} leftIcon={<ArrowRight className="w-3.5 h-3.5" />}>
+                Confirm & Switch Methodology
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Header Description */}
         <div className="bg-slate-900/80 border border-slate-800 rounded-xl p-4">
           <div className="flex items-center gap-2 mb-1">
@@ -134,7 +200,7 @@ export const FrameworkSelectorModal: React.FC<FrameworkSelectorModalProps> = ({
               return (
                 <div
                   key={fw.id}
-                  onClick={() => !isSwitching && handleSelectFramework(fw.id)}
+                  onClick={() => !isSwitching && handleInitiateTransition(fw)}
                   className={`relative p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group ${
                     isSelected
                       ? "bg-blue-950/30 border-blue-500/60 shadow-lg shadow-blue-950/40 ring-1 ring-blue-500/40"

@@ -1617,11 +1617,58 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
 
 
     def switch_session_framework(self, session_id: str, framework_id: str) -> Optional[Dict[str, Any]]:
-        """Switch the active framework methodology for a session while preserving all knowledge entities."""
+        """Switch the active framework methodology for a session under controlled transition conditions (CCDS Rule 1-5)."""
         session_data = self.get_session(session_id)
         if not session_data:
             return None
-        session_data["framework_id"] = framework_id.upper()
+        
+        old_framework = session_data.get("framework_id", "INNOVATION").upper()
+        new_framework = framework_id.upper()
+        
+        if old_framework == new_framework:
+            return session_data
+
+        # 1. Create automatic point-in-time transition snapshot for rollback safety (Rule 2)
+        try:
+            self.create_snapshot(
+                session_id=session_id,
+                label=f"Pre-transition snapshot ({old_framework} -> {new_framework})",
+                phase_number=session_data.get("active_phase", 1)
+            )
+        except Exception as e:
+            logger.warning(f"Could not create transition snapshot for {session_id}: {e}")
+
+        # 2. Preserve and isolate framework-specific progress (Rule 4: Never manufacture progress)
+        framework_progress = session_data.get("framework_progress", {})
+        if not isinstance(framework_progress, dict):
+            framework_progress = {}
+        
+        # Save current framework's progress
+        framework_progress[old_framework] = {
+            "phase1_complete": bool(session_data.get("phase1_complete")),
+            "phase2_complete": bool(session_data.get("phase2_complete")),
+            "phase3_complete": bool(session_data.get("phase3_complete")),
+            "phase4_complete": bool(session_data.get("phase4_complete")),
+            "phase5_complete": bool(session_data.get("phase5_complete")),
+        }
+        
+        # Load new framework's progress if previously tracked, otherwise initialize fresh for new methodology
+        new_prog = framework_progress.get(new_framework, {
+            "phase1_complete": False,
+            "phase2_complete": False,
+            "phase3_complete": False,
+            "phase4_complete": False,
+            "phase5_complete": False,
+        })
+        
+        session_data["framework_id"] = new_framework
+        session_data["framework_progress"] = framework_progress
+        session_data["phase1_complete"] = new_prog.get("phase1_complete", False)
+        session_data["phase2_complete"] = new_prog.get("phase2_complete", False)
+        session_data["phase3_complete"] = new_prog.get("phase3_complete", False)
+        session_data["phase4_complete"] = new_prog.get("phase4_complete", False)
+        session_data["phase5_complete"] = new_prog.get("phase5_complete", False)
+
         return self.save_session(session_id, session_data)
 
     # Phase 6: Knowledge Intelligence & Epistemic Link Storage Methods
