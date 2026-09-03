@@ -41,6 +41,7 @@ from routers import (
     frameworks_router,
     problems_router,
     research_router,
+    evaluation_router,
     sessions_router,
     pipeline_router,
     decisions_router,
@@ -68,6 +69,7 @@ app.include_router(agents_router)
 app.include_router(frameworks_router)
 app.include_router(problems_router)
 app.include_router(research_router)
+app.include_router(evaluation_router)
 app.include_router(sessions_router)
 app.include_router(pipeline_router)
 app.include_router(knowledge_router)

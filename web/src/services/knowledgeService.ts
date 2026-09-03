@@ -277,3 +277,65 @@ export const traceabilityApi = {
     body: JSON.stringify(data),
   }),
 };
+
+
+export interface CalibratedConfidenceResult {
+  ai_model_confidence: number;
+  evidence_strength: number;
+  decision_confidence: number;
+  evidence_count: number;
+  passed_validation_tests: number;
+  overconfidence_risk: boolean;
+  confidence_gap: number;
+  calibration_status: string;
+  advisory: string;
+}
+
+export interface GapDiscriminationResult {
+  statement: string;
+  classification: "STUDY_LIMITATION" | "AUTHENTIC_RESEARCH_GAP" | "PREMATURE_SOLUTION" | "DOMAIN_OBSERVATION";
+  scientific_validity: "VALID_DSR_GAP" | "INCOMPLETE_GAP" | "INVALID" | "EXPLORATORY";
+  is_authentic_research_gap: boolean;
+  explanation: string;
+  suggested_action: string;
+}
+
+export interface IntelligenceScorecard {
+  project_id: string;
+  overall_integrity_score: number;
+  pillars: {
+    evidence_integrity: { score: number; status: string };
+    reasoning_integrity: { score: number; status: string };
+    decision_integrity: { score: number; stale_decisions: number };
+    system_compliance: { score: number; status: string };
+  };
+  critical_risk_count: number;
+  timestamp: string;
+}
+
+export const evaluationApi = {
+  calibrate: (data: {
+    ai_model_confidence: number;
+    evidence_items?: Array<{ tier?: string; freshness_score?: number }>;
+    risk_level?: string;
+    passed_validation_tests?: number;
+  }) => fetchApi<CalibratedConfidenceResult>("/api/evaluation/calibrate", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+
+  discriminateGap: (statement: string) => fetchApi<GapDiscriminationResult>("/api/evaluation/discriminate-gap", {
+    method: "POST",
+    body: JSON.stringify({ statement }),
+  }),
+
+  auditDecisions: (projectId?: string) => fetchApi<{
+    project_id: string;
+    total_decisions: number;
+    stale_decisions: number;
+    solid_decisions: number;
+    audited_records: any[];
+  }>(`/api/evaluation/decisions${projectId ? `?project_id=${projectId}` : ""}`),
+
+  getScorecard: (projectId?: string) => fetchApi<IntelligenceScorecard>(`/api/evaluation/scorecard${projectId ? `?project_id=${projectId}` : ""}`),
+};
