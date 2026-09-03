@@ -1,7 +1,5 @@
 <div align="center">
 
-  <img src="docs/about/brand/EMAERX.png" alt="EMAERX Brand" width="140" height="auto" />
-
   # CONVERA
   ### Evidence-Driven Project Intelligence and Multi-Methodology Validation System
   **A Flagship Product of EMAERX (v3.0)**
