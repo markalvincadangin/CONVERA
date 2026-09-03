@@ -3,7 +3,9 @@
 import React, { useState } from "react";
 import {
   Search, BookOpen, HelpCircle, Sparkles, ShieldCheck, Layers, Compass, Award,
-  Crown, Microscope, GraduationCap, Scale, FolderOpen, FileText, Lock, BarChart3, Presentation, X
+  Crown, Microscope, GraduationCap, Scale, FolderOpen, FileText, Lock, BarChart3,
+  Presentation, X, Command, Keyboard, CheckCircle2, ArrowRight, Shield, Zap,
+  FlaskConical, Binary, Lightbulb
 } from "lucide-react";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
@@ -16,7 +18,7 @@ interface HelpCenterModalProps {
 export const HelpCenterModal: React.FC<HelpCenterModalProps> = ({ isOpen, onClose }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<
-    "QUICKSTART" | "PROBLEM_BANK" | "PHASES" | "STUDIO" | "ROLES" | "HEALTH" | "FAQS" | "GLOSSARY"
+    "QUICKSTART" | "FRAMEWORKS" | "RESEARCH_DSR" | "PHASES" | "PROBLEM_BANK" | "STUDIO" | "COMMAND_PALETTE" | "ROLES" | "HEALTH" | "FAQS" | "GLOSSARY"
   >("QUICKSTART");
 
   if (!isOpen) return null;
@@ -109,9 +111,12 @@ export const HelpCenterModal: React.FC<HelpCenterModalProps> = ({ isOpen, onClos
         <div className="px-6 py-2.5 border-b border-slate-800 bg-slate-950/40 flex flex-wrap items-center gap-2 overflow-x-auto">
           {[
             { id: "QUICKSTART", label: "Quickstart", icon: Compass },
+            { id: "FRAMEWORKS", label: "Dual Frameworks (CCDS)", icon: Layers },
+            { id: "RESEARCH_DSR", label: "Research & DSR Playbook", icon: GraduationCap },
+            { id: "PHASES", label: "Innovation 5-Phase Playbook", icon: Lightbulb },
             { id: "PROBLEM_BANK", label: "Problem Bank & AI", icon: FolderOpen },
-            { id: "PHASES", label: "5-Phase Playbook", icon: Layers },
             { id: "STUDIO", label: "Deliverables Studio", icon: Presentation },
+            { id: "COMMAND_PALETTE", label: "Command Palette (Ctrl+K)", icon: Command },
             { id: "ROLES", label: "Roles & Security", icon: Crown },
             { id: "HEALTH", label: "Health & Badges", icon: Award },
             { id: "FAQS", label: "FAQs", icon: HelpCircle },
@@ -181,6 +186,113 @@ export const HelpCenterModal: React.FC<HelpCenterModalProps> = ({ isOpen, onClos
                   </div>
                   <p className="text-xs text-slate-400 leading-relaxed">
                     Open the <strong>Deliverables Studio</strong> to instantly generate your <strong>Ash Maurya 9-Box Lean Canvas</strong>, <strong>SWOT Matrix</strong>, and <strong>10-Slide Pitch Deck</strong> with speaker scripts.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 2. DUAL FRAMEWORKS */}
+          {activeCategory === "FRAMEWORKS" && (
+            <div className="space-y-6 max-w-4xl mx-auto">
+              <div className="p-4 bg-slate-950 rounded-2xl border border-blue-500/30 space-y-2">
+                <div className="flex items-center gap-2 text-blue-400 font-bold text-xs">
+                  <Layers className="w-4 h-4" /> CONVERA Concept Development Standard (CCDS)
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  <strong>Knowledge != Workflow.</strong> Your Problem Bank records, empirical claims, citations, and decision room evaluations are stored in a persistent relational Knowledge Graph. Switching frameworks reconfigures the workflow stepper without resetting your underlying research.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Innovation Card */}
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-blue-950/40 to-slate-950 border border-blue-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-blue-400 font-bold text-sm">
+                      <Zap className="w-4 h-4" /> Venture Innovation Track
+                    </div>
+                    <Badge variant="cyan" size="sm">5 Stages • 2 Gates</Badge>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Optimized for technopreneurs, startup incubators, and product discovery teams.
+                  </p>
+                  <ul className="space-y-1.5 text-xs text-slate-400">
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Phase 1: Problem Discovery &amp; Bank</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Phase 2: Economic Pain Screening [Gate 1]</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Phase 3: Socratic Mom Test Validation [Gate 2]</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Phase 4: 15 Divergent Solution Mechanisms</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-blue-400" /> Phase 5: MVP Behavioral Commitment Audit</li>
+                  </ul>
+                </div>
+
+                {/* Research Card */}
+                <div className="p-5 rounded-2xl bg-gradient-to-br from-emerald-950/40 to-slate-950 border border-emerald-500/30 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                      <GraduationCap className="w-4 h-4" /> Computing Research Track (DSR)
+                    </div>
+                    <Badge variant="emerald" size="sm">6 Stages • 4 Gates</Badge>
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Governed by Design Science Research (March &amp; Smith / Hevner) for academic thesis and R&amp;D projects.
+                  </p>
+                  <ul className="space-y-1.5 text-xs text-slate-400">
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Stage A: Empirical Problem Scouting</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Stage B: Dual-Literature Grounding [Gate 1]</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Stage C: Literature Matrix &amp; Gap [Gate 2]</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Stage D: 4 DSR Artifact Specifications</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Stage E: Kothari Experimental Trapping [Gate 3]</li>
+                    <li className="flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Stage F: DOST/SDG Ethics Governance [Gate 4]</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 3. RESEARCH & DSR PLAYBOOK */}
+          {activeCategory === "RESEARCH_DSR" && (
+            <div className="space-y-5 max-w-4xl mx-auto">
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-white">Computing Research &amp; DSR Methodological Protocol</h3>
+                <p className="text-xs text-slate-400">
+                  The 6-stage scientific concept development standard for computing thesis and R&amp;D proposals.
+                </p>
+              </div>
+
+              <div className="space-y-3.5">
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs">
+                    <Search className="w-4 h-4" /> Stage A &amp; B: Scouting &amp; Grounding (Gate 1)
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Collect domain breakdowns (Bordens &amp; Abbott) and ground observations in peer-reviewed literature across OpenAlex, Europe PMC, and Crossref. Gate 1 requires statistical magnitude and verified citations.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center gap-2 text-indigo-400 font-bold text-xs">
+                    <Layers className="w-4 h-4" /> Stage C &amp; D: Literature Matrix &amp; 4 DSR Artifacts (Gate 2)
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Synthesize state-of-the-art baselines into an interactive Literature Matrix Table. Formulate the computing artifact across the 4 canonical classes (March &amp; Smith, 1995): <em>Constructs</em> (vocabularies), <em>Models</em> (equations/graphs), <em>Methods</em> (algorithms), and <em>Instantiations</em> (software prototypes).
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center gap-2 text-purple-400 font-bold text-xs">
+                    <FlaskConical className="w-4 h-4" /> Stage E: Kothari Experimental Trapping Protocol (Gate 3)
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Design a 3x3 experimental matrix defining Independent Variables (quantization, bit-width, architecture), Dependent Metrics (latency ms, F1 score, memory MB), and Controlled Baselines (SOTA models) to mathematically trap algorithmic contributions.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
+                  <div className="flex items-center gap-2 text-emerald-400 font-bold text-xs">
+                    <Scale className="w-4 h-4" /> Stage F: Institutional &amp; Ethics Governance (Gate 4)
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Verify strategic alignment with <strong>DOST-PCIEERD Regional Roadmaps</strong>, <strong>UN Sustainable Development Goals (SDG 2, 9, 11)</strong>, and <strong>RA 10173 (Data Privacy Act of 2012)</strong> before proposal submission.
                   </p>
                 </div>
               </div>
@@ -269,7 +381,47 @@ export const HelpCenterModal: React.FC<HelpCenterModalProps> = ({ isOpen, onClos
             </div>
           )}
 
-          {activeCategory === "ROLES" && (
+          {/* 7. COMMAND PALETTE */}
+          {activeCategory === "COMMAND_PALETTE" && (
+            <div className="space-y-5 max-w-4xl mx-auto">
+              <div className="space-y-2">
+                <h3 className="text-base font-bold text-white">Global Command Palette &amp; Keyboard Shortcuts</h3>
+                <p className="text-xs text-slate-400">
+                  Navigate anywhere in your workspace at the speed of thought.
+                </p>
+              </div>
+
+              <div className="p-4 bg-slate-950 rounded-2xl border border-cyan-500/30 space-y-3">
+                <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs">
+                  <Command className="w-4 h-4" /> Quick Launcher Shortcut
+                </div>
+                <p className="text-xs text-slate-300">
+                  Press <kbd className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-cyan-300 text-xs">Ctrl + K</kbd> (or <kbd className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 font-mono text-cyan-300 text-xs">Cmd + K</kbd>) anywhere to open the spotlight modal.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs text-slate-300">
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                  <span className="font-bold text-white block">Search Problem Records</span>
+                  <span className="text-slate-400">Type problem codes (e.g. AGR-004) or keywords to view and edit details instantly.</span>
+                </div>
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                  <span className="font-bold text-white block">Stage Navigation</span>
+                  <span className="text-slate-400">Jump directly to Problem Bank, Scouting, Decision Room, Matrix, or Deliverables Studio.</span>
+                </div>
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                  <span className="font-bold text-white block">Intelligence Drawers</span>
+                  <span className="text-slate-400">Trigger AI Ingest, Blind Spot Scanner, Scorecard Drawer, Traceability Graph, or Framework Switcher.</span>
+                </div>
+                <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 space-y-1">
+                  <span className="font-bold text-white block">Keyboard Navigation</span>
+                  <span className="text-slate-400">Use <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">↑</kbd> <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">↓</kbd> to cycle items, <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">Enter</kbd> to execute, and <kbd className="px-1.5 py-0.5 rounded bg-slate-800 text-[10px]">Esc</kbd> to close.</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+                    {activeCategory === "ROLES" && (
             <div className="space-y-5 max-w-4xl mx-auto">
               <div className="space-y-2">
                 <h3 className="text-base font-bold text-white">Team Profiles &amp; Room Security PINs</h3>
