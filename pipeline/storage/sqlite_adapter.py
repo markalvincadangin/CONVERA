@@ -8,6 +8,26 @@ from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from .base import BaseStorageAdapter
 from evidence_scorer import calculate_score_breakdown
+import re
+
+def clean_text(val: Optional[str]) -> str:
+    if not val:
+        return ""
+    s = re.sub(r"<br\s*/?>", " ", str(val), flags=re.IGNORECASE)
+    s = re.sub(r"<[^>]+>", " ", s)
+    s = re.sub(r"\*\*([^\*]+)\*\*", r"\1", s)
+    s = re.sub(r"\*([^\*]+)\*", r"\1", s)
+    s = re.sub(r"__([^_]+)__", r"\1", s)
+    s = re.sub(r"_([^_]+)_", r"\1", s)
+    s = s.replace("**", "").replace("*", "").replace("`", "").replace("##", "").replace("#", "")
+    s = re.sub(r"\s+", " ", s).strip()
+    return s
+
+def clean_problem_id(val: str) -> str:
+    s = clean_text(val)
+    s = re.sub(r"[^A-Za-z0-9\-]", "", s).upper()
+    return s
+
 
 def generate_share_code(prefix: str = "RATCH") -> str:
     """Generate a clean 6-character room share code like RATCH-7K9."""
@@ -402,39 +422,21 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
     def set_project_passcode(self, project_id: str, passcode: Optional[str]) -> bool:
         with self._get_connection() as conn:
             clean_pin = passcode.strip() if passcode else None
-            cur = conn.execute(
-                "UPDATE projects SET passcode = ? WHERE id = ?",
-                (clean_pin, project_id)
-            )
-            if cur.rowcount > 0:
-                return True
-                
-            # If project row does not exist, find session or create project row
-            s_row = conn.execute(
-                "SELECT session_id, project_id, project_name FROM sessions WHERE session_id = ? OR project_id = ?",
-                (project_id, project_id)
-            ).fetchone()
-            
-            if s_row:
-                real_proj_id = s_row["project_id"] or f"proj_{s_row['session_id']}"
-                proj_name = s_row["project_name"] or "Venture Project"
-                conn.execute("""
-                    INSERT INTO projects (id, name, passcode)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT(id) DO UPDATE SET passcode = excluded.passcode
-                """, (real_proj_id, proj_name, clean_pin))
-                conn.execute(
-                    "UPDATE sessions SET project_id = ? WHERE session_id = ?",
-                    (real_proj_id, s_row["session_id"])
-                )
-                return True
-            else:
-                conn.execute("""
-                    INSERT INTO projects (id, name, passcode)
-                    VALUES (?, ?, ?)
-                    ON CONFLICT(id) DO UPDATE SET passcode = excluded.passcode
-                """, (project_id, "Venture Project", clean_pin))
-                return True
+            share_code = generate_share_code()
+            # Always ensure a project row exists
+            conn.execute("""
+                INSERT INTO projects (id, name, passcode, share_code)
+                VALUES (?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET passcode = excluded.passcode
+            """, (project_id, "Venture Project", clean_pin, share_code))
+
+            # Also check if project_id links to a session
+            raw_sess_id = project_id.replace("proj_", "")
+            conn.execute("""
+                UPDATE sessions SET project_id = ? 
+                WHERE session_id = ? OR session_id = ? OR project_id = ?
+            """, (project_id, project_id, raw_sess_id, project_id))
+            return True
 
     def list_project_members(self, project_id: str) -> List[Dict[str, Any]]:
         with self._get_connection() as conn:
@@ -529,8 +531,14 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
 
     def add_problem(self, problem_data: Dict[str, Any]) -> Dict[str, Any]:
         p = dict(problem_data)
-        problem_id = p.get("id") or p.get("problem_id") or f"PRB-{uuid.uuid4().hex[:6].upper()}"
+        problem_id = clean_problem_id(p.get("id") or p.get("problem_id") or f"PRB-{uuid.uuid4().hex[:6].upper()}")
         p["id"] = problem_id
+        p["sufferer_occupation"] = clean_text(p.get("sufferer_occupation"))
+        p["sufferer_location"] = clean_text(p.get("sufferer_location"))
+        p["problem_statement"] = clean_text(p.get("problem_statement"))
+        p["workaround"] = clean_text(p.get("workaround"))
+        p["quantified_impact"] = clean_text(p.get("quantified_impact"))
+        p["source_detail"] = clean_text(p.get("source_detail"))
 
         sources = p.get("sources") or []
         breakdown = calculate_score_breakdown(p, sources)
