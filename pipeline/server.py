@@ -71,6 +71,27 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.on_event("startup")
+async def startup_sync_problems():
+    """Ensure all Phase 1 problem discoveries from stored sessions are synchronized to Problem Bank on boot."""
+    try:
+        sessions = storage.list_sessions(limit=50)
+        for s in sessions:
+            sess_id = s["session_id"]
+            state = storage.get_session(sess_id)
+            if state and state.get("phase1_response"):
+                parsed = parse_phase1_markdown(
+                    state["phase1_response"],
+                    session_id=sess_id,
+                    project_id=state.get("project_id")
+                )
+                if parsed:
+                    storage.bulk_upsert_problems(parsed)
+        logging.info("[OK] Problem Bank synchronization complete on startup.")
+    except Exception as e:
+        logging.warning(f"Problem Bank startup sync notice: {e}")
+
+
 
 def load_session_state(session_id: str) -> dict:
     storage = get_storage()
