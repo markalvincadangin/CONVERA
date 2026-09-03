@@ -337,6 +337,7 @@ export default function Home() {
               <DeliverablesStudio
                 session={session}
                 onExportDossier={handleExportDossier}
+                onNavigatePhase={(p) => setActivePhase(p)}
               />
             )}
           </div>

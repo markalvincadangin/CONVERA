@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { PitchDeckData, PitchDeckSlide } from "@/lib/types";
@@ -17,6 +17,8 @@ import {
   Mic,
   Maximize2,
   FileText,
+  Clock,
+  Radio,
 } from "lucide-react";
 
 interface PitchDeckViewProps {
@@ -35,6 +37,23 @@ export const PitchDeckView: React.FC<PitchDeckViewProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!deck || deck.slides.length === 0) return;
+      if (e.key === "ArrowRight" || e.key === "PageDown" || e.key === " ") {
+        e.preventDefault();
+        setActiveSlideIndex((prev) => Math.min(prev + 1, deck.slides.length - 1));
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        setActiveSlideIndex((prev) => Math.max(prev - 1, 0));
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [deck]);
 
   const handleGenerate = async () => {
     setIsLoading(true);
@@ -74,16 +93,16 @@ export const PitchDeckView: React.FC<PitchDeckViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-950 rounded-2xl border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 shadow-sm">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <Presentation className="w-5 h-5 text-purple-400" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              10-Slide Investor & Demo Day Pitch Deck
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+              10-Slide Investor &amp; Demo Day Pitch Deck
             </h3>
           </div>
           <p className="text-xs text-slate-400">
-            Clinical narrative structure grounded in Phase 1–5 problem validation and Phase 5 empirical metrics.
+            Clinical narrative structure grounded in Phase 1-5 problem validation and Phase 5 empirical metrics.
           </p>
         </div>
 
@@ -134,7 +153,7 @@ export const PitchDeckView: React.FC<PitchDeckViewProps> = ({
         </div>
       ) : !deck ? (
         <div className="p-12 text-center bg-slate-900/60 rounded-3xl border border-slate-800 space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto border border-purple-500/20">
+          <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto border border-purple-500/20 shadow-inner">
             <Presentation className="w-6 h-6" />
           </div>
           <div className="space-y-1">
@@ -154,95 +173,104 @@ export const PitchDeckView: React.FC<PitchDeckViewProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          {/* Presentation Canvas */}
+          {/* Main 16:9 Presentation Stage */}
           {currentSlide && (
-            <div className="p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 rounded-3xl border border-slate-800 shadow-2xl relative min-h-[380px] flex flex-col justify-between gap-6">
+            <div className="p-8 sm:p-10 bg-gradient-to-br from-slate-950 via-slate-900/90 to-slate-950 rounded-3xl border border-purple-500/30 shadow-2xl relative min-h-[420px] flex flex-col justify-between gap-6 overflow-hidden">
+              <div className="absolute top-0 right-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+
               {/* Slide Header */}
-              <div className="flex items-center justify-between border-b border-slate-800/80 pb-4">
-                <div className="space-y-1">
-                  <span className="text-[10px] font-mono font-bold text-purple-400 uppercase tracking-widest">
-                    Slide {currentSlide.slide_number} of {deck.slides.length} • {currentSlide.title}
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+              <div className="flex items-center justify-between border-b border-slate-800/80 pb-4 relative z-10">
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-mono font-bold text-purple-400 uppercase tracking-widest">
+                      Slide {currentSlide.slide_number} of {deck.slides.length}
+                    </span>
+                    <span className="text-slate-600 font-mono">•</span>
+                    <span className="text-xs font-bold text-slate-300 uppercase tracking-wider">
+                      {currentSlide.title}
+                    </span>
+                  </div>
+                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
                     {currentSlide.headline}
                   </h3>
                 </div>
 
-                <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                <span className="text-xs font-mono font-bold px-3 py-1 rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 shrink-0 hidden sm:inline-block">
                   {deck.presentation_title || projectName}
                 </span>
               </div>
 
-              {/* Slide Bullets Body */}
-              <div className="py-2">
-                <ul className="space-y-3 text-sm sm:text-base text-slate-200">
+              {/* Slide Takeaways Body */}
+              <div className="py-3 relative z-10">
+                <ul className="space-y-3.5 text-sm sm:text-base text-slate-200">
                   {currentSlide.bullet_points.map((pt, i) => (
-                    <li key={i} className="flex items-start gap-3">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 mt-2 shrink-0 shadow-sm shadow-cyan-400" />
-                      <span className="leading-relaxed">{pt}</span>
+                    <li key={i} className="flex items-start gap-3.5">
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 mt-2 shrink-0 shadow-md shadow-cyan-400/50 ring-2 ring-cyan-400/20" />
+                      <span className="leading-relaxed font-medium">{pt}</span>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              {/* Speaker Notes Callout */}
-              <div className="p-4 bg-slate-950/90 rounded-2xl border border-slate-800 space-y-1.5">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-purple-400 uppercase tracking-wider">
-                  <Mic className="w-3.5 h-3.5" />
-                  <span>30-Second Speaker Script</span>
+              {/* Speaker Notes Prompter Box */}
+              <div className="p-4 sm:p-5 bg-slate-950/95 rounded-2xl border border-purple-500/25 space-y-2 relative z-10 shadow-inner">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-purple-400 uppercase tracking-wider font-mono">
+                    <Mic className="w-4 h-4 text-purple-400" />
+                    <span>30-Second Speaker Teleprompter</span>
+                  </div>
+                  <span className="text-[10px] font-mono text-slate-400 flex items-center gap-1">
+                    <Clock className="w-3 h-3 text-slate-500" /> ~30s delivery
+                  </span>
                 </div>
-                <p className="text-xs text-slate-300 italic leading-relaxed">
-                  "{currentSlide.speaker_notes}"
+                <p className="text-xs sm:text-sm text-slate-200 italic leading-relaxed pl-6 border-l-2 border-purple-500/40">
+                  &ldquo;{currentSlide.speaker_notes}&rdquo;
                 </p>
               </div>
             </div>
           )}
 
-          {/* Navigation Controls & Thumbnail Stepper */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 bg-slate-950 rounded-2xl border border-slate-800">
-            <div className="flex items-center gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setActiveSlideIndex((prev) => Math.max(0, prev - 1))}
-                disabled={activeSlideIndex === 0}
-                leftIcon={<ChevronLeft className="w-4 h-4" />}
-              >
-                Previous
-              </Button>
+          {/* Slide Navigator & Thumbnail Carousel */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800">
+            {/* Previous Button */}
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setActiveSlideIndex((prev) => Math.max(prev - 1, 0))}
+              disabled={activeSlideIndex === 0}
+              leftIcon={<ChevronLeft className="w-4 h-4" />}
+            >
+              Previous
+            </Button>
 
-              <span className="text-xs font-mono font-bold text-white px-2">
-                {activeSlideIndex + 1} / {deck.slides.length}
-              </span>
-
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setActiveSlideIndex((prev) => Math.min(deck.slides.length - 1, prev + 1))}
-                disabled={activeSlideIndex === deck.slides.length - 1}
-                rightIcon={<ChevronRight className="w-4 h-4" />}
-              >
-                Next
-              </Button>
-            </div>
-
-            {/* Slide Pill Selectors */}
-            <div className="flex flex-wrap items-center gap-1">
+            {/* Slide Pill Dots */}
+            <div className="flex flex-wrap items-center justify-center gap-1.5 max-w-xl">
               {deck.slides.map((s, idx) => (
                 <button
                   key={s.slide_number}
                   onClick={() => setActiveSlideIndex(idx)}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-mono font-bold transition-all ${
+                  className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all ${
                     activeSlideIndex === idx
-                      ? "bg-purple-500 text-white shadow-md shadow-purple-500/20"
-                      : "bg-slate-900 text-slate-400 hover:text-white border border-slate-800"
+                      ? "bg-purple-500 text-white shadow-md shadow-purple-500/30 scale-105 ring-1 ring-purple-400/50"
+                      : "bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800"
                   }`}
-                  title={s.title}
+                  title={`${s.slide_number}. ${s.title}`}
                 >
-                  S{s.slide_number}
+                  {s.slide_number}
                 </button>
               ))}
             </div>
+
+            {/* Next Button */}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => setActiveSlideIndex((prev) => Math.min(prev + 1, deck.slides.length - 1))}
+              disabled={activeSlideIndex === deck.slides.length - 1}
+              rightIcon={<ChevronRight className="w-4 h-4" />}
+            >
+              Next Slide
+            </Button>
           </div>
         </div>
       )}

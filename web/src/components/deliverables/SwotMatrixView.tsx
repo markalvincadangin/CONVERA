@@ -19,6 +19,8 @@ import {
   CheckCircle2,
   TrendingUp,
   Building2,
+  Target,
+  Zap,
 } from "lucide-react";
 
 interface SwotMatrixViewProps {
@@ -55,26 +57,26 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
     const md = [
       `# SWOT & Competitive Analysis: ${projectName}`,
       "",
-      "## 🟢 Strengths (Internal)",
+      "## Strengths (Internal)",
       swot.strengths.map((s) => `- ${s}`).join("\n"),
       "",
-      "## 🟡 Weaknesses (Internal)",
+      "## Weaknesses (Internal)",
       swot.weaknesses.map((w) => `- ${w}`).join("\n"),
       "",
-      "## 🔵 Opportunities (External)",
+      "## Opportunities (External)",
       swot.opportunities.map((o) => `- ${o}`).join("\n"),
       "",
-      "## 🔴 Threats (External)",
+      "## Threats (External)",
       swot.threats.map((t) => `- ${t}`).join("\n"),
       "",
-      "## ⚔️ Competitor & Incumbent Differentiation Grid",
+      "## Competitor & Incumbent Differentiation Grid",
       "| Competitor / Substitute | Type | Why Sufferers Stick (Their Moat) | Our Mechanism Advantage |",
       "|---|---|---|---|",
       swot.competitor_grid
         .map((c) => `| ${c.competitor_name} | ${c.competitor_type} | ${c.their_advantage} | ${c.our_differentiation} |`)
         .join("\n"),
       "",
-      "## 💡 Strategic Recommendations",
+      "## Strategic Recommendations",
       swot.strategic_recommendations.map((r) => `- ${r}`).join("\n"),
     ].join("\n");
 
@@ -86,12 +88,12 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-950 rounded-2xl border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 shadow-sm">
         <div className="space-y-0.5">
           <div className="flex items-center gap-2">
             <Swords className="w-5 h-5 text-teal-400" />
-            <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-              SWOT & Competitive Differentiation Matrix
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider font-mono">
+              SWOT &amp; Competitive Differentiation Matrix
             </h3>
           </div>
           <p className="text-xs text-slate-400">
@@ -146,7 +148,7 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
         </div>
       ) : !swot ? (
         <div className="p-12 text-center bg-slate-900/60 rounded-3xl border border-slate-800 space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center mx-auto border border-teal-500/20">
+          <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center mx-auto border border-teal-500/20 shadow-inner">
             <Swords className="w-6 h-6" />
           </div>
           <div className="space-y-1">
@@ -166,111 +168,137 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
         </div>
       ) : (
         <div className="space-y-6">
-          {/* 2x2 SWOT Grid */}
+          {/* 2x2 SWOT Quad-Matrix */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Strengths */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-emerald-500/30 space-y-3">
-              <div className="flex items-center gap-2 text-emerald-400">
-                <ShieldCheck className="w-4 h-4" />
-                <h4 className="text-xs font-bold uppercase tracking-wider">
-                  Strengths (Internal Advantages)
-                </h4>
+            {/* Strengths (Internal • Positive) */}
+            <div className="p-5 bg-gradient-to-br from-emerald-950/30 via-slate-950 to-slate-950 rounded-2xl border border-emerald-500/40 space-y-3 shadow-lg shadow-emerald-500/5 hover:border-emerald-500/60 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-400">
+                  <ShieldCheck className="w-4 h-4" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider font-mono">
+                    Strengths (Internal Advantages)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  INTERNAL • POSITIVE
+                </span>
               </div>
-              <ul className="space-y-2 text-xs text-slate-200">
+              <ul className="space-y-2.5 text-xs text-slate-200">
                 {swot.strengths.map((s, i) => (
-                  <li key={i} className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-2">
-                    <span className="text-emerald-400 font-bold font-mono">0{i + 1}.</span>
-                    <span>{s}</span>
+                  <li key={i} className="p-3 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-800 flex items-start gap-2.5 shadow-sm">
+                    <span className="text-emerald-400 font-bold font-mono text-xs">0{i + 1}.</span>
+                    <span className="leading-relaxed">{s}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Weaknesses */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-amber-500/30 space-y-3">
-              <div className="flex items-center gap-2 text-amber-400">
-                <AlertTriangle className="w-4 h-4" />
-                <h4 className="text-xs font-bold uppercase tracking-wider">
-                  Weaknesses (Internal Gaps)
-                </h4>
+            {/* Weaknesses (Internal • Negative) */}
+            <div className="p-5 bg-gradient-to-br from-amber-950/30 via-slate-950 to-slate-950 rounded-2xl border border-amber-500/40 space-y-3 shadow-lg shadow-amber-500/5 hover:border-amber-500/60 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-amber-400">
+                  <AlertTriangle className="w-4 h-4" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider font-mono">
+                    Weaknesses (Internal Gaps)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-amber-500/15 text-amber-300 px-2 py-0.5 rounded-full border border-amber-500/30">
+                  INTERNAL • NEGATIVE
+                </span>
               </div>
-              <ul className="space-y-2 text-xs text-slate-200">
+              <ul className="space-y-2.5 text-xs text-slate-200">
                 {swot.weaknesses.map((w, i) => (
-                  <li key={i} className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-2">
-                    <span className="text-amber-400 font-bold font-mono">0{i + 1}.</span>
-                    <span>{w}</span>
+                  <li key={i} className="p-3 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-800 flex items-start gap-2.5 shadow-sm">
+                    <span className="text-amber-400 font-bold font-mono text-xs">0{i + 1}.</span>
+                    <span className="leading-relaxed">{w}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Opportunities */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-cyan-500/30 space-y-3">
-              <div className="flex items-center gap-2 text-cyan-400">
-                <Compass className="w-4 h-4" />
-                <h4 className="text-xs font-bold uppercase tracking-wider">
-                  Opportunities (Regional Potential)
-                </h4>
+            {/* Opportunities (External • Positive) */}
+            <div className="p-5 bg-gradient-to-br from-cyan-950/30 via-slate-950 to-slate-950 rounded-2xl border border-cyan-500/40 space-y-3 shadow-lg shadow-cyan-500/5 hover:border-cyan-500/60 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-cyan-400">
+                  <Compass className="w-4 h-4" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider font-mono">
+                    Opportunities (Regional Potential)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-cyan-500/15 text-cyan-300 px-2 py-0.5 rounded-full border border-cyan-500/30">
+                  EXTERNAL • POSITIVE
+                </span>
               </div>
-              <ul className="space-y-2 text-xs text-slate-200">
+              <ul className="space-y-2.5 text-xs text-slate-200">
                 {swot.opportunities.map((o, i) => (
-                  <li key={i} className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-2">
-                    <span className="text-cyan-400 font-bold font-mono">0{i + 1}.</span>
-                    <span>{o}</span>
+                  <li key={i} className="p-3 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-800 flex items-start gap-2.5 shadow-sm">
+                    <span className="text-cyan-400 font-bold font-mono text-xs">0{i + 1}.</span>
+                    <span className="leading-relaxed">{o}</span>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Threats */}
-            <div className="p-4 bg-slate-950 rounded-2xl border border-red-500/30 space-y-3">
-              <div className="flex items-center gap-2 text-red-400">
-                <Flame className="w-4 h-4" />
-                <h4 className="text-xs font-bold uppercase tracking-wider">
-                  Threats (External Friction)
-                </h4>
+            {/* Threats (External • Negative) */}
+            <div className="p-5 bg-gradient-to-br from-rose-950/30 via-slate-950 to-slate-950 rounded-2xl border border-rose-500/40 space-y-3 shadow-lg shadow-rose-500/5 hover:border-rose-500/60 transition-all">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-rose-400">
+                  <Flame className="w-4 h-4" />
+                  <h4 className="text-xs font-bold uppercase tracking-wider font-mono">
+                    Threats (External Friction)
+                  </h4>
+                </div>
+                <span className="text-[10px] font-mono font-bold bg-rose-500/15 text-rose-300 px-2 py-0.5 rounded-full border border-rose-500/30">
+                  EXTERNAL • NEGATIVE
+                </span>
               </div>
-              <ul className="space-y-2 text-xs text-slate-200">
+              <ul className="space-y-2.5 text-xs text-slate-200">
                 {swot.threats.map((t, i) => (
-                  <li key={i} className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex items-start gap-2">
-                    <span className="text-red-400 font-bold font-mono">0{i + 1}.</span>
-                    <span>{t}</span>
+                  <li key={i} className="p-3 bg-slate-900/90 backdrop-blur-md rounded-xl border border-slate-800 flex items-start gap-2.5 shadow-sm">
+                    <span className="text-rose-400 font-bold font-mono text-xs">0{i + 1}.</span>
+                    <span className="leading-relaxed">{t}</span>
                   </li>
                 ))}
               </ul>
             </div>
           </div>
 
-          {/* Competitor / Incumbent Differentiation Grid */}
-          <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-            <div className="flex items-center gap-2 text-slate-300">
-              <Building2 className="w-4 h-4 text-cyan-400" />
-              <h4 className="text-xs font-bold uppercase tracking-wider">
-                Competitor & Incumbent Differentiation Grid
+          {/* Competitor & Incumbent Differentiation Table */}
+          <div className="p-5 bg-slate-950/90 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-4 shadow-xl">
+            <div className="flex items-center gap-2 text-cyan-400">
+              <Building2 className="w-4 h-4" />
+              <h4 className="text-xs font-bold uppercase tracking-wider font-mono">
+                Competitor &amp; Incumbent Differentiation Grid
               </h4>
             </div>
 
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs text-slate-300">
-                <thead className="bg-slate-900 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
-                  <tr>
-                    <th className="p-3">Incumbent / Workaround</th>
-                    <th className="p-3">Type</th>
-                    <th className="p-3">Why Sufferers Stick (Their Advantage)</th>
-                    <th className="p-3">Our Mechanism Differentiation</th>
+              <table className="w-full text-left text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-slate-800 text-[10px] uppercase font-mono tracking-wider text-slate-400 bg-slate-900/80">
+                    <th className="py-3 px-4 rounded-l-xl">Incumbent / Workaround</th>
+                    <th className="py-3 px-4">Type</th>
+                    <th className="py-3 px-4">Why Sufferers Stick (Their Advantage)</th>
+                    <th className="py-3 px-4 rounded-r-xl text-emerald-400">Our Mechanism Differentiation</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60">
-                  {swot.competitor_grid.map((c, i) => (
-                    <tr key={i} className="hover:bg-slate-900/50">
-                      <td className="p-3 font-bold text-white whitespace-nowrap">{c.competitor_name}</td>
-                      <td className="p-3 text-slate-400 whitespace-nowrap">
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 border border-slate-700">
+                <tbody className="divide-y divide-slate-900">
+                  {swot.competitor_grid?.map((c, i) => (
+                    <tr key={i} className="hover:bg-slate-900/50 transition-colors">
+                      <td className="py-3 px-4 font-bold text-white whitespace-nowrap">
+                        {c.competitor_name}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-slate-900 text-slate-300 border border-slate-700">
                           {c.competitor_type}
                         </span>
                       </td>
-                      <td className="p-3 text-slate-300">{c.their_advantage}</td>
-                      <td className="p-3 text-emerald-300 font-medium">{c.our_differentiation}</td>
+                      <td className="py-3 px-4 text-slate-300 max-w-xs leading-relaxed">
+                        {c.their_advantage}
+                      </td>
+                      <td className="py-3 px-4 font-medium text-emerald-300 max-w-xs leading-relaxed">
+                        {c.our_differentiation}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -279,19 +307,25 @@ export const SwotMatrixView: React.FC<SwotMatrixViewProps> = ({
           </div>
 
           {/* Strategic Recommendations */}
-          <div className="p-4 bg-gradient-to-r from-cyan-950/30 to-teal-950/30 rounded-2xl border border-cyan-500/30 space-y-2.5">
-            <span className="text-xs font-bold uppercase tracking-wider text-cyan-300 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-cyan-400" />
-              Strategic Next Steps for Region VI
-            </span>
-            <ul className="space-y-1.5 text-xs text-slate-200">
-              {swot.strategic_recommendations.map((r, i) => (
-                <li key={i} className="flex items-start gap-2">
-                  <span className="text-cyan-400 font-bold">→</span>
-                  <span>{r}</span>
-                </li>
+          <div className="p-5 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 rounded-2xl border border-teal-500/30 space-y-3 shadow-xl">
+            <div className="flex items-center gap-2 text-teal-400">
+              <Zap className="w-4 h-4" />
+              <h4 className="text-xs font-bold uppercase tracking-wider font-mono">
+                Strategic Recommendations &amp; Action Plan
+              </h4>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {swot.strategic_recommendations?.map((rec, i) => (
+                <div key={i} className="p-3.5 bg-slate-950/80 backdrop-blur-md rounded-xl border border-slate-800 flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-lg bg-teal-500/15 text-teal-400 border border-teal-500/25 flex items-center justify-center shrink-0 font-mono text-xs font-bold mt-0.5">
+                    {i + 1}
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    {rec}
+                  </p>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         </div>
       )}

@@ -5,7 +5,7 @@ import { SessionState } from "@/lib/types";
 import { LeanCanvasView } from "./LeanCanvasView";
 import { SwotMatrixView } from "./SwotMatrixView";
 import { PitchDeckView } from "./PitchDeckView";
-import { Card } from "@/components/common/Card";
+import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { Button } from "@/components/common/Button";
 import {
   FileSpreadsheet,
@@ -15,22 +15,28 @@ import {
   Download,
   Copy,
   Check,
-  Printer,
   Sparkles,
+  ArrowRight,
+  ShieldCheck,
   Layers,
+  Code2,
+  BookOpen,
 } from "lucide-react";
 
 interface DeliverablesStudioProps {
   session: SessionState | null;
   onExportDossier?: () => void;
+  onNavigatePhase?: (phaseNumber: number) => void;
 }
 
 export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
   session,
   onExportDossier,
+  onNavigatePhase,
 }) => {
   const [activeTab, setActiveTab] = useState<"canvas" | "swot" | "deck" | "dossier">("canvas");
   const [copiedDossier, setCopiedDossier] = useState(false);
+  const [rawViewMode, setRawViewMode] = useState<Record<string, boolean>>({});
 
   if (!session) {
     return (
@@ -40,9 +46,13 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
     );
   }
 
+  const toggleRaw = (phaseKey: string) => {
+    setRawViewMode((prev) => ({ ...prev, [phaseKey]: !prev[phaseKey] }));
+  };
+
   const handleCopyFullDossier = () => {
     const md = [
-      `# ${session.project_name || "Iloilo Venture"} — Master Venture Dossier`,
+      `# ${session.project_name || "Iloilo Venture"} - Master Venture Dossier`,
       `**Session ID:** \`${session.session_id}\``,
       `**Generated:** ${new Date().toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`,
       "",
@@ -76,8 +86,10 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
   return (
     <div className="space-y-6">
       {/* Studio Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-950 rounded-3xl border border-purple-500/20 shadow-xl">
-        <div className="space-y-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-950 via-purple-950/30 to-slate-950 rounded-3xl border border-purple-500/20 shadow-xl relative overflow-hidden">
+        <div className="absolute right-0 top-0 w-96 h-96 bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
+        
+        <div className="space-y-1 relative z-10">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-purple-400" />
             <h2 className="text-lg font-bold text-white tracking-tight">
@@ -88,11 +100,11 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-400 max-w-2xl">
-            Automatically transform your validated research across Phases 1–5 into pitch-ready deliverables, business model canvases, competitive matrices, and executive summaries.
+            Automatically transform your validated research across Phases 1-5 into pitch-ready deliverables, business model canvases, competitive matrices, and executive summaries.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 relative z-10">
           <Button
             variant="secondary"
             size="sm"
@@ -116,12 +128,12 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
       </div>
 
       {/* Sub-Navigation Tabs */}
-      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-900/90 rounded-2xl border border-slate-800">
+      <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 shadow-inner">
         <button
           onClick={() => setActiveTab("canvas")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === "canvas"
-              ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+              ? "bg-gradient-to-r from-cyan-500 to-cyan-600 text-slate-950 shadow-md shadow-cyan-500/25 ring-1 ring-cyan-400/50"
               : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
@@ -131,21 +143,21 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
 
         <button
           onClick={() => setActiveTab("swot")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === "swot"
-              ? "bg-teal-500 text-slate-950 shadow-md shadow-teal-500/20"
+              ? "bg-gradient-to-r from-teal-500 to-emerald-600 text-slate-950 shadow-md shadow-teal-500/25 ring-1 ring-teal-400/50"
               : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
           <Swords className="w-4 h-4" />
-          <span>SWOT & Competitor Matrix</span>
+          <span>SWOT &amp; Competitor Matrix</span>
         </button>
 
         <button
           onClick={() => setActiveTab("deck")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === "deck"
-              ? "bg-purple-500 text-white shadow-md shadow-purple-500/20"
+              ? "bg-gradient-to-r from-purple-500 to-indigo-600 text-white shadow-md shadow-purple-500/25 ring-1 ring-purple-400/50"
               : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
@@ -155,14 +167,14 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
 
         <button
           onClick={() => setActiveTab("dossier")}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
             activeTab === "dossier"
-              ? "bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/20"
+              ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-slate-950 shadow-md shadow-emerald-500/25 ring-1 ring-emerald-400/50"
               : "text-slate-400 hover:text-white hover:bg-slate-800/60"
           }`}
         >
           <FileText className="w-4 h-4" />
-          <span>Master Dossier & Raw Briefs</span>
+          <span>Master Dossier &amp; Raw Briefs</span>
         </button>
       </div>
 
@@ -192,48 +204,201 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
       )}
 
       {activeTab === "dossier" && (
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-300">
-              Raw Session Artifacts across All 5 Phases
-            </span>
+            <div className="space-y-0.5">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-200">
+                Phase-by-Phase Venture Dossier &amp; Evidence Audit
+              </span>
+              <p className="text-[11px] text-slate-400">
+                Formatted markdown briefings and raw JSON logs from your multi-agent execution pipeline.
+              </p>
+            </div>
             <Button
               variant="secondary"
               size="sm"
               onClick={handleCopyFullDossier}
-              leftIcon={copiedDossier ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              leftIcon={copiedDossier ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
             >
               {copiedDossier ? "Copied" : "Copy Markdown"}
             </Button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-cyan-400 uppercase">Phase 1: Discovery</span>
-              <p className="text-xs text-slate-300 line-clamp-6 whitespace-pre-wrap">
-                {session.phase1_response || "Phase 1 not completed yet."}
-              </p>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Phase 1 Card */}
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Phase 1: Discovery Landscape
+                    </span>
+                  </div>
+                  {session.phase1_response && (
+                    <button
+                      onClick={() => toggleRaw("p1")}
+                      className="text-[10px] font-mono text-slate-400 hover:text-cyan-400 flex items-center gap-1"
+                    >
+                      <Code2 className="w-3 h-3" />
+                      {rawViewMode["p1"] ? "Formatted" : "Raw"}
+                    </button>
+                  )}
+                </div>
+
+                {session.phase1_response ? (
+                  rawViewMode["p1"] ? (
+                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
+                      {session.phase1_response}
+                    </pre>
+                  ) : (
+                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
+                      <MarkdownRenderer content={session.phase1_response} />
+                    </div>
+                  )
+                ) : (
+                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                    <p className="text-xs text-slate-400">Phase 1 discovery has not been completed yet.</p>
+                    {onNavigatePhase && (
+                      <Button variant="primary" size="sm" onClick={() => onNavigatePhase(1)} leftIcon={<ArrowRight className="w-3 h-3" />}>
+                        Go to Phase 1 Discovery
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-cyan-400 uppercase">Phase 2: Screening</span>
-              <p className="text-xs text-slate-300 line-clamp-6 whitespace-pre-wrap">
-                {session.phase2_response || "Phase 2 not completed yet."}
-              </p>
+            {/* Phase 2 Card */}
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-teal-400 shadow-sm shadow-teal-400" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Phase 2: Screening &amp; Shortlist
+                    </span>
+                  </div>
+                  {session.phase2_response && (
+                    <button
+                      onClick={() => toggleRaw("p2")}
+                      className="text-[10px] font-mono text-slate-400 hover:text-teal-400 flex items-center gap-1"
+                    >
+                      <Code2 className="w-3 h-3" />
+                      {rawViewMode["p2"] ? "Formatted" : "Raw"}
+                    </button>
+                  )}
+                </div>
+
+                {session.phase2_response ? (
+                  rawViewMode["p2"] ? (
+                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
+                      {session.phase2_response}
+                    </pre>
+                  ) : (
+                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
+                      <MarkdownRenderer content={session.phase2_response} />
+                    </div>
+                  )
+                ) : (
+                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                    <p className="text-xs text-slate-400">Phase 2 screening has not been completed yet.</p>
+                    {onNavigatePhase && (
+                      <Button variant="primary" size="sm" onClick={() => onNavigatePhase(2)} leftIcon={<ArrowRight className="w-3 h-3" />}>
+                        Go to Phase 2 Screening
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-emerald-400 uppercase">Phase 3: Validation</span>
-              <p className="text-xs text-slate-300 line-clamp-6 whitespace-pre-wrap">
-                {session.phase3_response || "Phase 3 not completed yet."}
-              </p>
+            {/* Phase 3 Card */}
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Phase 3: Socratic Mom Test
+                    </span>
+                  </div>
+                  {session.phase3_response && (
+                    <button
+                      onClick={() => toggleRaw("p3")}
+                      className="text-[10px] font-mono text-slate-400 hover:text-emerald-400 flex items-center gap-1"
+                    >
+                      <Code2 className="w-3 h-3" />
+                      {rawViewMode["p3"] ? "Formatted" : "Raw"}
+                    </button>
+                  )}
+                </div>
+
+                {session.phase3_response ? (
+                  rawViewMode["p3"] ? (
+                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
+                      {session.phase3_response}
+                    </pre>
+                  ) : (
+                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
+                      <MarkdownRenderer content={session.phase3_response} />
+                    </div>
+                  )
+                ) : (
+                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                    <p className="text-xs text-slate-400">Phase 3 Socratic validation has not been completed yet.</p>
+                    {onNavigatePhase && (
+                      <Button variant="primary" size="sm" onClick={() => onNavigatePhase(3)} leftIcon={<ArrowRight className="w-3 h-3" />}>
+                        Go to Phase 3 Validation
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-2">
-              <span className="text-xs font-bold text-purple-400 uppercase">Phase 4 & 5: Solution & MVP</span>
-              <p className="text-xs text-slate-300 line-clamp-6 whitespace-pre-wrap">
-                {session.phase4_response || session.phase5_response || "Phases 4/5 not completed yet."}
-              </p>
+            {/* Phase 4 & 5 Card */}
+            <div className="p-5 bg-slate-950/80 backdrop-blur-xl rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between border-b border-slate-900 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-purple-400 shadow-sm shadow-purple-400" />
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">
+                      Phase 4 &amp; 5: Solution &amp; MVP Audit
+                    </span>
+                  </div>
+                  {(session.phase4_response || session.phase5_response) && (
+                    <button
+                      onClick={() => toggleRaw("p45")}
+                      className="text-[10px] font-mono text-slate-400 hover:text-purple-400 flex items-center gap-1"
+                    >
+                      <Code2 className="w-3 h-3" />
+                      {rawViewMode["p45"] ? "Formatted" : "Raw"}
+                    </button>
+                  )}
+                </div>
+
+                {session.phase4_response || session.phase5_response ? (
+                  rawViewMode["p45"] ? (
+                    <pre className="text-xs font-mono text-slate-300 bg-slate-900/90 p-3 rounded-xl max-h-72 overflow-y-auto whitespace-pre-wrap">
+                      {session.phase4_response || session.phase5_response}
+                    </pre>
+                  ) : (
+                    <div className="max-h-72 overflow-y-auto pr-1 text-xs text-slate-300">
+                      <MarkdownRenderer content={session.phase4_response || session.phase5_response || ""} />
+                    </div>
+                  )
+                ) : (
+                  <div className="p-6 bg-slate-900/40 rounded-xl border border-slate-800/80 text-center space-y-2">
+                    <p className="text-xs text-slate-400">Phase 4 &amp; 5 solutioning and MVP audit are pending.</p>
+                    {onNavigatePhase && (
+                      <Button variant="primary" size="sm" onClick={() => onNavigatePhase(4)} leftIcon={<ArrowRight className="w-3 h-3" />}>
+                        Go to Phase 4 Solutioning
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </div>
