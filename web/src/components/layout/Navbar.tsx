@@ -86,15 +86,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             <div className="flex flex-col justify-center">
               <div className="flex items-center gap-1.5">
-                <span className="text-sm sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent font-mono">
-                  RatchetAI
+                <span className="text-sm sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-white via-cyan-100 to-cyan-300 bg-clip-text text-transparent font-mono">
+                  CONVERA
                 </span>
-                <span className="px-1 py-0.2 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-[9px] sm:text-[10px] font-bold text-emerald-400 tracking-wide font-mono">
-                  v3.1
+                <span className="px-1.5 py-0.2 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-[9px] sm:text-[10px] font-bold text-cyan-400 tracking-wide font-mono">
+                  v3.0
                 </span>
               </div>
               <p className="text-[9px] text-slate-400 hidden lg:block tracking-tight -mt-0.5 font-medium truncate">
-                Evidence-Ratcheted Venture Engine
+                by EMAERX • Project Intelligence
               </p>
             </div>
           </div>

@@ -1,151 +1,215 @@
 # Software Requirements & System Design Specification (SRSDS)
 
-**Project:** RatchetAI — Evidence-Ratcheted Problem-to-Solution Venture Engine  
-**Version:** 2.0.0 (High-Concurrency SQLite WAL & Multi-Device Team Collaboration)  
-**Standard Compliance:** IEEE 830 / ISO/IEC/IEEE 29148 / IEEE 1016-2009 / Nielsen Norman Heuristics  
+**Project:** CONVERA - Evidence-Driven Project Intelligence and Opportunity Validation System  
+**Parent Brand:** EMAERX (Technology and Innovation Team)  
+**Version:** 3.0.0 (Unified Evidence Ledger, Decision Intelligence & Project Translation)  
+**Standard Compliance:** IEEE 830 / ISO/IEC/IEEE 29148 / IEEE 1016-2009 / CHED CICT Capstone Standards / Nielsen Norman Heuristics  
 **Status:** Approved / Production Verified  
 **Last Updated:** September 3, 2026  
 
 ---
 
-## 1. Executive Summary & System Vision
+## 1. Executive Summary & Brand Identity
 
-### 1.1 Purpose & Scope
-RatchetAI is an **evidence-ratcheted technopreneurship validation platform** engineered to eliminate premature solutioning. It enforces strict empirical validation gates across 5 progressive venture development phases, guiding student founders and technopreneurs in building viable, locally grounded ventures in the Western Visayas / Philippine ecosystem.
+### 1.1 Brand Identity & Purpose
+**CONVERA** is an **Evidence-Driven Project Intelligence and Opportunity Validation System** developed by **EMAERX**.
 
-### 1.2 The Mechanical Ratchet Invariant
-The fundamental governing invariant of RatchetAI is the **one-way mechanical ratchet**:
-$$\text{Phase}_{k+1} \text{ Unlocked} \iff \text{Gate}(\text{Phase}_k) = \text{PASSED}$$
-Downstream solution ideation and prototyping (Phases 4 & 5) are strictly locked until upstream problem definition and customer discovery (Phases 1, 2, & 3) pass empirical rigor checks.
+- **Brand Tagline:** *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*
+- **Brand Philosophy:** Meaningful innovation begins by exploring what is not yet understood. CONVERA brings fragmented ideas, research, AI outputs, assumptions, and field evidence together until a team can identify a direction that is empirically justified to pursue.
+- **Founders:** Mark Alvin, Mae Daniella Faith, John Emmanuel (EMAERX).
+
+### 1.2 Core Problem Solved
+Student technopreneurship and computing capstone teams suffer from **information fragmentation** and **premature solutioning**. Ideas generated across AI chats, group chats, documents, spreadsheets, and personal notes are lost or debated without evidence. CONVERA bridges the **problem-to-decision gap** by organizing, validating, and translating raw ideas into decision-ready project opportunities.
+
+### 1.3 The Mechanical Ratchet & Progressive Framework
+CONVERA enforces two complementary mechanisms:
+1. **The Mechanical Ratchet Invariant:**
+   $$\text{Phase}_{k+1} \text{ Unlocked} \iff \text{Gate}(\text{Phase}_k) = \text{PASSED}$$
+   Downstream prototyping (Phases 4 & 5) is strictly locked until upstream problem validation (Phases 1, 2, & 3) passes empirical rigor checks.
+2. **The 3-Step Unified Evolution:**
+   - **Step 1 — Evidence Foundation:** 4-Claim Evidence Ledger, Prioritized Assumption Radar, and DOI research paper grounding.
+   - **Step 2 — Decision Intelligence:** Decision Room Workspace, Explainable AI ranking, Immutable Decision Audit Log (`decision_records`), and Phase 3 Pivot / Re-evaluate learning loops.
+   - **Step 3 — Project Translation:** Software Requirements Specification (SRS) Generator translating validated opportunities into IEEE 830 / CHED CICT engineering blueprints.
 
 ---
 
 ## 2. System Architecture & Component Model
 
-RatchetAI employs a decoupled **PC-Powered High-Performance Hybrid Architecture** supporting zero-latency local development, LAN multi-device access, zero-config worldwide remote tunnels, and cloud database deployment:
+CONVERA employs a decoupled **PC-Powered High-Performance Hybrid Architecture**:
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                              CLIENT / MULTI-DEVICE TIER                                │
-│  Next.js 15 (App Router) • React 19 • Tailwind CSS • Glassmorphism Design System       │
-│  • 5-Phase Interactive Workspace (Mobile, Tablet, Desktop)                             │
-│  • Team Room Collaboration & Live Project Join (Share Codes: `RATCH-XXXX`)             │
-│  • Interactive 6-Slide Pitch Presentation Deck Canvas (`PresentationModal`)           │
-│  • Access: Localhost (`:3000`), Campus Wi-Fi (`0.0.0.0:3000`), or Cloudflare Tunnel    │
-└───────────────────────────────────────────┬────────────────────────────────────────────┘
+│  Next.js 16 (App Router) • React 19 • Tailwind CSS • Glassmorphism Design System       │
+│  • 5-Phase Progressive Venture Workspace (Desktop, Tablet, Mobile)                     │
+│  • Step 1: 4-Claim Evidence Ledger (<EvidenceLedgerCard />) & Assumption Radar        │
+│  • Step 2: Decision Room Workspace (<DecisionRoomWorkspace />) & Timeline Modal       │
+│  • Step 3: Technical Capstone & Startup MVP SRS Generator (<SrsSpecView />)            │
+│  • Deliverables Studio (Lean Canvas, SWOT, 10-Slide Pitch Deck, Master Dossier)        │
+│  • Multi-User Collaboration & Project Rooms (Share Codes: `CONV-XXXX` / `RATCH-XXXX`)  │
+└────────────────────────────────────────────────────────────────────────────────────────┘
                                             │ HTTPS / Relative Proxy (`/api/...`)
-┌───────────────────────────────────────────▼────────────────────────────────────────────┐
+                                            ▼
+┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                             API / SERVICE ORCHESTRATION TIER                            │
 │  FastAPI (Python 3.12) • Pydantic v2 • Asyncio Service Engine (Host: 0.0.0.0:8000)     │
-│  • Socratic Mom Test Validation Engine                                                 │
-│  • 10-Column Screening & Triage Pipeline                                               │
-│  • 15-Mechanism SVB Matrix Generator                                                   │
-│  • Milestone Snapshot & Historical Rollback Manager                                    │
-└─────────────────────┬──────────────────────────────────────────────┬───────────────────┘
+│  • Assumption & Claim Extraction Engine (pipeline/assumption_engine.py)                │
+│  • Multi-Candidate Decision Room & Pivot Engine (pipeline/decision_engine.py)          │
+│  • Capstone / MVP Technical SRS Generator (pipeline/srs_generator.py)                  │
+│  • Academic Research Client (OpenAlex, Europe PMC, Crossref with AI Relevance Gate)    │
+│  • 6-Level Socratic Mom Test Validation Engine                                         │
+└────────────────────────────────────────────────────────────────────────────────────────┘
                       │                                              │
-┌─────────────────────▼────────────────────────┐ ┌───────────────────▼───────────────────┐
-│        UNIVERSAL MULTI-PROVIDER GATEWAY       │ │          STORAGE ADAPTER SUBSYSTEM    │
-│  Dynamic Multi-Model Failover Cascade        │ │  Pluggable Local & Cloud Persistence  │
-│  1. Google Gemini (gemini-3.5-flash) [Free]  │ │  • SQLite WAL (`pipeline/ratchetai.db`)│
-│  2. Groq Cloud (llama-3.3-70b @ 500t/s)[Free]│ │  • PostgreSQL (Neon/Supabase Cloud)   │
-│  3. OpenRouter (Llama 3.3 70B Instruct)[Free]│ │  • Automatic Legacy JSON Migration    │
-│  4. Local Ollama (qwen2.5 / llama3.2) [Free] │ │  • Relational Schema + JSONB Storage  │
-└──────────────────────────────────────────────┘ └───────────────────────────────────────┘
+                      ▼                                              ▼
+┌────────────────────────────────────────┐     ┌────────────────────────────────────────┐
+│        UNIVERSAL MULTI-PROVIDER GATEWAY│     │       STORAGE ADAPTER SUBSYSTEM        │
+│  Dynamic Multi-Model Failover Cascade  │     │  Pluggable Local & Cloud Persistence   │
+│  1. Google Gemini (gemini-3.8-flash)   │     │  • SQLite WAL (pipeline/ratchetai.db)  │
+│  2. Groq Cloud (llama-3.3-70b @ 500t/s)│     │  • PostgreSQL (Neon / Supabase Cloud)  │
+│  3. OpenRouter (Llama 3.3 70B Instruct)│     │  • Relational Schema + Zero-Ops WAL    │
+│  4. Local Ollama (qwen2.5 / llama3.2)  │     │  • Cascading Foreign Key Integrity     │
+└────────────────────────────────────────┘     └────────────────────────────────────────┘
 ```
 
 ---
 
-## 3. Storage Architecture & Relational Schema Specification
+## 3. Relational Storage Schema Specification
 
-### 3.1 Pluggable Storage Adapter Subsystem (`pipeline/storage/`)
-The storage subsystem adheres to the **Open-Closed Principle (OCP)** via an abstract interface, allowing runtime selection via environment variables:
+CONVERA's Knowledge Graph is persisted in SQLite with Write-Ahead Logging (WAL) enabled:
 
-$$\text{StorageEngine} = \begin{cases} 
-\text{PostgresStorageAdapter} & \text{if } \text{DATABASE\_URL starts with } \text{"postgresql"} \\
-\text{SQLiteStorageAdapter (WAL Mode)} & \text{otherwise (Default Local Engine)}
-\end{cases}$$
+### 3.1 Database Tables
 
-### 3.2 Relational & JSONB Schema Definition
+```sql
+-- 1. Projects & Multi-Device Collaboration
+CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    share_code TEXT UNIQUE NOT NULL,
+    name TEXT NOT NULL,
+    passcode TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-#### A. Table `projects`
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `TEXT` | `PRIMARY KEY` | Global unique project identifier (e.g. `proj_iloilo_agri`) |
-| `share_code` | `TEXT` | `UNIQUE, INDEX` | Human-friendly room code (e.g. `RATCH-AGRI`, `RATCH-7K9`) |
-| `name` | `TEXT` | `NOT NULL` | Friendly venture project name |
-| `created_by` | `TEXT` | `DEFAULT 'Founder'` | Creator username or student identifier |
-| `created_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Project initialization timestamp |
-| `updated_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Last modification timestamp |
+-- 2. Sessions & Phase Progress State
+CREATE TABLE IF NOT EXISTS sessions (
+    session_id TEXT PRIMARY KEY,
+    project_id TEXT,
+    state_data TEXT NOT NULL,
+    project_name TEXT DEFAULT 'Venture Project',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+);
 
-#### B. Table `sessions`
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `session_id` | `TEXT` | `PRIMARY KEY` | Unique session token (`YYYYMMDD_HHMMSS`) |
-| `project_id` | `TEXT` | `REFERENCES projects(id)` | Parent project workspace |
-| `project_name` | `TEXT` | `NOT NULL` | Human-readable venture title |
-| `state_data` | `TEXT` | `NOT NULL` | Complete 5-phase `SessionState` payload (JSON) |
-| `phase1_complete`| `INTEGER` | `DEFAULT 0` | Phase 1 gate status |
-| `phase2_complete`| `INTEGER` | `DEFAULT 0` | Phase 2 gate status |
-| `phase3_complete`| `INTEGER` | `DEFAULT 0` | Phase 3 gate status |
-| `phase4_complete`| `INTEGER` | `DEFAULT 0` | Phase 4 gate status |
-| `phase5_complete`| `INTEGER` | `DEFAULT 0` | Phase 5 gate status |
-| `last_edited_by` | `TEXT` | `DEFAULT 'Founder'` | Last editor attribution |
-| `created_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Creation timestamp |
-| `updated_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Last synchronization timestamp |
+-- 3. Curated Problem Bank & Grounding
+CREATE TABLE IF NOT EXISTS problems (
+    id TEXT PRIMARY KEY,
+    problem_statement TEXT NOT NULL,
+    sufferer_occupation TEXT NOT NULL,
+    sufferer_location TEXT NOT NULL,
+    quantified_impact TEXT NOT NULL,
+    workaround TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'active',
+    score REAL DEFAULT 80.0,
+    sources TEXT DEFAULT '[]',
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 
-#### C. Table `session_snapshots` (Pivot History & Milestone Rollbacks)
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `INTEGER` | `PRIMARY KEY AUTOINCREMENT` | Snapshot record identifier |
-| `session_id` | `TEXT` | `REFERENCES sessions(session_id)` | Target session |
-| `label` | `TEXT` | `NOT NULL` | e.g. "Pre-Phase 3 Gate", "Post-Pivot Branch" |
-| `phase_number` | `INTEGER` | `CHECK (1 <= phase_number <= 5)` | Active phase at snapshot |
-| `state_data` | `TEXT` | `NOT NULL` | Frozen `SessionState` copy |
-| `created_at` | `TIMESTAMP` | `DEFAULT CURRENT_TIMESTAMP` | Snapshot creation timestamp |
+-- 4. Step 1: 4-Claim Evidence Ledger
+CREATE TABLE IF NOT EXISTS problem_claims (
+    id TEXT PRIMARY KEY,
+    problem_id TEXT NOT NULL,
+    claim_type TEXT NOT NULL, -- FRICTION_REALITY, FREQUENCY_CONSEQUENCE, WORKAROUND_DISSATISFACTION, ADOPTION_COMMITMENT
+    claim_text TEXT NOT NULL,
+    mode TEXT DEFAULT 'COMMERCIAL', -- COMMERCIAL (WTP) or CIVIC_INSTITUTIONAL (Behavioral Feasibility)
+    status TEXT DEFAULT 'UNVERIFIED', -- UNVERIFIED, SUPPORTED, VALIDATED, REFUTED
+    supporting_evidence TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(problem_id) REFERENCES problems(id) ON DELETE CASCADE
+);
 
----
+-- 5. Step 1: Prioritized Assumption Radar
+CREATE TABLE IF NOT EXISTS problem_assumptions (
+    id TEXT PRIMARY KEY,
+    problem_id TEXT NOT NULL,
+    assumption_text TEXT NOT NULL,
+    risk_level TEXT NOT NULL, -- CRITICAL, HIGH, MEDIUM, LOW
+    mom_test_question TEXT NOT NULL,
+    status TEXT DEFAULT 'PENDING', -- PENDING, VALIDATED, INVALIDATED
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(problem_id) REFERENCES problems(id) ON DELETE CASCADE
+);
 
-## 4. Software Requirements Specification (SRS)
-
-### 4.1 Functional Requirements
-
-- **FR-01 (Problem Discovery Matrix):** Scans 8 regional economic sectors in Western Visayas, extracting verified sufferers, friction, and existing workarounds while translating solutions-in-disguise into root problems.
-- **FR-02 (10-Column Screening Scorecard):** Evaluates problem batches across 5 criteria (Pain, Frequency, Market Size, Sacrifice, Access) on a 1–5 scale, assigning `ADVANCE TO VALIDATION`, `SECOND LOOK (CONDITIONAL)`, or `PARK / SHELVED` verdicts.
-- **FR-03 (Socratic Mom Test Defense Clinic):** Conducts 6-level conversational interview validation, demanding concrete figures, past behaviors, and actual monetary/time sacrifices while rejecting hypothetical promises and polite praise.
-- **FR-04 (Multi-Mechanism SVB Ideation):** Forces 4 divergent solution hypotheses across 15 Mechanism Families (Software, Hardware, Physical, Financial, Logistics, Social) and identifies the single Riskiest Assumption ($P_1$).
-- **FR-05 (Behavioral Commitment MVP Audit):** Audits test results against the 5-Tier Commitment Hierarchy (Financial, Time, Reputation, Attention, Verbal), recommending `SCALE`, `PIVOT`, or `PERSEVERE`.
-- **FR-06 (Shared Project Collaboration):** Allows multiple groupmates to access and edit the same venture project in real time using a 6-character room code (`RATCH-XXXX`).
-- **FR-07 (Snapshot & Rollback Management):** Enables 1-click branching or rollback to any prior milestone if a customer interview invalidates an assumption.
-- **FR-08 (Venture Dossier & Pitch Presentation Export):** Compiles complete venture artifacts into downloadable Markdown, printable PDF, and interactive full-screen pitch presentation slides.
-
-### 4.2 Non-Functional Requirements
-
-- **NFR-01 (Zero-Cost Operation):** The complete platform operates on 100% free local hardware and free cloud tiers (Vercel Hobby, Cloudflare Quick Tunnels, Google AI Studio / Groq Free APIs).
-- **NFR-02 (Resilient LLM Failover):** If the primary LLM returns HTTP 429 / 503, the gateway automatically cascades to secondary providers within 1.5s without crashing the client request.
-- **NFR-03 (Nielsen Norman Heuristic #2 Alignment):** Employs natural, human-centered language and regional Philippine concepts (*Barangays, Municipalities, Biyaheros, Farmgate prices, MSMEs*) across all UI views and microcopy.
-- **NFR-04 (High-Concurrency Read Performance):** SQLite Write-Ahead Logging (`WAL`) mode ensures zero database lock contention when multiple teammates query the workspace simultaneously.
-
----
-
-## 5. Multi-Device & Remote Team Sharing Blueprint
-
-```
-====================================================================================================
-ACCESS METHOD       COMMAND                       NETWORK SCOPE               BEST FOR
-====================================================================================================
-1. Localhost        `.\start-dev.ps1`             Host PC (`localhost:3000`)  Fastest local editing
-2. Campus Wi-Fi     `.\start-dev.ps1`             Same Wi-Fi (`192.168.1.X`)  Classroom & lab group work
-3. Cloudflare Tunnel`.\share-tunnel.ps1`          Worldwide HTTPS Public Link Remote teamwork at home
-====================================================================================================
+-- 6. Step 2: Immutable Decision Audit Records
+CREATE TABLE IF NOT EXISTS decision_records (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    stage TEXT NOT NULL, -- PHASE_2_DECISION_ROOM, PHASE_3_PIVOT_LOOP, etc.
+    selected_problem_id TEXT NOT NULL,
+    rejected_problem_ids TEXT DEFAULT '[]',
+    decision_rationale TEXT NOT NULL,
+    supporting_evidence_ids TEXT DEFAULT '[]',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
 ```
 
 ---
 
-## 6. Verification & Test Suite Status
+## 4. Phase-by-Phase Functional Specification
 
-- **Backend Pytest Suite:** `python -m pytest pipeline/tests/` ➔ **10 / 10 Tests Passed (100%)**
-  - `tests/test_gates.py` (Mechanical Ratchet & Concept Minimums)
-  - `tests/test_schemas.py` (Pydantic Data Models)
-  - `tests/test_storage.py` (SQLite WAL, CRUD, Snapshots, Share Codes)
-- **Frontend Production Build:** `npm run build` ➔ **4 / 4 Static Pages Compiled (0 Errors)**
-- **UI/UX Standard Compliance:** Certified 100% compliant with Nielsen Norman Usability Heuristics and UI/UX Design Framework v3.0.
+### Phase 1: Regional Problem Discovery
+- **Engine:** Scans regional socio-economic sectors (Agriculture, Healthcare, Governance, Logistics, Tourism, MSME, Education).
+- **Quality Gate:** Strict extraction of 5 core parameters (Sufferer, Location, Root Friction, Workaround, Quantified Loss).
+
+### Phase 2: Screening & Sizing (Decision Room)
+- **Engine:** 10-column multi-candidate evaluation matrix.
+- **Decision Room:** Side-by-side comparison of Evidence Ledgers, Assumption Radars, and DOI research citations.
+- **AI Judge:** Explainable ranking with pros, risks, and unresolved critical assumptions.
+- **Quality Gate:** Lock winning thesis and commit immutable `decision_record`.
+
+### Phase 3: Field Validation & Mom Test Clinic
+- **Engine:** Socratic AI interrogator guiding student founders through 6 progressive levels:
+  1. *Who Specifically Suffers?*
+  2. *Frequency & Measurable Consequence?*
+  3. *What is the Active Workaround?*
+  4. *Dissatisfaction with Current Workaround?*
+  5. *Past Financial or Time Commitment?*
+  6. *Quantified Friction Verification?*
+- **Pivot Loop:** If an interview refutes an assumption, `Execute Pivot Loop` safely routes back to Phase 2 while preserving historical notes and logging the pivot rationale.
+
+### Phase 4: Mechanism Design & Architecture
+- **Engine:** Generates 15 mechanism families (IoT Telemetry, Cooperative Batching, SMS Alerts, Offline Queuing, Micro-escrow, etc.).
+- **Quality Gate:** Solution Validation Board (SVB) canvas mapping mechanism to root cause.
+
+### Phase 5: Unit Economics & Empirical Audit
+- **Engine:** Unit economics modeling (CAC, LTV, Gross Margin, Payback Period in PHP).
+- **Quality Gate:** Empirical audit verifying behavioral commitment tiers (pre-orders, LOIs, institutional pilots).
+
+---
+
+## 5. Step 3: Project Translation & Technical SRS Generator
+
+### 5.1 Purpose & IEEE 830 Compliance
+Translates validated problem dossiers into an engineering-grade **Software Requirements Specification (SRS)** supporting:
+- **Academic Capstone Mode:** Compliant with CHED CICT and Philippine university thesis evaluation rubrics.
+- **Startup MVP Mode:** Lean technical specification ready for immediate developer sprint execution.
+
+### 5.2 Six Structured Sections
+1. **System Vision & Scope:** Clear In-Scope (MVP deliverables) vs. Out-of-Scope (deferred complexity).
+2. **Target User Persona:** Operating environment, primary goal, and core friction.
+3. **Functional Requirements (FR-001 ... FR-008):** Structured User Stories with formal Given/When/Then Acceptance Criteria.
+4. **Non-Functional Requirements (NFR-001 ... NFR-005):** Latency (< 200ms), offline-first resilience (IndexedDB caching), and security (AES-256).
+5. **System Architecture Blueprint:** Frontend, backend, database, and background synchronization strategy.
+6. **MVP Validation Rubric:** Objective target thresholds and field verification methods.
+
+---
+
+## 6. Security, Accessibility & UX Standards
+
+1. **Accessibility:** WCAG 2.2 AA compliant. Minimum 44×44px touch targets across all mobile and tablet interfaces.
+2. **Color Palette (60-30-10):**
+   - 60% Obsidian Black (`#0B0F14`)
+   - 30% Midnight Slate (`#0F172A`)
+   - 10% Accents (Electric Blue `#0066FF`, Cyan `#06B6D4`, Emerald `#10B981`, Amber `#F59E0B`)
+3. **Typography:** Exo 2 (Brand / Headings), Inter (Product UI / Body), JetBrains Mono (Telemetry / IDs).
+4. **Data Privacy:** Local-first architecture; session state and passcodes secured in SQLite WAL.

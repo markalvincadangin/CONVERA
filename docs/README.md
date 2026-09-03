@@ -1,45 +1,55 @@
-# RatchetAI 📚 Master Documentation Index
+# CONVERA — Master Documentation Suite
 
-Welcome to the **RatchetAI System Documentation Suite**. This directory contains the complete architectural specifications, design system manuals, prompt catalogs, and foundational frameworks governing the platform.
+**Product:** CONVERA — Evidence-Driven Project Intelligence and Opportunity Validation System  
+**Parent Brand:** EMAERX (Technology & Innovation Team)  
+**Tagline:** *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*  
+**Founders:** Mark Alvin, Mae Daniella Faith, John Emmanuel  
 
 ---
 
-## 📑 Core Specifications
+## 🏛️ Core Specifications & Architectural Standards
 
 | Document | Purpose & Standards | Status |
 |---|---|---|
-| **[docs/SRSDS.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/SRSDS.md)** | **Software Requirements & System Design Specification (SRSDS v2.0.0)**<br>Compliant with IEEE 830, ISO/IEC/IEEE 29148, and IEEE 1016. Covers 3-tier architecture, SQLite WAL & PostgreSQL storage adapter, team room codes, and multi-device sharing. | ✅ Approved |
-| **[docs/DESIGN_SYSTEM.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/DESIGN_SYSTEM.md)** | **RatchetAI 60-30-10 Design System Manual**<br>Visual design tokens, 6 interactive states, WCAG 2.1 AA/AAA contrast ratios, Glassmorphism, and 10 Nielsen Norman Usability Heuristics mapping. | ✅ Active |
+| **[docs/SRSDS.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/SRSDS.md)** | **Software Requirements & System Design Specification (SRSDS v3.0.0)**<br>Compliant with IEEE 830, ISO/IEC/IEEE 29148, and CHED CICT Capstone Standards. Covers 3-tier architecture, SQLite WAL persistence, Step 1 Evidence Ledgers, Step 2 Decision Room, Step 3 SRS Generator, and multi-device collaboration. | 🟢 Approved |
+| **[docs/DESIGN_SYSTEM.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/DESIGN_SYSTEM.md)** | **CONVERA 60-30-10 Design System Manual**<br>EMAERX Electric Blue (`#0066FF`), Obsidian Black (`#0B0F14`), Exo 2 & Inter typography, WCAG 2.2 AA/AAA contrast ratios, Glassmorphism, and Nielsen Norman Usability Heuristics. | 🟢 Active |
 
 ---
 
-## 🏛️ Foundational Frameworks
+## 🔬 Product & Team Identity
 
 | Document | Description |
 |---|---|
-| **[docs/frameworks/Evidence-Ratcheted Problem-to-Solution Pipeline Framework.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/frameworks/Evidence-Ratcheted%20Problem-to-Solution%20Pipeline%20Framework.md)** | The original 5-Phase Venture Validation Framework establishing the mechanical ratchet invariant, 10-column screening matrix, Mom Test rubric, 15 mechanism families, and 5-tier commitment hierarchy. |
-| **[docs/frameworks/UIUX Design Framework.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/frameworks/UIUX%20Design%20Framework.md)** | 65-section comprehensive UI/UX engineering framework covering human-centered typography, microcopy, accessibility, and mental models. |
+| **[docs/about/EMAERX.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/about/EMAERX.md)** | **EMAERX Team Profile & Philosophy**<br>Identity, philosophy (EXPLORE · MAKE · ADVANCE), meaning of X, core values, and brand architecture. |
+| **[docs/about/product/CONVERA.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/about/product/CONVERA.md)** | **CONVERA Product & System Profile**<br>Naming etymology (*Convergence + Vera*), target users (3rd-4th year Computing/IT students), problem-to-decision gap, and core positioning. |
 
 ---
 
-## 🤖 Multi-Agent Prompt Catalogs
+## 🧬 Evolutionary 3-Step Framework
 
-The system instructions for each phase agent in `pipeline/prompts/` are documented below:
-
-- **[Phase 1: Startup Problem Discovery](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/prompts/Phase%201%20-%20Startup%20Problem%20Discovery.md)** — Regional Western Visayas scanning & root-cause extraction.
-- **[Phase 2: Startup Problem Shortlisting](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/prompts/Phase%202%20-%20Startup%20Problem%20Shortlisting.md)** — 10-column screening scorecard & triage.
-- **[Phase 3: Startup Problem Validation](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/prompts/Phase%203%20-%20Startup%20Problem%20Validation.md)** — 6-level Socratic Mom Test defense clinic.
-- **[Phase 4: Solution Ideation & Hypothesis Formation](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/prompts/Phase%204%20-%20Solution%20Ideation%20&%20Hypothesis%20Formation.md)** — 15 mechanism families & SVB canvas generator.
-- **[Phase 5: Solution Validation & MVP Testing](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/prompts/Phase%205%20-%20Solution%20Validation%20&%20MVP%20Testing.md)** — Behavioral commitment hierarchy & empirical audit.
+1. **Step 1: Evidence Foundation & Relational Knowledge Graph**
+   - 4-Claim Evidence Ledger (`Friction`, `Frequency`, `Workaround`, `Adoption/Commitment`)
+   - Commercial (WTP) vs Civic/Academic Institutional feasibility toggle
+   - Prioritized Assumption Radar with Mom Test interview questions
+   - Crossref, OpenAlex, and Europe PMC DOI paper grounding with AI relevance gate
+2. **Step 2: Decision Intelligence & Audit Trail**
+   - Multi-candidate Decision Room workspace
+   - Explainable AI Judge ranking and risk breakdowns
+   - Immutable Decision Audit Log (`decision_records` table)
+   - Phase 3 -> Phase 2 Pivot / Re-evaluate learning loop
+3. **Step 3: Project Translation (Idea-to-Specification)**
+   - IEEE 830 / CHED CICT compliant Software Requirements Specification (SRS) Generator
+   - Dual-track: Academic Capstone Spec & Startup MVP Technical Spec
+   - 6 Core Sections: Vision & Scope, Personas, Functional Requirements (FR-001..FR-008), Non-Functional Constraints, System Architecture, and MVP Validation Rubric
 
 ---
 
-## 🚀 Quickstart
+## ⚙️ Quickstart Launch Commands
 
 ```powershell
 # 1-Click Launch (Host on your PC, Multi-device LAN enabled)
-.\start-dev.ps1
+.\start.bat
 
-# 1-Click Worldwide Remote Sharing (Cloudflare Quick Tunnel)
+# Or Remote Tunnel (Worldwide Sharing via Cloudflare Tunnel)
 .\share-tunnel.ps1
 ```

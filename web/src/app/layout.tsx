@@ -9,8 +9,8 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "RatchetAI - Evidence-Ratcheted Venture Engine",
-  description: "Evidence-Ratcheted Problem-to-Solution Multi-Agent Pipeline for Technopreneurship & Startup Incubators.",
+  title: "CONVERA — Evidence-Driven Project Intelligence | EMAERX",
+  description: "Evidence-Driven Project Intelligence and Opportunity Validation System by EMAERX. Where possibilities converge into direction.",
   icons: {
     icon: "/brand/favicon.ico",
     shortcut: "/brand/favicon.ico",
