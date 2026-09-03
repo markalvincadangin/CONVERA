@@ -1008,6 +1008,33 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         return p.get("sources", []) if p else []
 
 
+    def seed_starter_problems(self, project_id: str) -> List[Dict[str, Any]]:
+        """Clones the 15 canonical seed problems into a specific project workspace."""
+        with self._connect() as conn:
+            cursor = conn.execute("SELECT * FROM problems WHERE project_id IS NULL OR project_id = 'default_proj'")
+            rows = [dict(r) for r in cursor.fetchall()]
+            
+            inserted = []
+            for r in rows:
+                new_id = f"{r['id']}-{project_id[-4:]}" if r.get('id') else None
+                try:
+                    conn.execute("""
+                        INSERT INTO problems (
+                            id, project_id, session_id, sector, sufferer_occupation, sufferer_location,
+                            problem_statement, evidence_tier, workaround, quantified_impact,
+                            frequency, annual_economic_loss, source, created_by
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """, (
+                        new_id, project_id, None, r.get('sector'), r.get('sufferer_occupation'), r.get('sufferer_location'),
+                        r.get('problem_statement'), r.get('evidence_tier'), r.get('workaround'), r.get('quantified_impact'),
+                        r.get('frequency'), r.get('annual_economic_loss'), 'seed_clone', 'System'
+                    ))
+                    inserted.append(self.get_problem(new_id))
+                except Exception:
+                    pass
+            conn.commit()
+            return inserted
+
     def get_problem(self, problem_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute("SELECT * FROM problems WHERE id = ?", (problem_id,)).fetchone()
@@ -1075,7 +1102,10 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         params: List[Any] = []
 
         if project_id:
-            query += " AND (project_id = ? OR project_id IS NULL)"
+            if project_id == "default_proj":
+                query += " AND (project_id = ? OR project_id IS NULL)"
+            else:
+                query += " AND project_id = ?"
             params.append(project_id)
         if session_id:
             query += " AND (session_id = ? OR session_id IS NULL)"

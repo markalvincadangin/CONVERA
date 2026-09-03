@@ -93,6 +93,26 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isProcessingBatch, setIsProcessingBatch] = useState(false);
+  const [isSeedingStarter, setIsSeedingStarter] = useState(false);
+
+  const handleLoadStarterProblems = async () => {
+    try {
+      setIsSeedingStarter(true);
+      toast.info("Loading 15 Western Visayas starter problems...", "Sample Data");
+      const res = await problemService.seedStarterProblems(session?.project_id || "default_proj");
+      if (res.seeded_count > 0) {
+        toast.success(`Loaded ${res.seeded_count} starter problems!`, "Starter Data Ready");
+        fetchProblems();
+      } else {
+        toast.info("Starter problems already loaded.", "Problem Bank");
+      }
+    } catch (err: any) {
+      console.error("Failed to seed starter problems:", err);
+      toast.error(err?.message || "Failed to load starter problems.", "Error");
+    } finally {
+      setIsSeedingStarter(false);
+    }
+  };
   const toast = useToast();
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
@@ -673,11 +693,22 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
           <div className="max-w-xl mx-auto space-y-2">
             <h3 className="text-lg font-bold text-white tracking-tight">
-              Your Problem Bank is Ready for Intake
+              Your Workspace Problem Bank is Empty
             </h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Every breakthrough project starts with grounded friction. Choose a pathway below to populate your concept workspace with verified field observations:
+              Start clean by capturing authentic field observations, running AI discovery in Phase 1 / Stage A, or load sample starter problems.
             </p>
+            <div className="pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLoadStarterProblems}
+                isLoading={isSeedingStarter}
+                className="text-xs font-mono border-slate-700 text-slate-300 hover:text-white"
+              >
+                📥 Load 15 Western Visayas Starter Problems (Sample Dataset)
+              </Button>
+            </div>
           </div>
 
           {/* 3 Socratic Pathways Grid */}

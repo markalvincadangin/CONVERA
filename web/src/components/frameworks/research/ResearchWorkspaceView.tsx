@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   BookOpen,
   Sparkles,
@@ -34,11 +34,8 @@ import { SessionState, ProblemRecord } from "@/lib/types";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
-import {
-  STANDARD_RESEARCH_DOMAINS,
-  STANDARD_EMPIRICAL_BREAKDOWNS,
-  EmpiricalBreakdownTemplate
-} from "@/lib/constants";
+import { MASTER_RESEARCH_DOMAINS, MasterDomain } from "@/lib/masterDomains";
+import { Filter, Users, Briefcase, FileCheck } from "lucide-react";
 import { X, Tag } from "lucide-react";
 
 interface ResearchWorkspaceViewProps {
@@ -78,30 +75,57 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const currentPhaseId = activePhase !== undefined ? phaseMap[activePhase] || "A" : activePhaseId;
   const activePhaseMeta = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
   
-  // Stage A Discovery State
+  // Stage A Master Domain Explorer State
+  const [domainSearchQuery, setDomainSearchQuery] = useState<string>("");
+  const [domainTypeFilter, setDomainTypeFilter] = useState<"ALL" | "Sector" | "Cross-cutting" | "Specialized">("ALL");
   const [customDomains, setCustomDomains] = useState<string[]>([]);
   const [newCustomDomainInput, setNewCustomDomainInput] = useState<string>("");
   const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([
-    "Precision Agriculture & Edge AI",
-    "Marine & Aquaculture IoT",
+    "Agricultural Production and Farm Operations",
+    "Fisheries and Aquaculture Production",
   ]);
 
-  const allAvailableDomains = [...STANDARD_RESEARCH_DOMAINS, ...customDomains];
+  // Filtered Master Domains (D01-D25)
+  const filteredMasterDomains = useMemo(() => {
+    return MASTER_RESEARCH_DOMAINS.filter((d) => {
+      const matchesType = domainTypeFilter === "ALL" || d.type === domainTypeFilter;
+      const q = domainSearchQuery.toLowerCase().trim();
+      const matchesQuery =
+        !q ||
+        d.id.toLowerCase().includes(q) ||
+        d.title.toLowerCase().includes(q) ||
+        d.description.toLowerCase().includes(q) ||
+        d.contextSetting.toLowerCase().includes(q) ||
+        d.stakeholders.toLowerCase().includes(q) ||
+        d.processesToExplore.toLowerCase().includes(q);
+      return matchesType && matchesQuery;
+    });
+  }, [domainTypeFilter, domainSearchQuery]);
+
+  const handleSelectAllFiltered = () => {
+    const titles = filteredMasterDomains.map((d: MasterDomain) => d.title);
+    setSelectedDomains((prev) => Array.from(new Set([...prev, ...titles])));
+  };
+
+  const handleLoadDomainContext = (domain: MasterDomain) => {
+    const observationSnippet = `${domain.title} (${domain.id}) | Context: ${domain.contextSetting} | Stakeholders: ${domain.stakeholders} | Processes to Explore: ${domain.processesToExplore} | Preliminary Policy Basis: ${domain.evidenceBasis}`;
+    setFieldObservations(observationSnippet);
+    if (!selectedDomains.includes(domain.title)) {
+      setSelectedDomains((prev) => [...prev, domain.title]);
+    }
+    toast.info(`Loaded authentic research context for ${domain.id}: ${domain.title}`, "Context Loaded");
+  };
 
   const handleAddCustomDomain = () => {
     const trimmed = newCustomDomainInput.trim();
     if (!trimmed) return;
-    if (allAvailableDomains.includes(trimmed)) {
-      if (!selectedDomains.includes(trimmed)) {
-        setSelectedDomains((prev) => [...prev, trimmed]);
-      }
-      setNewCustomDomainInput("");
-      setShowCustomInput(false);
-      return;
+    if (!customDomains.includes(trimmed)) {
+      setCustomDomains((prev) => [...prev, trimmed]);
     }
-    setCustomDomains((prev) => [...prev, trimmed]);
-    setSelectedDomains((prev) => [...prev, trimmed]);
+    if (!selectedDomains.includes(trimmed)) {
+      setSelectedDomains((prev) => [...prev, trimmed]);
+    }
     setNewCustomDomainInput("");
     setShowCustomInput(false);
     toast.success(`Added custom research domain: "${trimmed}"`, "Domain Added");
@@ -112,12 +136,6 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
     setCustomDomains((prev) => prev.filter((d) => d !== domain));
     setSelectedDomains((prev) => prev.filter((d) => d !== domain));
   };
-
-  const filteredSamples = selectedDomains.length > 0
-    ? STANDARD_EMPIRICAL_BREAKDOWNS.filter((s) => selectedDomains.includes(s.domain))
-    : STANDARD_EMPIRICAL_BREAKDOWNS;
-
-  const displaySamples = filteredSamples.length > 0 ? filteredSamples : STANDARD_EMPIRICAL_BREAKDOWNS;
   const [fieldObservations, setFieldObservations] = useState<string>("");
   const [isDiscovering, setIsDiscovering] = useState<boolean>(false);
   const [discoveredProblems, setDiscoveredProblems] = useState<ProblemRecord[]>([]);
@@ -143,7 +161,6 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
     );
   };
 
-  const handleSelectAllDomains = () => setSelectedDomains(allAvailableDomains);
   const handleClearDomains = () => setSelectedDomains([]);
 
   const handleRunEmpiricalDiscovery = async () => {
@@ -253,8 +270,9 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         {/* PHASE A */}
         {currentPhaseId === "A" && (
           <div className="space-y-6">
-            {/* 1. AI Scouting & Discovery Controller */}
-            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 space-y-5 shadow-xl relative overflow-hidden">
+            {/* 1. Master Domain Explorer (D01-D25) & Scouting Discovery */}
+            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 space-y-6 shadow-xl relative overflow-hidden">
+              {/* Explorer Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
@@ -262,165 +280,222 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                   </div>
                   <div>
                     <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
-                      AI Empirical Problem Generator &amp; Scouting Scanner
-                      <Badge variant="emerald" size="sm">Bordens &amp; Abbott 2018</Badge>
+                      Master Research Domain Explorer &amp; Empirical Scanner
+                      <Badge variant="emerald" size="sm">25 Master Domains (D01–D25)</Badge>
                     </h3>
                     <p className="text-xs text-slate-400 mt-0.5">
-                      Discover authentic computational friction, telemetry drops, and algorithmic scaling breakdowns across regional domains.
+                      Ground computing research in authentic regional operational contexts, stakeholders, and measurable failure points.
                     </p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <Button variant="ghost" size="sm" onClick={handleSelectAllDomains} className="text-[11px]">
-                    Select All
+                  <Button variant="ghost" size="sm" onClick={handleSelectAllFiltered} className="text-[11px]">
+                    Select Filtered ({filteredMasterDomains.length})
                   </Button>
                   <Button variant="ghost" size="sm" onClick={handleClearDomains} className="text-[11px]">
-                    Clear
+                    Clear ({selectedDomains.length})
                   </Button>
                 </div>
               </div>
 
-              {/* Domain Chips with Custom Domain Creation */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                    <Tag className="w-3.5 h-3.5 text-emerald-400" /> Target Research Domains ({selectedDomains.length} Active)
-                  </label>
-                  {!showCustomInput && (
-                    <button
-                      onClick={() => setShowCustomInput(true)}
-                      className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors"
-                    >
-                      <Plus className="w-3.5 h-3.5" /> Add Custom Domain
-                    </button>
-                  )}
+              {/* Search & Category Filter Controls */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <div className="relative flex-1">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={domainSearchQuery}
+                    onChange={(e) => setDomainSearchQuery(e.target.value)}
+                    placeholder="Search by domain name, context setting (Iloilo, farms, ports), or stakeholders..."
+                    className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/60 shadow-inner"
+                  />
                 </div>
 
-                {/* Inline Custom Domain Adder */}
-                {showCustomInput && (
-                  <div className="p-3 bg-slate-950 border border-emerald-500/40 rounded-2xl flex items-center gap-2 animate-in fade-in duration-150">
-                    <input
-                      type="text"
-                      value={newCustomDomainInput}
-                      onChange={(e) => setNewCustomDomainInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddCustomDomain();
-                        } else if (e.key === "Escape") {
-                          setShowCustomInput(false);
-                        }
-                      }}
-                      placeholder="Type custom research domain (e.g. 'Quantum Cryptography & Key Distribution')..."
-                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                      autoFocus
-                    />
-                    <Button variant="primary" size="sm" onClick={handleAddCustomDomain} className="text-xs font-bold">
-                      Add Domain
-                    </Button>
-                    <Button variant="ghost" size="sm" onClick={() => setShowCustomInput(false)} className="text-xs">
-                      Cancel
-                    </Button>
-                  </div>
-                )}
+                <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+                  {[
+                    { id: "ALL", label: `All (25)` },
+                    { id: "Sector", label: `Sectors (15)` },
+                    { id: "Cross-cutting", label: `Cross-cutting (5)` },
+                    { id: "Specialized", label: `Specialized (5)` },
+                  ].map((t) => (
+                    <button
+                      key={t.id}
+                      onClick={() => setDomainTypeFilter(t.id as any)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
+                        domainTypeFilter === t.id
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold"
+                          : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white"
+                      }`}
+                    >
+                      {t.label}
+                    </button>
+                  ))}
+                </div>
 
-                <div className="flex flex-wrap gap-2">
-                  {allAvailableDomains.map((domain) => {
-                    const isSelected = selectedDomains.includes(domain);
-                    const isCustom = customDomains.includes(domain);
+                {!showCustomInput && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCustomInput(true)}
+                    className="border-emerald-500/30 text-emerald-400 hover:text-emerald-300 text-xs shrink-0"
+                  >
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Custom Domain
+                  </Button>
+                )}
+              </div>
+
+              {/* Inline Custom Domain Creator */}
+              {showCustomInput && (
+                <div className="p-3 bg-slate-950 border border-emerald-500/40 rounded-2xl flex items-center gap-2 animate-in fade-in duration-150">
+                  <input
+                    type="text"
+                    value={newCustomDomainInput}
+                    onChange={(e) => setNewCustomDomainInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleAddCustomDomain();
+                      } else if (e.key === "Escape") {
+                        setShowCustomInput(false);
+                      }
+                    }}
+                    placeholder="Type custom research domain (e.g. 'Quantum Key Distribution & Cryptography')..."
+                    className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                    autoFocus
+                  />
+                  <Button variant="primary" size="sm" onClick={handleAddCustomDomain} className="text-xs font-bold">
+                    Add Domain
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setShowCustomInput(false)} className="text-xs">
+                    Cancel
+                  </Button>
+                </div>
+              )}
+
+              {/* Active Selected Domains Summary Bar */}
+              {selectedDomains.length > 0 && (
+                <div className="p-3 bg-emerald-950/20 border border-emerald-500/30 rounded-2xl flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-emerald-300 font-mono flex items-center gap-1">
+                    <Tag className="w-3.5 h-3.5" /> Active for Discovery ({selectedDomains.length}):
+                  </span>
+                  {selectedDomains.map((title) => {
+                    const isCustom = customDomains.includes(title);
+                    return (
+                      <span
+                        key={title}
+                        className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-900/40 border border-emerald-700/60 text-emerald-200 text-xs font-medium"
+                      >
+                        <span>{title}</span>
+                        <button
+                          onClick={() => toggleDomain(title)}
+                          className="hover:text-rose-300 text-slate-400 ml-0.5"
+                          title="Remove from active discovery"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Master Domains Grid (D01-D25) */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold text-slate-300 font-mono">
+                  <span>Showing {filteredMasterDomains.length} Master Domains</span>
+                  <span className="text-slate-500">Click card to load research context • Click toggle to select</span>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pr-1 no-scrollbar">
+                  {filteredMasterDomains.map((domain) => {
+                    const isSelected = selectedDomains.includes(domain.title);
                     return (
                       <div
-                        key={domain}
-                        onClick={() => toggleDomain(domain)}
-                        role="button"
-                        tabIndex={0}
-                        onKeyDown={(e) => e.key === "Enter" && toggleDomain(domain)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer select-none ${
+                        key={domain.id}
+                        className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative group ${
                           isSelected
-                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm ring-1 ring-emerald-500/20"
-                            : "bg-slate-950/60 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-300"
+                            ? "bg-emerald-950/30 border-emerald-500/50 shadow-md shadow-emerald-950/30 ring-1 ring-emerald-500/30"
+                            : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/60"
                         }`}
                       >
-                        <Cpu className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-400" : "text-slate-500"}`} />
-                        <span>{domain}</span>
-                        {isCustom && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between gap-1">
+                            <span className="font-mono font-bold text-xs text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded-md">
+                              {domain.id}
+                            </span>
+                            <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                              domain.type === "Sector"
+                                ? "bg-blue-950/50 text-blue-300 border-blue-800"
+                                : domain.type === "Cross-cutting"
+                                ? "bg-purple-950/50 text-purple-300 border-purple-800"
+                                : "bg-amber-950/50 text-amber-300 border-amber-800"
+                            }`}>
+                              {domain.type}
+                            </span>
+                          </div>
+
+                          <h4 className="text-xs font-bold text-slate-100 leading-snug group-hover:text-emerald-300 transition-colors">
+                            {domain.title}
+                          </h4>
+
+                          <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                            {domain.description}
+                          </p>
+
+                          <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-1 text-[10px]">
+                            <div className="flex items-center gap-1.5 text-slate-400 truncate">
+                              <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
+                              <span className="truncate"><strong>Context:</strong> {domain.contextSetting}</span>
+                            </div>
+                            <div className="flex items-center gap-1.5 text-slate-400 truncate">
+                              <Users className="w-3 h-3 text-cyan-400 shrink-0" />
+                              <span className="truncate"><strong>Stakeholders:</strong> {domain.stakeholders}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2">
                           <button
-                            onClick={(e) => handleRemoveCustomDomain(domain, e)}
-                            className="p-0.5 ml-1 rounded-full text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
-                            title="Remove custom domain"
+                            onClick={() => handleLoadDomainContext(domain)}
+                            className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
                           >
-                            <X className="w-3 h-3" />
+                            <FileCheck className="w-3 h-3" /> Load Context
                           </button>
-                        )}
+
+                          <button
+                            onClick={() => toggleDomain(domain.title)}
+                            className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                              isSelected
+                                ? "bg-emerald-500 text-slate-950 shadow-sm"
+                                : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                            }`}
+                          >
+                            {isSelected ? "✓ Selected" : "+ Select"}
+                          </button>
+                        </div>
                       </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Standardized Sample Field Breakdowns Quick-Fill */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                    <Lightbulb className="w-3.5 h-3.5 text-amber-400" /> Standard Empirical Breakdown Templates ({displaySamples.length} Available)
-                  </label>
-                  <span className="text-[11px] text-slate-400 font-mono">
-                    Click any card to load observation
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-                  {displaySamples.map((item) => (
-                    <button
-                      key={item.id}
-                      onClick={() => {
-                        setFieldObservations(item.text);
-                        if (!selectedDomains.includes(item.domain)) {
-                          setSelectedDomains((prev) => [...prev, item.domain]);
-                        }
-                        toast.info(`Loaded standardized template: ${item.label}`, "Observation Loaded");
-                      }}
-                      className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-emerald-500/40 text-left transition-all group flex flex-col justify-between space-y-2 hover:shadow-md hover:bg-slate-900/50"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-1">
-                          <span className="text-[11px] font-bold text-slate-200 group-hover:text-emerald-300 font-mono truncate">
-                            {item.label}
-                          </span>
-                          <span className="text-[9px] font-mono text-emerald-400/80 bg-emerald-950/60 border border-emerald-900 px-1.5 py-0.5 rounded">
-                            {item.id}
-                          </span>
-                        </div>
-                        <p className="text-[10px] text-slate-400 line-clamp-2 mt-1 leading-snug">
-                          {item.symptom}
-                        </p>
-                      </div>
-
-                      <div className="pt-1.5 border-t border-slate-800/60 flex items-center justify-between text-[9px] text-slate-400 font-mono">
-                        <span className="truncate max-w-[140px]">{item.locality.split(",")[0]}</span>
-                        <span className="text-rose-400/90 truncate max-w-[120px]">{item.consequence.split(";")[0]}</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Raw Field Observation Textarea */}
+              {/* Raw Field Observation / Context Input */}
               <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono">
-                  Raw Field Observations / Literature Signals (Optional)
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center justify-between">
+                  <span>Field Observations &amp; Loaded Research Signals</span>
+                  <span className="text-slate-500 font-normal font-sans">Loaded from Domain Explorer or typed notes</span>
                 </label>
                 <textarea
                   value={fieldObservations}
                   onChange={(e) => setFieldObservations(e.target.value)}
-                  placeholder="Paste raw field notes from sensor tests, lab logs, or domain interviews (e.g. 'Optical DO probes drift 18% in brackish water after 48h...')..."
+                  placeholder="Click 'Load Context' on any master domain above, or paste raw notes from sensor logs, farm visits, or municipal interviews..."
                   rows={3}
                   className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition"
                 />
               </div>
 
-              {/* Action Button */}
+              {/* Discovery Action Button */}
               <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
                 <span className="text-xs text-slate-400">
                   Generated problems automatically persist to the <strong>Problem Bank (Slot 0)</strong>.

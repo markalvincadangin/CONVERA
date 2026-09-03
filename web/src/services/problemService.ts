@@ -167,6 +167,13 @@ export const problemService = {
     return fetchApi<{ status: string; duplicates: any[] }>(`/api/problems/detect-duplicates${qs}`);
   },
 
+    async seedStarterProblems(projectId: string): Promise<{ status: string; seeded_count: number; problems: ProblemRecord[] }> {
+    return fetchApi<{ status: string; seeded_count: number; problems: ProblemRecord[] }>("/api/problems/seed-starter", {
+      method: "POST",
+      body: JSON.stringify({ project_id: projectId }),
+    });
+  },
+
   async autoMergeExact(projectId?: string): Promise<{ status: string; merged_count: number; problems: ProblemRecord[] }> {
     return fetchApi<{ status: string; merged_count: number; problems: ProblemRecord[] }>("/api/problems/auto-merge-exact", {
       method: "POST",

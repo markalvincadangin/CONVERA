@@ -134,6 +134,16 @@ class AttachSourcesRequest(BaseModel):
 # Problem Bank Core Endpoints
 # ----------------------------------------------------------------------
 
+class SeedStarterRequest(BaseModel):
+    project_id: str = "default_proj"
+
+@router.post("/seed-starter")
+async def seed_starter_problems_endpoint(req: SeedStarterRequest):
+    """Seed the 15 canonical Western Visayas starter problems into a new project workspace."""
+    storage = get_storage()
+    seeded = storage.seed_starter_problems(req.project_id)
+    return {"status": "success", "seeded_count": len(seeded), "problems": seeded}
+
 @router.get("")
 async def list_problems(
     project_id: Optional[str] = None,
