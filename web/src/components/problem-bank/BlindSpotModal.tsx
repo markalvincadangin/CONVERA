@@ -150,7 +150,7 @@ export const BlindSpotModal: React.FC<BlindSpotModalProps> = ({
                       </span>
                     </div>
                     <p className="text-slate-300 leading-relaxed">{spot.observation}</p>
-                    <p className="text-[11px] text-slate-400 italic">💡 {spot.why_it_matters}</p>
+                    <p className="text-[11px] text-slate-400 italic">{spot.why_it_matters}</p>
                   </div>
                 ))}
               </div>

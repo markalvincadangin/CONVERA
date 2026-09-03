@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { UserRoleBadge } from "./UserRoleBadge";
+import { IconAvatar, AVATAR_OPTIONS, normalizeAvatarKey } from "@/components/common/IconAvatar";
 import { UserProfile, UserRole } from "@/lib/types";
 import { authService, DEFAULT_USER } from "@/services/authService";
 import {
@@ -23,8 +24,6 @@ interface UserProfileModalProps {
   onProfileUpdated?: (profile: UserProfile) => void;
   projectId?: string;
 }
-
-const AVATARS = ["👩‍💻", "👨‍🔬", "🎓", "⚖️", "🚀", "💡", "📊", "🛠️", "🌱", "⚡"];
 
 export const UserProfileModal: React.FC<UserProfileModalProps> = ({
   isOpen,
@@ -89,6 +88,8 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
     },
   ];
 
+  const currentKey = normalizeAvatarKey(profile.avatar);
+
   return (
     <Modal
       isOpen={isOpen}
@@ -100,12 +101,10 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
         {/* Active Avatar & Name Input */}
         <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-4">
           <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-slate-700 flex items-center justify-center text-3xl shadow-inner">
-              {profile.avatar}
-            </div>
+            <IconAvatar iconKey={profile.avatar} size="xl" />
 
             <div className="flex-1 space-y-1">
-              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block font-mono">
                 Your Display Name
               </label>
               <input
@@ -118,33 +117,38 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
             </div>
           </div>
 
-          {/* Avatar Selector */}
+          {/* Icon Avatar Selector */}
           <div className="space-y-1.5 pt-2 border-t border-slate-900">
-            <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500">
-              Choose Avatar
+            <label className="text-[10px] uppercase font-bold tracking-wider text-slate-500 font-mono">
+              Choose Avatar Icon
             </label>
             <div className="flex flex-wrap gap-2">
-              {AVATARS.map((emoji) => (
-                <button
-                  key={emoji}
-                  type="button"
-                  onClick={() => setProfile({ ...profile, avatar: emoji })}
-                  className={`w-9 h-9 rounded-xl flex items-center justify-center text-lg transition-all ${
-                    profile.avatar === emoji
-                      ? "bg-cyan-500/20 border-2 border-cyan-400 scale-110 shadow-md shadow-cyan-500/10"
-                      : "bg-slate-900 hover:bg-slate-800 border border-slate-800 opacity-70 hover:opacity-100"
-                  }`}
-                >
-                  {emoji}
-                </button>
-              ))}
+              {AVATAR_OPTIONS.map((opt) => {
+                const isSelected = currentKey === opt.id;
+                const IconComp = opt.icon;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setProfile({ ...profile, avatar: opt.id })}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                      isSelected
+                        ? `${opt.bg} ${opt.text} border-2 border-cyan-400 scale-110 shadow-md shadow-cyan-500/20 ring-1 ring-cyan-400/50`
+                        : "bg-slate-900 hover:bg-slate-850 text-slate-400 hover:text-white border border-slate-800"
+                    }`}
+                    title={opt.label}
+                  >
+                    <IconComp className="w-4 h-4" />
+                  </button>
+                );
+              })}
             </div>
           </div>
         </div>
 
         {/* Role Selector Grid */}
         <div className="space-y-2.5">
-          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+          <label className="text-xs font-bold uppercase tracking-wider text-slate-300 flex items-center gap-1.5 font-mono">
             <Shield className="w-3.5 h-3.5 text-cyan-400" />
             Select Your Role in this Workspace
           </label>

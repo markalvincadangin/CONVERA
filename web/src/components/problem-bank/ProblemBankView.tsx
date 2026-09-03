@@ -13,25 +13,29 @@ import { ProblemDetailModal } from "./ProblemDetailModal";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { BlindSpotModal } from "./BlindSpotModal";
 import {
+  Database,
   Search,
   Filter,
   Plus,
+  Flame,
+  Radar,
+  Download,
+  ShieldCheck,
+  Radio,
+  FileText,
+  TrendingDown,
   Sparkles,
+  ArrowUpDown,
+  Tag,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCcw,
+  RefreshCw,
   LayoutGrid,
   List,
-  CheckCircle2,
-  ExternalLink,
-  ShieldCheck,
-  TrendingUp,
-  Download,
-  Trash2,
-  RefreshCw,
-  FolderPlus,
-  ArrowRight,
-  SlidersHorizontal,
-  Flame,
   ThumbsUp,
-  Radar,
+  ArrowRight,
+  FolderPlus,
 } from "lucide-react";
 
 interface ProblemBankViewProps {
@@ -203,20 +207,20 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
     if (tier === "STRONGLY_DOCUMENTED") {
       return (
         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          🟢 Strongly Documented
+          <ShieldCheck className="w-3 h-3" /> Strongly Documented
         </span>
       );
     }
     if (tier === "DOCUMENTED") {
       return (
         <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-          🔵 Documented
+           Documented
         </span>
       );
     }
     return (
       <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
-        🟡 Signal
+         Signal
       </span>
     );
   };
@@ -227,7 +231,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 rounded-3xl border border-slate-800 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🏦</span>
+            <span className="text-xl"></span>
             <h2 className="text-lg font-bold text-white tracking-tight">Structured Problem Bank</h2>
             <span className="text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
               {problems.length} Records
@@ -316,9 +320,9 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50"
             >
               <option value="All">All Evidence Tiers</option>
-              <option value="STRONGLY_DOCUMENTED">🟢 Strongly Documented</option>
-              <option value="DOCUMENTED">🔵 Documented</option>
-              <option value="SIGNAL">🟡 Signal</option>
+              <option value="STRONGLY_DOCUMENTED"><ShieldCheck className="w-3 h-3" /> Strongly Documented</option>
+              <option value="DOCUMENTED"> Documented</option>
+              <option value="SIGNAL"> Signal</option>
             </select>
           </div>
 
@@ -491,7 +495,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                 <div className="pt-2 border-t border-slate-800/80 space-y-2 text-[11px]">
                   {p.quantified_impact && (
                     <div className="text-emerald-400 font-medium truncate text-[11px]">
-                      💰 {p.quantified_impact}
+                       {p.quantified_impact}
                     </div>
                   )}
 

@@ -111,9 +111,9 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   };
 
   const tierLabels = {
-    STRONGLY_DOCUMENTED: "🟢 Strongly Documented",
-    DOCUMENTED: "🔵 Documented",
-    SIGNAL: "🟡 Signal",
+    STRONGLY_DOCUMENTED: " Strongly Documented",
+    DOCUMENTED: " Documented",
+    SIGNAL: " Signal",
   };
 
   const breakdown = problem.score_breakdown;

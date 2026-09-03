@@ -254,7 +254,7 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
               <h3 className="text-base font-bold text-white">MVP Empirical Validation Audit & Verdict</h3>
             </div>
             <Badge variant={isPursue ? "emerald" : isPivot ? "amber" : "rose"}>
-              {isPursue ? "🟢 PURSUE CONCEPT" : isPivot ? "🟡 PIVOT MECHANISM" : "🔴 RETIRE CONCEPT"}
+              {isPursue ? " PURSUE CONCEPT" : isPivot ? " PIVOT MECHANISM" : " RETIRE CONCEPT"}
             </Badge>
           </div>
 

@@ -380,21 +380,61 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
 
     def verify_project_passcode(self, project_id: str, passcode: str) -> bool:
         with self._get_connection() as conn:
+            # Check direct project record
             row = conn.execute(
                 "SELECT passcode FROM projects WHERE id = ?",
                 (project_id,)
             ).fetchone()
+            
+            # If not found directly, check if project_id is a session_id
+            if not row:
+                s_row = conn.execute(
+                    "SELECT p.passcode FROM sessions s LEFT JOIN projects p ON s.project_id = p.id WHERE s.session_id = ? OR s.project_id = ?",
+                    (project_id, project_id)
+                ).fetchone()
+                if s_row and s_row["passcode"] is not None:
+                    row = s_row
+
             if not row or not row["passcode"]:
-                return True
+                return True # No passcode set yet
             return str(row["passcode"]).strip() == str(passcode).strip()
 
     def set_project_passcode(self, project_id: str, passcode: Optional[str]) -> bool:
         with self._get_connection() as conn:
+            clean_pin = passcode.strip() if passcode else None
             cur = conn.execute(
                 "UPDATE projects SET passcode = ? WHERE id = ?",
-                (passcode.strip() if passcode else None, project_id)
+                (clean_pin, project_id)
             )
-            return cur.rowcount > 0
+            if cur.rowcount > 0:
+                return True
+                
+            # If project row does not exist, find session or create project row
+            s_row = conn.execute(
+                "SELECT session_id, project_id, project_name FROM sessions WHERE session_id = ? OR project_id = ?",
+                (project_id, project_id)
+            ).fetchone()
+            
+            if s_row:
+                real_proj_id = s_row["project_id"] or f"proj_{s_row['session_id']}"
+                proj_name = s_row["project_name"] or "Venture Project"
+                conn.execute("""
+                    INSERT INTO projects (id, name, passcode)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET passcode = excluded.passcode
+                """, (real_proj_id, proj_name, clean_pin))
+                conn.execute(
+                    "UPDATE sessions SET project_id = ? WHERE session_id = ?",
+                    (real_proj_id, s_row["session_id"])
+                )
+                return True
+            else:
+                conn.execute("""
+                    INSERT INTO projects (id, name, passcode)
+                    VALUES (?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET passcode = excluded.passcode
+                """, (project_id, "Venture Project", clean_pin))
+                return True
 
     def list_project_members(self, project_id: str) -> List[Dict[str, Any]]:
         with self._get_connection() as conn:

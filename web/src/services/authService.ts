@@ -7,7 +7,7 @@ export const DEFAULT_USER: UserProfile = {
   id: "user_lead",
   name: "Maria Santos (Team Lead)",
   role: "FOUNDER_LEAD",
-  avatar: "👩‍💻",
+  avatar: "founder",
 };
 
 export const authService = {
@@ -115,7 +115,7 @@ export const authService = {
         body: JSON.stringify({
           user_name: user.name,
           user_role: user.role,
-          user_avatar: user.avatar,
+  avatar: "founder",
           comment: commentText,
         }),
       });

@@ -14,6 +14,7 @@ import {
 import { Tooltip } from "@/components/common/Tooltip";
 import { VentureHealthBar } from "@/components/common/VentureHealthBar";
 import { UserRoleBadge } from "@/components/auth/UserRoleBadge";
+import { IconAvatar } from "@/components/common/IconAvatar";
 import { UserProfileModal } from "@/components/auth/UserProfileModal";
 import { RoomSecurityModal } from "@/components/auth/RoomSecurityModal";
 import { SessionState, UserProfile } from "@/lib/types";
@@ -49,7 +50,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   const projectName = session?.project_name || "Iloilo Venture Project";
   const sessionId = session?.session_id || "";
-  const projectId = session?.project_id || "";
+  const projectId = session?.project_id || session?.session_id || "proj_default";
 
   return (
     <>
@@ -142,7 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setIsProfileModalOpen(true)}
                 className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs transition-all group"
               >
-                <span className="text-base">{userProfile.avatar}</span>
+                <IconAvatar iconKey={userProfile.avatar} size="xs" />
                 <div className="hidden lg:flex flex-col text-left">
                   <span className="text-xs font-bold text-slate-200 group-hover:text-white max-w-[110px] truncate leading-tight">
                     {userProfile.name}

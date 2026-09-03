@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { ProblemComment, UserProfile } from "@/lib/types";
 import { authService } from "@/services/authService";
 import { UserRoleBadge } from "@/components/auth/UserRoleBadge";
+import { IconAvatar } from "@/components/common/IconAvatar";
 import { Button } from "@/components/common/Button";
 import { MessageSquare, Send, Sparkles, GraduationCap } from "lucide-react";
 
@@ -91,7 +92,7 @@ export const ProblemCommentsSection: React.FC<ProblemCommentsSectionProps> = ({
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-base">{c.user_avatar || "👩‍💻"}</span>
+                    <IconAvatar iconKey={c.user_avatar} size="xs" />
                     <span className="text-xs font-bold text-white">
                       {c.user_name}
                     </span>

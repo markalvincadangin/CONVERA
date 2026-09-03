@@ -285,7 +285,7 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
               <h3 className="text-base font-bold text-white">Simplified Validation Board (SVB) & Experiment Cards</h3>
             </div>
             <Badge variant={isReadyToTest ? "emerald" : "amber"}>
-              {isReadyToTest ? "🟢 READY TO TEST" : "🟡 RE-IDEATE"}
+              {isReadyToTest ? " READY TO TEST" : " RE-IDEATE"}
             </Badge>
           </div>
 

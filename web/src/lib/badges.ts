@@ -4,7 +4,19 @@ export interface VentureBadge {
   id: string;
   name: string;
   description: string;
-  icon: string;
+  icon_name:
+    | "search"
+    | "flame"
+    | "target"
+    | "cpu"
+    | "award"
+    | "trophy"
+    | "layers"
+    | "presentation"
+    | "crown"
+    | "shield-check"
+    | "zap"
+    | "bar-chart-3";
   category: "DISCOVERY" | "VALIDATION" | "EXPERIMENTATION" | "DELIVERABLE" | "MASTERY";
   isEarned: boolean;
   earnedDate?: string;
@@ -54,15 +66,17 @@ export function calculateVentureHealth(
   // 2. Evidence Score (0-25 pts)
   let evidence_score = 0;
   if (problems.length > 0) {
-    const avgScore = problems.reduce((acc, p) => acc + (p.score || 0), 0) / problems.length;
-    evidence_score = Math.round((avgScore / 100) * 25);
-  } else if (session.phase1_response) {
-    evidence_score = 12;
+    const avgConfidence =
+      problems.reduce((sum, p) => sum + (p.score || 50), 0) /
+      problems.length;
+    evidence_score = Math.round((avgConfidence / 100) * 25);
+  } else if (session.phase1_complete) {
+    evidence_score = 15;
   }
 
-  // 3. Experimentation / Validation Score (0-25 pts)
+  // 3. Experimentation & Skin-in-the-game Score (0-25 pts)
   let experiment_score = 0;
-  if (session.phase5_complete && session.phase5_response) {
+  if (session.phase5_response) {
     if (session.phase5_response.includes("PURSUE")) {
       experiment_score = 25;
     } else if (session.phase5_response.includes("PIVOT")) {
@@ -90,16 +104,16 @@ export function calculateVentureHealth(
 
   if (health_score >= 90) {
     grade = "A+";
-    grade_label = "🏆 Investor & Accelerator Ready";
+    grade_label = "Investor & Accelerator Ready";
   } else if (health_score >= 75) {
     grade = "A";
-    grade_label = "🟢 High-Evidence Venture";
+    grade_label = "High-Evidence Venture";
   } else if (health_score >= 55) {
     grade = "B";
-    grade_label = "🟡 Validating Hypotheses";
+    grade_label = "Validating Hypotheses";
   } else if (health_score >= 35) {
     grade = "C";
-    grade_label = "🟠 Problem Discovery Phase";
+    grade_label = "Problem Discovery Phase";
   }
 
   // Badges
@@ -117,105 +131,102 @@ export function calculateVentureHealth(
       id: "evidence_hunter",
       name: "Evidence Hunter",
       description: "Logged at least 3 problems or cited official Tier A institutional sources.",
-      icon: "🔍",
+      icon_name: "search",
       category: "DISCOVERY",
       isEarned: problems.length >= 3 || hasStronglyDoc,
-      criteria: "Log ≥ 3 problems in Problem Bank with verified sources.",
+      criteria: "Log >= 3 problems in Problem Bank with verified sources.",
     },
     {
-      id: "contrarian_tested",
-      name: "Contrarian Tested",
-      description: "Stress-tested problem hypotheses using the Devil's Advocate adversarial agent.",
-      icon: "😈",
-      category: "DISCOVERY",
+      id: "devils_advocate",
+      name: "Tested by Fire",
+      description: "Stress-tested candidate problems against an adversarial Devil's Advocate agent.",
+      icon_name: "flame",
+      category: "VALIDATION",
       isEarned: hasDevilsAdvocate,
-      criteria: "Run a Devil's Advocate challenge on any problem record.",
+      criteria: "Run an adversarial critique on any problem card.",
     },
     {
-      id: "team_consensus",
-      name: "Team Consensus",
-      description: "Prioritized problems with team upvotes.",
-      icon: "🗳️",
-      category: "DISCOVERY",
-      isEarned: hasHighVotes || problems.some((p) => (p.votes || 0) > 0),
-      criteria: "Upvote problems collaboratively in the Problem Bank.",
-    },
-    {
-      id: "truth_seeker",
-      name: "Truth Seeker",
-      description: "Completed all 6 levels of the Socratic Mom Test without falling for solution pitches.",
-      icon: "🛡️",
+      id: "socratic_survivor",
+      name: "Socratic Survivor",
+      description: "Cleared all 6 Socratic Mom Test levels with documented past behavioral evidence.",
+      icon_name: "shield-check",
       category: "VALIDATION",
       isEarned: p3Complete,
-      criteria: "Pass Level 6 Economic Consequence in Phase 3.",
+      criteria: "Complete Phase 3 Socratic validation with passing score.",
     },
     {
-      id: "mechanism_divergent",
-      name: "Mechanism Divergent",
-      description: "Generated solution hypotheses across at least 3 distinct mechanism families.",
-      icon: "💡",
+      id: "mechanism_master",
+      name: "Mechanism Master",
+      description: "Formulated 5+ distinct solution mechanisms across 3+ families.",
+      icon_name: "cpu",
       category: "EXPERIMENTATION",
       isEarned: p4Complete,
-      criteria: "Complete Phase 4 SVB Canvas with divergent concepts.",
+      criteria: "Synthesize Phase 4 solutions using the 15 mechanism families.",
     },
     {
-      id: "skin_in_game",
-      name: "Skin In The Game",
-      description: "Audited empirical MVP test observing real customer commitments (Tiers 1-4).",
-      icon: "💰",
+      id: "skin_in_the_game",
+      name: "Skin-in-the-Game",
+      description: "Gathered empirical behavioral commitment (deposits, pre-orders, LOIs, active usage).",
+      icon_name: "target",
       category: "EXPERIMENTATION",
       isEarned: p5Complete,
-      criteria: "Complete Phase 5 MVP Validation Audit.",
+      criteria: "Audit Phase 5 MVP test results with Tier 4 or 5 commitment.",
     },
     {
-      id: "canvas_master",
-      name: "Canvas Master",
-      description: "Synthesized research into a structured 9-box Ash Maurya Lean Canvas.",
-      icon: "📄",
+      id: "lean_architect",
+      name: "Lean Architect",
+      description: "Auto-generated structured 9-box Ash Maurya Lean Canvas.",
+      icon_name: "layers",
       category: "DELIVERABLE",
       isEarned: hasCanvas,
-      criteria: "Generate 9-box Lean Canvas in Studio.",
+      criteria: "Generate 9-box Lean Canvas in Deliverables Studio.",
     },
     {
       id: "pitch_ready",
       name: "Pitch Ready",
-      description: "Created a 10-slide investor pitch deck narrative with speaker notes.",
-      icon: "🎤",
+      description: "Formulated 10-slide investor presentation with speaker scripts.",
+      icon_name: "presentation",
       category: "DELIVERABLE",
       isEarned: hasDeck,
-      criteria: "Generate 10-Slide Pitch Deck in Studio.",
+      criteria: "Generate 10-Slide Pitch Deck in Deliverables Studio.",
     },
     {
-      id: "venture_master",
-      name: "Technopreneurship Master",
-      description: "Achieved an overall Venture Health Index ≥ 80% with all gates cleared.",
-      icon: "🏆",
+      id: "consensus_driver",
+      name: "Team Consensus",
+      description: "Earned 3+ team priority votes on a single problem thesis.",
+      icon_name: "bar-chart-3",
+      category: "DISCOVERY",
+      isEarned: hasHighVotes,
+      criteria: "Gather 3+ team priority votes on a problem card.",
+    },
+    {
+      id: "ratchet_champion",
+      name: "Ratchet Champion",
+      description: "Unlocked 5/5 Phase Gates with an overall venture health score >= 80%.",
+      icon_name: "crown",
       category: "MASTERY",
-      isEarned: health_score >= 80 && p5Complete,
-      criteria: "Reach 80% Venture Health Index and complete all 5 phases.",
+      isEarned: health_score >= 80 && Boolean(p1 > 0 && p2 > 0 && p3 > 0 && p4 > 0 && p5 > 0),
+      criteria: "Pass all 5 gates and attain A or A+ overall grade.",
     },
   ];
 
   const earned_badges = all_badges.filter((b) => b.isEarned);
 
-  // Urgent recommendation determination
-  let urgent_recommendation = "Explore regional problems in Phase 1.";
-  if (!session.phase1_complete && problems.length === 0) {
-    urgent_recommendation = "Run automated discovery in Phase 1 or log your team's field observations in the Problem Bank.";
-  } else if (!hasDevilsAdvocate && problems.length > 0) {
-    urgent_recommendation = "Run the Devil's Advocate adversarial stress-test on your top problem to expose hidden assumptions.";
-  } else if (!session.phase2_complete && problems.length > 0) {
-    urgent_recommendation = "Select candidate problems in the Problem Bank and advance them to Phase 2 Screening.";
-  } else if (!session.phase3_complete && session.phase2_complete) {
+  let urgent_recommendation = "Continue logging field observations in Phase 1.";
+  if (!session.phase1_complete) {
+    urgent_recommendation = "Complete Phase 1 discovery landscape research to identify Iloilo problem candidates.";
+  } else if (!session.phase2_complete) {
+    urgent_recommendation = "Triage candidate problems in Phase 2 to shortlist the top candidate.";
+  } else if (!session.phase3_complete) {
     urgent_recommendation = "Conduct Socratic Mom Test validation in Phase 3 to verify actual economic sacrifices.";
-  } else if (!session.phase4_complete && session.phase3_complete) {
-    urgent_recommendation = "Ideate across the 15 Mechanism Families in Phase 4 to build your SVB Canvas.";
-  } else if (!session.phase5_complete && session.phase4_complete) {
-    urgent_recommendation = "Run a Concierge or Pre-order MVP test and audit the empirical results in Phase 5.";
+  } else if (!session.phase4_complete) {
+    urgent_recommendation = "Explore divergent mechanisms across 3+ families in Phase 4.";
+  } else if (!session.phase5_complete) {
+    urgent_recommendation = "Run MVP skin-in-the-game experiments in Phase 5 to audit conversion.";
   } else if (!hasCanvas || !hasDeck) {
-    urgent_recommendation = "Generate your 9-Box Lean Canvas and 10-Slide Pitch Deck in the Deliverables Studio.";
+    urgent_recommendation = "Generate Lean Canvas and Pitch Deck in the Deliverables Studio.";
   } else {
-    urgent_recommendation = "Your venture dossier is complete and highly validated! Export the master report or print your pitch deck.";
+    urgent_recommendation = "Your venture dossier is complete and ready for investor and accelerator review!";
   }
 
   return {

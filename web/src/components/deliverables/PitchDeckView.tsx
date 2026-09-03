@@ -79,7 +79,7 @@ export const PitchDeckView: React.FC<PitchDeckViewProps> = ({
         (s) =>
           `---\n\n## Slide ${s.slide_number}: ${s.title}\n### ${s.headline}\n\n${s.bullet_points
             .map((b) => `- ${b}`)
-            .join("\n")}\n\n> 🎙️ **Speaker Notes (30s):**\n> ${s.speaker_notes}\n`
+            .join("\n")}\n\n>  **Speaker Notes (30s):**\n> ${s.speaker_notes}\n`
       ),
     ].join("\n");
 

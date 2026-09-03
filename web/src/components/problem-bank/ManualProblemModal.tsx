@@ -249,9 +249,9 @@ export const ManualProblemModal: React.FC<ManualProblemModalProps> = ({
                   onChange={(e) => setEvidenceTier(e.target.value as EvidenceTier)}
                   className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500/50"
                 >
-                  <option value="SIGNAL">🟡 Signal (Single Note/Anecdote)</option>
-                  <option value="DOCUMENTED">🔵 Documented (Corroborated)</option>
-                  <option value="STRONGLY_DOCUMENTED">🟢 Strongly Documented (Multi-Source)</option>
+                  <option value="SIGNAL"> Signal (Single Note/Anecdote)</option>
+                  <option value="DOCUMENTED"> Documented (Corroborated)</option>
+                  <option value="STRONGLY_DOCUMENTED"> Strongly Documented (Multi-Source)</option>
                 </select>
               </div>
             </div>

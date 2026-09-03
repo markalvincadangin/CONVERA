@@ -58,20 +58,20 @@ export const DevilsAdvocateModal: React.FC<DevilsAdvocateModalProps> = ({
     if (verdict === "DEFENSIBLE") {
       return (
         <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
-          🛡️ Defensible Claim
+          Defensible Claim
         </span>
       );
     }
     if (verdict === "VULNERABLE") {
       return (
         <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30">
-          ⚠️ Vulnerable Assumptions
+          Vulnerable Assumptions
         </span>
       );
     }
     return (
       <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-red-500/15 text-red-400 border border-red-500/30">
-        🔥 Heavily Challenged
+         Heavily Challenged
       </span>
     );
   };
