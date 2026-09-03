@@ -1,217 +1,218 @@
-# Software Requirements & System Design Specification (SRSDS)
-
-**Project:** CONVERA - Evidence-Driven Project Intelligence and Opportunity Validation System  
-**Parent Brand:** EMAERX (Technology and Innovation Team)  
-**Governing Baseline:** [CONVERA Master Architecture Specification (v1.0)](./CONVERA_MASTER_ARCHITECTURE.md)  
-**Standard:** CONVERA Concept Development Standard (CCDS) / IEEE 830 / ISO/IEC/IEEE 29148 / IEEE 1016-2009 / CHED CICT Standards  
-**Version:** 3.0.0 (Unified Evidence Ledger, Decision Intelligence & Project Translation)  
-**Status:** Approved / Production Verified  
-**Last Updated:** September 3, 2026  
-
-
----
-
-## 1. Executive Summary & Brand Identity
-
-### 1.1 Brand Identity & Purpose
-**CONVERA** is an **Evidence-Driven Project Intelligence and Opportunity Validation System** developed by **EMAERX**.
-
-- **Brand Tagline:** *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*
-- **Brand Philosophy:** Meaningful innovation begins by exploring what is not yet understood. CONVERA brings fragmented ideas, research, AI outputs, assumptions, and field evidence together until a team can identify a direction that is empirically justified to pursue.
-- **Founders:** Mark Alvin, Mae Daniella Faith, John Emmanuel (EMAERX).
-
-### 1.2 Core Problem Solved
-Student technopreneurship and computing capstone teams suffer from **information fragmentation** and **premature solutioning**. Ideas generated across AI chats, group chats, documents, spreadsheets, and personal notes are lost or debated without evidence. CONVERA bridges the **problem-to-decision gap** by organizing, validating, and translating raw ideas into decision-ready project opportunities.
-
-### 1.3 The Mechanical Ratchet & Progressive Framework
-CONVERA enforces two complementary mechanisms:
-1. **The Mechanical Ratchet Invariant:**
-   $$\text{Phase}_{k+1} \text{ Unlocked} \iff \text{Gate}(\text{Phase}_k) = \text{PASSED}$$
-   Downstream prototyping (Phases 4 & 5) is strictly locked until upstream problem validation (Phases 1, 2, & 3) passes empirical rigor checks.
-2. **The 3-Step Unified Evolution:**
-   - **Step 1 — Evidence Foundation:** 4-Claim Evidence Ledger, Prioritized Assumption Radar, and DOI research paper grounding.
-   - **Step 2 — Decision Intelligence:** Decision Room Workspace, Explainable AI ranking, Immutable Decision Audit Log (`decision_records`), and Phase 3 Pivot / Re-evaluate learning loops.
-   - **Step 3 — Project Translation:** Software Requirements Specification (SRS) Generator translating validated opportunities into IEEE 830 / CHED CICT engineering blueprints.
-
----
-
-## 2. System Architecture & Component Model
-
-CONVERA employs a decoupled **PC-Powered High-Performance Hybrid Architecture**:
-
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT / MULTI-DEVICE TIER                                │
-│  Next.js 16 (App Router) • React 19 • Tailwind CSS • Glassmorphism Design System       │
-│  • 5-Phase Progressive Venture Workspace (Desktop, Tablet, Mobile)                     │
-│  • Step 1: 4-Claim Evidence Ledger (<EvidenceLedgerCard />) & Assumption Radar        │
-│  • Step 2: Decision Room Workspace (<DecisionRoomWorkspace />) & Timeline Modal       │
-│  • Step 3: Technical Capstone & Startup MVP SRS Generator (<SrsSpecView />)            │
-│  • Deliverables Studio (Lean Canvas, SWOT, 10-Slide Pitch Deck, Master Dossier)        │
-│  • Multi-User Collaboration & Project Rooms (Share Codes: `CONV-XXXX` / `RATCH-XXXX`)  │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-                                            │ HTTPS / Relative Proxy (`/api/...`)
-                                            ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                             API / SERVICE ORCHESTRATION TIER                            │
-│  FastAPI (Python 3.12) • Pydantic v2 • Asyncio Service Engine (Host: 0.0.0.0:8000)     │
-│  • Assumption & Claim Extraction Engine (pipeline/assumption_engine.py)                │
-│  • Multi-Candidate Decision Room & Pivot Engine (pipeline/decision_engine.py)          │
-│  • Capstone / MVP Technical SRS Generator (pipeline/srs_generator.py)                  │
-│  • Academic Research Client (OpenAlex, Europe PMC, Crossref with AI Relevance Gate)    │
-│  • 6-Level Socratic Mom Test Validation Engine                                         │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-                      │                                              │
-                      ▼                                              ▼
-┌────────────────────────────────────────┐     ┌────────────────────────────────────────┐
-│        UNIVERSAL MULTI-PROVIDER GATEWAY│     │       STORAGE ADAPTER SUBSYSTEM        │
-│  Dynamic Multi-Model Failover Cascade  │     │  Pluggable Local & Cloud Persistence   │
-│  1. Google Gemini (gemini-3.8-flash)   │     │  • SQLite WAL (pipeline/ratchetai.db)  │
-│  2. Groq Cloud (llama-3.3-70b @ 500t/s)│     │  • PostgreSQL (Neon / Supabase Cloud)  │
-│  3. OpenRouter (Llama 3.3 70B Instruct)│     │  • Relational Schema + Zero-Ops WAL    │
-│  4. Local Ollama (qwen2.5 / llama3.2)  │     │  • Cascading Foreign Key Integrity     │
-└────────────────────────────────────────┘     └────────────────────────────────────────┘
-```
-
----
-
-## 3. Relational Storage Schema Specification
-
-CONVERA's Knowledge Graph is persisted in SQLite with Write-Ahead Logging (WAL) enabled:
-
-### 3.1 Database Tables
-
-```sql
--- 1. Projects & Multi-Device Collaboration
-CREATE TABLE IF NOT EXISTS projects (
-    id TEXT PRIMARY KEY,
-    share_code TEXT UNIQUE NOT NULL,
-    name TEXT NOT NULL,
-    passcode TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 2. Sessions & Phase Progress State
-CREATE TABLE IF NOT EXISTS sessions (
-    session_id TEXT PRIMARY KEY,
-    project_id TEXT,
-    state_data TEXT NOT NULL,
-    project_name TEXT DEFAULT 'Venture Project',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
-);
-
--- 3. Curated Problem Bank & Grounding
-CREATE TABLE IF NOT EXISTS problems (
-    id TEXT PRIMARY KEY,
-    problem_statement TEXT NOT NULL,
-    sufferer_occupation TEXT NOT NULL,
-    sufferer_location TEXT NOT NULL,
-    quantified_impact TEXT NOT NULL,
-    workaround TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'active',
-    score REAL DEFAULT 80.0,
-    sources TEXT DEFAULT '[]',
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 4. Step 1: 4-Claim Evidence Ledger
-CREATE TABLE IF NOT EXISTS problem_claims (
-    id TEXT PRIMARY KEY,
-    problem_id TEXT NOT NULL,
-    claim_type TEXT NOT NULL, -- FRICTION_REALITY, FREQUENCY_CONSEQUENCE, WORKAROUND_DISSATISFACTION, ADOPTION_COMMITMENT
-    claim_text TEXT NOT NULL,
-    mode TEXT DEFAULT 'COMMERCIAL', -- COMMERCIAL (WTP) or CIVIC_INSTITUTIONAL (Behavioral Feasibility)
-    status TEXT DEFAULT 'UNVERIFIED', -- UNVERIFIED, SUPPORTED, VALIDATED, REFUTED
-    supporting_evidence TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(problem_id) REFERENCES problems(id) ON DELETE CASCADE
-);
-
--- 5. Step 1: Prioritized Assumption Radar
-CREATE TABLE IF NOT EXISTS problem_assumptions (
-    id TEXT PRIMARY KEY,
-    problem_id TEXT NOT NULL,
-    assumption_text TEXT NOT NULL,
-    risk_level TEXT NOT NULL, -- CRITICAL, HIGH, MEDIUM, LOW
-    mom_test_question TEXT NOT NULL,
-    status TEXT DEFAULT 'PENDING', -- PENDING, VALIDATED, INVALIDATED
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(problem_id) REFERENCES problems(id) ON DELETE CASCADE
-);
-
--- 6. Step 2: Immutable Decision Audit Records
-CREATE TABLE IF NOT EXISTS decision_records (
-    id TEXT PRIMARY KEY,
-    session_id TEXT,
-    stage TEXT NOT NULL, -- PHASE_2_DECISION_ROOM, PHASE_3_PIVOT_LOOP, etc.
-    selected_problem_id TEXT NOT NULL,
-    rejected_problem_ids TEXT DEFAULT '[]',
-    decision_rationale TEXT NOT NULL,
-    supporting_evidence_ids TEXT DEFAULT '[]',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
----
-
-## 4. Phase-by-Phase Functional Specification
-
-### Phase 1: Regional Problem Discovery
-- **Engine:** Scans regional socio-economic sectors (Agriculture, Healthcare, Governance, Logistics, Tourism, MSME, Education).
-- **Quality Gate:** Strict extraction of 5 core parameters (Sufferer, Location, Root Friction, Workaround, Quantified Loss).
-
-### Phase 2: Screening & Sizing (Decision Room)
-- **Engine:** 10-column multi-candidate evaluation matrix.
-- **Decision Room:** Side-by-side comparison of Evidence Ledgers, Assumption Radars, and DOI research citations.
-- **AI Judge:** Explainable ranking with pros, risks, and unresolved critical assumptions.
-- **Quality Gate:** Lock winning thesis and commit immutable `decision_record`.
-
-### Phase 3: Field Validation & Mom Test Clinic
-- **Engine:** Socratic AI interrogator guiding student founders through 6 progressive levels:
-  1. *Who Specifically Suffers?*
-  2. *Frequency & Measurable Consequence?*
-  3. *What is the Active Workaround?*
-  4. *Dissatisfaction with Current Workaround?*
-  5. *Past Financial or Time Commitment?*
-  6. *Quantified Friction Verification?*
-- **Pivot Loop:** If an interview refutes an assumption, `Execute Pivot Loop` safely routes back to Phase 2 while preserving historical notes and logging the pivot rationale.
-
-### Phase 4: Mechanism Design & Architecture
-- **Engine:** Generates 15 mechanism families (IoT Telemetry, Cooperative Batching, SMS Alerts, Offline Queuing, Micro-escrow, etc.).
-- **Quality Gate:** Solution Validation Board (SVB) canvas mapping mechanism to root cause.
-
-### Phase 5: Unit Economics & Empirical Audit
-- **Engine:** Unit economics modeling (CAC, LTV, Gross Margin, Payback Period in PHP).
-- **Quality Gate:** Empirical audit verifying behavioral commitment tiers (pre-orders, LOIs, institutional pilots).
-
----
-
-## 5. Step 3: Project Translation & Technical SRS Generator
-
-### 5.1 Purpose & IEEE 830 Compliance
-Translates validated problem dossiers into an engineering-grade **Software Requirements Specification (SRS)** supporting:
-- **Academic Capstone Mode:** Compliant with CHED CICT and Philippine university thesis evaluation rubrics.
-- **Startup MVP Mode:** Lean technical specification ready for immediate developer sprint execution.
-
-### 5.2 Six Structured Sections
-1. **System Vision & Scope:** Clear In-Scope (MVP deliverables) vs. Out-of-Scope (deferred complexity).
-2. **Target User Persona:** Operating environment, primary goal, and core friction.
-3. **Functional Requirements (FR-001 ... FR-008):** Structured User Stories with formal Given/When/Then Acceptance Criteria.
-4. **Non-Functional Requirements (NFR-001 ... NFR-005):** Latency (< 200ms), offline-first resilience (IndexedDB caching), and security (AES-256).
-5. **System Architecture Blueprint:** Frontend, backend, database, and background synchronization strategy.
-6. **MVP Validation Rubric:** Objective target thresholds and field verification methods.
-
----
-
-## 6. Security, Accessibility & UX Standards
-
-1. **Accessibility:** WCAG 2.2 AA compliant. Minimum 44×44px touch targets across all mobile and tablet interfaces.
-2. **Color Palette (60-30-10):**
-   - 60% Obsidian Black (`#0B0F14`)
-   - 30% Midnight Slate (`#0F172A`)
-   - 10% Accents (Electric Blue `#0066FF`, Cyan `#06B6D4`, Emerald `#10B981`, Amber `#F59E0B`)
-3. **Typography:** Exo 2 (Brand / Headings), Inter (Product UI / Body), JetBrains Mono (Telemetry / IDs).
-4. **Data Privacy:** Local-first architecture; session state and passcodes secured in SQLite WAL.
+-#- -S-o-f-t-w-a-r-e- -R-e-q-u-i-r-e-m-e-n-t-s- -&- -S-y-s-t-e-m- -D-e-s-i-g-n- -S-p-e-c-i-f-i-c-a-t-i-o-n- -(-S-R-S-D-S-)-
+-
+-*-*-P-r-o-j-e-c-t-:-*-*- -C-O-N-V-E-R-A- --- -E-v-i-d-e-n-c-e---D-r-i-v-e-n- -P-r-o-j-e-c-t- -I-n-t-e-l-l-i-g-e-n-c-e- -a-n-d- -O-p-p-o-r-t-u-n-i-t-y- -V-a-l-i-d-a-t-i-o-n- -S-y-s-t-e-m- - -
+-*-*-P-a-r-e-n-t- -B-r-a-n-d-:-*-*- -E-M-A-E-R-X- -(-T-e-c-h-n-o-l-o-g-y- -a-n-d- -I-n-n-o-v-a-t-i-o-n- -T-e-a-m-)- - -
+-*-*-G-o-v-e-r-n-i-n-g- -B-a-s-e-l-i-n-e-:-*-*- -[-C-O-N-V-E-R-A- -M-a-s-t-e-r- -A-r-c-h-i-t-e-c-t-u-r-e- -S-p-e-c-i-f-i-c-a-t-i-o-n- -(-v-1-.-0-)-]-(-.-/-C-O-N-V-E-R-A-_-M-A-S-T-E-R-_-A-R-C-H-I-T-E-C-T-U-R-E-.-m-d-)- - -
+-*-*-S-t-a-n-d-a-r-d-:-*-*- -C-O-N-V-E-R-A- -C-o-n-c-e-p-t- -D-e-v-e-l-o-p-m-e-n-t- -S-t-a-n-d-a-r-d- -(-C-C-D-S-)- -/- -I-E-E-E- -8-3-0- -/- -I-S-O-/-I-E-C-/-I-E-E-E- -2-9-1-4-8- -/- -I-E-E-E- -1-0-1-6---2-0-0-9- -/- -C-H-E-D- -C-I-C-T- -S-t-a-n-d-a-r-d-s- - -
+-*-*-V-e-r-s-i-o-n-:-*-*- -3-.-0-.-0- -(-U-n-i-f-i-e-d- -E-v-i-d-e-n-c-e- -L-e-d-g-e-r-,- -D-e-c-i-s-i-o-n- -I-n-t-e-l-l-i-g-e-n-c-e- -&- -P-r-o-j-e-c-t- -T-r-a-n-s-l-a-t-i-o-n-)- - -
+-*-*-S-t-a-t-u-s-:-*-*- -A-p-p-r-o-v-e-d- -/- -P-r-o-d-u-c-t-i-o-n- -V-e-r-i-f-i-e-d- - -
+-*-*-L-a-s-t- -U-p-d-a-t-e-d-:-*-*- -S-e-p-t-e-m-b-e-r- -3-,- -2-0-2-6- - -
+-
+-
+-------
+-
+-#-#- -1-.- -E-x-e-c-u-t-i-v-e- -S-u-m-m-a-r-y- -&- -B-r-a-n-d- -I-d-e-n-t-i-t-y-
+-
+-#-#-#- -1-.-1- -B-r-a-n-d- -I-d-e-n-t-i-t-y- -&- -P-u-r-p-o-s-e-
+-*-*-C-O-N-V-E-R-A-*-*- -i-s- -a-n- -*-*-E-v-i-d-e-n-c-e---D-r-i-v-e-n- -P-r-o-j-e-c-t- -I-n-t-e-l-l-i-g-e-n-c-e- -a-n-d- -O-p-p-o-r-t-u-n-i-t-y- -V-a-l-i-d-a-t-i-o-n- -S-y-s-t-e-m-*-*- -d-e-v-e-l-o-p-e-d- -b-y- -*-*-E-M-A-E-R-X-*-*-.-
+-
+--- -*-*-B-r-a-n-d- -T-a-g-l-i-n-e-:-*-*- -*-W-H-E-R-E- -P-O-S-S-I-B-I-L-I-T-I-E-S- -C-O-N-V-E-R-G-E- -I-N-T-O- -D-I-R-E-C-T-I-O-N-.-*-
+--- -*-*-B-r-a-n-d- -P-h-i-l-o-s-o-p-h-y-:-*-*- -M-e-a-n-i-n-g-f-u-l- -i-n-n-o-v-a-t-i-o-n- -b-e-g-i-n-s- -b-y- -e-x-p-l-o-r-i-n-g- -w-h-a-t- -i-s- -n-o-t- -y-e-t- -u-n-d-e-r-s-t-o-o-d-.- -C-O-N-V-E-R-A- -b-r-i-n-g-s- -f-r-a-g-m-e-n-t-e-d- -i-d-e-a-s-,- -r-e-s-e-a-r-c-h-,- -A-I- -o-u-t-p-u-t-s-,- -a-s-s-u-m-p-t-i-o-n-s-,- -a-n-d- -f-i-e-l-d- -e-v-i-d-e-n-c-e- -t-o-g-e-t-h-e-r- -u-n-t-i-l- -a- -t-e-a-m- -c-a-n- -i-d-e-n-t-i-f-y- -a- -d-i-r-e-c-t-i-o-n- -t-h-a-t- -i-s- -e-m-p-i-r-i-c-a-l-l-y- -j-u-s-t-i-f-i-e-d- -t-o- -p-u-r-s-u-e-.-
+--- -*-*-F-o-u-n-d-e-r-s-:-*-*- -M-a-r-k- -A-l-v-i-n-,- -M-a-e- -D-a-n-i-e-l-l-a- -F-a-i-t-h-,- -J-o-h-n- -E-m-m-a-n-u-e-l- -(-E-M-A-E-R-X-)-.-
+-
+-#-#-#- -1-.-2- -C-o-r-e- -P-r-o-b-l-e-m- -S-o-l-v-e-d-
+-S-t-u-d-e-n-t- -t-e-c-h-n-o-p-r-e-n-e-u-r-s-h-i-p- -a-n-d- -c-o-m-p-u-t-i-n-g- -c-a-p-s-t-o-n-e- -t-e-a-m-s- -s-u-f-f-e-r- -f-r-o-m- -*-*-i-n-f-o-r-m-a-t-i-o-n- -f-r-a-g-m-e-n-t-a-t-i-o-n-*-*- -a-n-d- -*-*-p-r-e-m-a-t-u-r-e- -s-o-l-u-t-i-o-n-i-n-g-*-*-.- -I-d-e-a-s- -g-e-n-e-r-a-t-e-d- -a-c-r-o-s-s- -A-I- -c-h-a-t-s-,- -g-r-o-u-p- -c-h-a-t-s-,- -d-o-c-u-m-e-n-t-s-,- -s-p-r-e-a-d-s-h-e-e-t-s-,- -a-n-d- -p-e-r-s-o-n-a-l- -n-o-t-e-s- -a-r-e- -l-o-s-t- -o-r- -d-e-b-a-t-e-d- -w-i-t-h-o-u-t- -e-v-i-d-e-n-c-e-.- -C-O-N-V-E-R-A- -b-r-i-d-g-e-s- -t-h-e- -*-*-p-r-o-b-l-e-m---t-o---d-e-c-i-s-i-o-n- -g-a-p-*-*- -b-y- -o-r-g-a-n-i-z-i-n-g-,- -v-a-l-i-d-a-t-i-n-g-,- -a-n-d- -t-r-a-n-s-l-a-t-i-n-g- -r-a-w- -i-d-e-a-s- -i-n-t-o- -d-e-c-i-s-i-o-n---r-e-a-d-y- -p-r-o-j-e-c-t- -o-p-p-o-r-t-u-n-i-t-i-e-s-.-
+-
+-#-#-#- -1-.-3- -T-h-e- -M-e-c-h-a-n-i-c-a-l- -R-a-t-c-h-e-t- -&- -P-r-o-g-r-e-s-s-i-v-e- -F-r-a-m-e-w-o-r-k-
+-C-O-N-V-E-R-A- -e-n-f-o-r-c-e-s- -t-w-o- -c-o-m-p-l-e-m-e-n-t-a-r-y- -m-e-c-h-a-n-i-s-m-s-:-
+-1-.- -*-*-T-h-e- -M-e-c-h-a-n-i-c-a-l- -R-a-t-c-h-e-t- -I-n-v-a-r-i-a-n-t-:-*-*-
+- - - -$-$-\-t-e-x-t-{-P-h-a-s-e-}-_-{-k-+-1-}- -\-t-e-x-t-{- -U-n-l-o-c-k-e-d-}- -\-i-f-f- -\-t-e-x-t-{-G-a-t-e-}-(-\-t-e-x-t-{-P-h-a-s-e-}-_-k-)- -=- -\-t-e-x-t-{-P-A-S-S-E-D-}-$-$-
+- - - -D-o-w-n-s-t-r-e-a-m- -p-r-o-t-o-t-y-p-i-n-g- -(-P-h-a-s-e-s- -4- -&- -5-)- -i-s- -s-t-r-i-c-t-l-y- -l-o-c-k-e-d- -u-n-t-i-l- -u-p-s-t-r-e-a-m- -p-r-o-b-l-e-m- -v-a-l-i-d-a-t-i-o-n- -(-P-h-a-s-e-s- -1-,- -2-,- -&- -3-)- -p-a-s-s-e-s- -e-m-p-i-r-i-c-a-l- -r-i-g-o-r- -c-h-e-c-k-s-.-
+-2-.- -*-*-T-h-e- -3---S-t-e-p- -U-n-i-f-i-e-d- -E-v-o-l-u-t-i-o-n-:-*-*-
+- - - --- -*-*-S-t-e-p- -1- -—- -E-v-i-d-e-n-c-e- -F-o-u-n-d-a-t-i-o-n-:-*-*- -4---C-l-a-i-m- -E-v-i-d-e-n-c-e- -L-e-d-g-e-r-,- -P-r-i-o-r-i-t-i-z-e-d- -A-s-s-u-m-p-t-i-o-n- -R-a-d-a-r-,- -a-n-d- -D-O-I- -r-e-s-e-a-r-c-h- -p-a-p-e-r- -g-r-o-u-n-d-i-n-g-.-
+- - - --- -*-*-S-t-e-p- -2- -—- -D-e-c-i-s-i-o-n- -I-n-t-e-l-l-i-g-e-n-c-e-:-*-*- -D-e-c-i-s-i-o-n- -R-o-o-m- -W-o-r-k-s-p-a-c-e-,- -E-x-p-l-a-i-n-a-b-l-e- -A-I- -r-a-n-k-i-n-g-,- -I-m-m-u-t-a-b-l-e- -D-e-c-i-s-i-o-n- -A-u-d-i-t- -L-o-g- -(-`-d-e-c-i-s-i-o-n-_-r-e-c-o-r-d-s-`-)-,- -a-n-d- -P-h-a-s-e- -3- -P-i-v-o-t- -/- -R-e---e-v-a-l-u-a-t-e- -l-e-a-r-n-i-n-g- -l-o-o-p-s-.-
+- - - --- -*-*-S-t-e-p- -3- -—- -P-r-o-j-e-c-t- -T-r-a-n-s-l-a-t-i-o-n-:-*-*- -S-o-f-t-w-a-r-e- -R-e-q-u-i-r-e-m-e-n-t-s- -S-p-e-c-i-f-i-c-a-t-i-o-n- -(-S-R-S-)- -G-e-n-e-r-a-t-o-r- -t-r-a-n-s-l-a-t-i-n-g- -v-a-l-i-d-a-t-e-d- -o-p-p-o-r-t-u-n-i-t-i-e-s- -i-n-t-o- -I-E-E-E- -8-3-0- -/- -C-H-E-D- -C-I-C-T- -e-n-g-i-n-e-e-r-i-n-g- -b-l-u-e-p-r-i-n-t-s-.-
+-
+-------
+-
+-#-#- -2-.- -S-y-s-t-e-m- -A-r-c-h-i-t-e-c-t-u-r-e- -&- -C-o-m-p-o-n-e-n-t- -M-o-d-e-l-
+-
+-C-O-N-V-E-R-A- -e-m-p-l-o-y-s- -a- -d-e-c-o-u-p-l-e-d- -*-*-P-C---P-o-w-e-r-e-d- -H-i-g-h---P-e-r-f-o-r-m-a-n-c-e- -H-y-b-r-i-d- -A-r-c-h-i-t-e-c-t-u-r-e-*-*-:-
+-
+-`-`-`-
+-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+-|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -C-L-I-E-N-T- -/- -M-U-L-T-I---D-E-V-I-C-E- -T-I-E-R- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|-
+-|- - -N-e-x-t-.-j-s- -1-6- -(-A-p-p- -R-o-u-t-e-r-)- -*- -R-e-a-c-t- -1-9- -*- -T-a-i-l-w-i-n-d- -C-S-S- -*- -G-l-a-s-s-m-o-r-p-h-i-s-m- -D-e-s-i-g-n- -S-y-s-t-e-m- - - - - - -|-
+-|- - -*- -5---P-h-a-s-e- -P-r-o-g-r-e-s-s-i-v-e- -V-e-n-t-u-r-e- -W-o-r-k-s-p-a-c-e- -(-D-e-s-k-t-o-p-,- -T-a-b-l-e-t-,- -M-o-b-i-l-e-)- - - - - - - - - - - - - - - - - - - - -|-
+-|- - -*- -S-t-e-p- -1-:- -4---C-l-a-i-m- -E-v-i-d-e-n-c-e- -L-e-d-g-e-r- -(-<-E-v-i-d-e-n-c-e-L-e-d-g-e-r-C-a-r-d- -/->-)- -&- -A-s-s-u-m-p-t-i-o-n- -R-a-d-a-r- - - - - - - - -|-
+-|- - -*- -S-t-e-p- -2-:- -D-e-c-i-s-i-o-n- -R-o-o-m- -W-o-r-k-s-p-a-c-e- -(-<-D-e-c-i-s-i-o-n-R-o-o-m-W-o-r-k-s-p-a-c-e- -/->-)- -&- -T-i-m-e-l-i-n-e- -M-o-d-a-l- - - - - - - -|-
+-|- - -*- -S-t-e-p- -3-:- -T-e-c-h-n-i-c-a-l- -C-a-p-s-t-o-n-e- -&- -S-t-a-r-t-u-p- -M-V-P- -S-R-S- -G-e-n-e-r-a-t-o-r- -(-<-S-r-s-S-p-e-c-V-i-e-w- -/->-)- - - - - - - - - - - -|-
+-|- - -*- -D-e-l-i-v-e-r-a-b-l-e-s- -S-t-u-d-i-o- -(-L-e-a-n- -C-a-n-v-a-s-,- -S-W-O-T-,- -1-0---S-l-i-d-e- -P-i-t-c-h- -D-e-c-k-,- -M-a-s-t-e-r- -D-o-s-s-i-e-r-)- - - - - - - -|-
+-|- - -*- -M-u-l-t-i---U-s-e-r- -C-o-l-l-a-b-o-r-a-t-i-o-n- -&- -P-r-o-j-e-c-t- -R-o-o-m-s- -(-S-h-a-r-e- -C-o-d-e-s-:- -`-C-O-N-V---X-X-X-X-`- -/- -`-R-A-T-C-H---X-X-X-X-`-)- -|-
+-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|- -H-T-T-P-S- -/- -R-e-l-a-t-i-v-e- -P-r-o-x-y- -(-`-/-a-p-i-/-.-.-.-`-)-
+- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -v-
+-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+-|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - -A-P-I- -/- -S-E-R-V-I-C-E- -O-R-C-H-E-S-T-R-A-T-I-O-N- -T-I-E-R- - - - - - - - - - - - - - - - - - - - - - - - - - - -|-
+-|- - -F-a-s-t-A-P-I- -(-P-y-t-h-o-n- -3-.-1-2-)- -*- -P-y-d-a-n-t-i-c- -v-2- -*- -A-s-y-n-c-i-o- -S-e-r-v-i-c-e- -E-n-g-i-n-e- -(-H-o-s-t-:- -0-.-0-.-0-.-0-:-8-0-0-0-)- - - - -|-
+-|- - -*- -A-s-s-u-m-p-t-i-o-n- -&- -C-l-a-i-m- -E-x-t-r-a-c-t-i-o-n- -E-n-g-i-n-e- -(-p-i-p-e-l-i-n-e-/-e-n-g-i-n-e-s-/-a-s-s-u-m-p-t-i-o-n-_-e-n-g-i-n-e-.-p-y-)- - - - - - - -|-
+-|- - -*- -M-u-l-t-i---C-a-n-d-i-d-a-t-e- -D-e-c-i-s-i-o-n- -R-o-o-m- -&- -P-i-v-o-t- -E-n-g-i-n-e- -(-p-i-p-e-l-i-n-e-/-e-n-g-i-n-e-s-/-d-e-c-i-s-i-o-n-_-e-n-g-i-n-e-.-p-y-)- -|-
+-|- - -*- -C-a-p-s-t-o-n-e- -/- -M-V-P- -T-e-c-h-n-i-c-a-l- -S-R-S- -G-e-n-e-r-a-t-o-r- -(-p-i-p-e-l-i-n-e-/-e-n-g-i-n-e-s-/-s-r-s-_-g-e-n-e-r-a-t-o-r-.-p-y-)- - - - - - - - - -|-
+-|- - -*- -A-c-a-d-e-m-i-c- -R-e-s-e-a-r-c-h- -C-l-i-e-n-t- -(-O-p-e-n-A-l-e-x-,- -E-u-r-o-p-e- -P-M-C-,- -C-r-o-s-s-r-e-f- -w-i-t-h- -A-I- -R-e-l-e-v-a-n-c-e- -G-a-t-e-)- - - -|-
+-|- - -*- -6---L-e-v-e-l- -S-o-c-r-a-t-i-c- -M-o-m- -T-e-s-t- -V-a-l-i-d-a-t-i-o-n- -E-n-g-i-n-e- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|-
+-+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+- - - - - - - - - - - - - - - - - - - - - - -|- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -|-
+- - - - - - - - - - - - - - - - - - - - - - -v- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -v-
+-+---------------------------------------------------------------------------------+- - - - - -+---------------------------------------------------------------------------------+-
+-|- - - - - - - - -U-N-I-V-E-R-S-A-L- -M-U-L-T-I---P-R-O-V-I-D-E-R- -G-A-T-E-W-A-Y-|- - - - - -|- - - - - - - -S-T-O-R-A-G-E- -A-D-A-P-T-E-R- -S-U-B-S-Y-S-T-E-M- - - - - - - - -|-
+-|- - -D-y-n-a-m-i-c- -M-u-l-t-i---M-o-d-e-l- -F-a-i-l-o-v-e-r- -C-a-s-c-a-d-e- - -|- - - - - -|- - -P-l-u-g-g-a-b-l-e- -L-o-c-a-l- -&- -C-l-o-u-d- -P-e-r-s-i-s-t-e-n-c-e- - - -|-
+-|- - -1-.- -G-o-o-g-l-e- -G-e-m-i-n-i- -(-g-e-m-i-n-i---3-.-8---f-l-a-s-h-)- - - -|- - - - - -|- - -*- -S-Q-L-i-t-e- -W-A-L- -(-p-i-p-e-l-i-n-e-/-r-a-t-c-h-e-t-a-i-.-d-b-)- - -|-
+-|- - -2-.- -G-r-o-q- -C-l-o-u-d- -(-l-l-a-m-a---3-.-3---7-0-b- -@- -5-0-0-t-/-s-)-|- - - - - -|- - -*- -P-o-s-t-g-r-e-S-Q-L- -(-N-e-o-n- -/- -S-u-p-a-b-a-s-e- -C-l-o-u-d-)- - -|-
+-|- - -3-.- -O-p-e-n-R-o-u-t-e-r- -(-L-l-a-m-a- -3-.-3- -7-0-B- -I-n-s-t-r-u-c-t-)-|- - - - - -|- - -*- -R-e-l-a-t-i-o-n-a-l- -S-c-h-e-m-a- -+- -Z-e-r-o---O-p-s- -W-A-L- - - - -|-
+-|- - -4-.- -L-o-c-a-l- -O-l-l-a-m-a- -(-q-w-e-n-2-.-5- -/- -l-l-a-m-a-3-.-2-)- - -|- - - - - -|- - -*- -C-a-s-c-a-d-i-n-g- -F-o-r-e-i-g-n- -K-e-y- -I-n-t-e-g-r-i-t-y- - - - - -|-
+-+---------------------------------------------------------------------------------+- - - - - -+---------------------------------------------------------------------------------+-
+-`-`-`-
+-
+-------
+-
+-#-#- -3-.- -R-e-l-a-t-i-o-n-a-l- -S-t-o-r-a-g-e- -S-c-h-e-m-a- -S-p-e-c-i-f-i-c-a-t-i-o-n-
+-
+-C-O-N-V-E-R-A-'-s- -K-n-o-w-l-e-d-g-e- -G-r-a-p-h- -i-s- -p-e-r-s-i-s-t-e-d- -i-n- -S-Q-L-i-t-e- -w-i-t-h- -W-r-i-t-e---A-h-e-a-d- -L-o-g-g-i-n-g- -(-W-A-L-)- -e-n-a-b-l-e-d-:-
+-
+-#-#-#- -3-.-1- -D-a-t-a-b-a-s-e- -T-a-b-l-e-s-
+-
+-`-`-`-s-q-l-
+----- -1-.- -P-r-o-j-e-c-t-s- -&- -M-u-l-t-i---D-e-v-i-c-e- -C-o-l-l-a-b-o-r-a-t-i-o-n-
+-C-R-E-A-T-E- -T-A-B-L-E- -I-F- -N-O-T- -E-X-I-S-T-S- -p-r-o-j-e-c-t-s- -(-
+- - - - -i-d- -T-E-X-T- -P-R-I-M-A-R-Y- -K-E-Y-,-
+- - - - -s-h-a-r-e-_-c-o-d-e- -T-E-X-T- -U-N-I-Q-U-E- -N-O-T- -N-U-L-L-,-
+- - - - -n-a-m-e- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -p-a-s-s-c-o-d-e- -T-E-X-T-,-
+- - - - -c-r-e-a-t-e-d-_-a-t- -T-I-M-E-S-T-A-M-P- -D-E-F-A-U-L-T- -C-U-R-R-E-N-T-_-T-I-M-E-S-T-A-M-P-
+-)-;-
+-
+----- -2-.- -S-e-s-s-i-o-n-s- -&- -P-h-a-s-e- -P-r-o-g-r-e-s-s- -S-t-a-t-e-
+-C-R-E-A-T-E- -T-A-B-L-E- -I-F- -N-O-T- -E-X-I-S-T-S- -s-e-s-s-i-o-n-s- -(-
+- - - - -s-e-s-s-i-o-n-_-i-d- -T-E-X-T- -P-R-I-M-A-R-Y- -K-E-Y-,-
+- - - - -p-r-o-j-e-c-t-_-i-d- -T-E-X-T-,-
+- - - - -s-t-a-t-e-_-d-a-t-a- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -p-r-o-j-e-c-t-_-n-a-m-e- -T-E-X-T- -D-E-F-A-U-L-T- -'-V-e-n-t-u-r-e- -P-r-o-j-e-c-t-'-,-
+- - - - -c-r-e-a-t-e-d-_-a-t- -T-I-M-E-S-T-A-M-P- -D-E-F-A-U-L-T- -C-U-R-R-E-N-T-_-T-I-M-E-S-T-A-M-P-,-
+- - - - -u-p-d-a-t-e-d-_-a-t- -T-I-M-E-S-T-A-M-P- -D-E-F-A-U-L-T- -C-U-R-R-E-N-T-_-T-I-M-E-S-T-A-M-P-,-
+- - - - -F-O-R-E-I-G-N- -K-E-Y-(-p-r-o-j-e-c-t-_-i-d-)- -R-E-F-E-R-E-N-C-E-S- -p-r-o-j-e-c-t-s-(-i-d-)- -O-N- -D-E-L-E-T-E- -C-A-S-C-A-D-E-
+-)-;-
+-
+----- -3-.- -C-u-r-a-t-e-d- -P-r-o-b-l-e-m- -B-a-n-k- -&- -G-r-o-u-n-d-i-n-g-
+-C-R-E-A-T-E- -T-A-B-L-E- -I-F- -N-O-T- -E-X-I-S-T-S- -p-r-o-b-l-e-m-s- -(-
+- - - - -i-d- -T-E-X-T- -P-R-I-M-A-R-Y- -K-E-Y-,-
+- - - - -p-r-o-b-l-e-m-_-s-t-a-t-e-m-e-n-t- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -s-u-f-f-e-r-e-r-_-o-c-c-u-p-a-t-i-o-n- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -s-u-f-f-e-r-e-r-_-l-o-c-a-t-i-o-n- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -q-u-a-n-t-i-f-i-e-d-_-i-m-p-a-c-t- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -w-o-r-k-a-r-o-u-n-d- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -s-t-a-t-u-s- -T-E-X-T- -N-O-T- -N-U-L-L- -D-E-F-A-U-L-T- -'-a-c-t-i-v-e-'-,-
+- - - - -s-c-o-r-e- -R-E-A-L- -D-E-F-A-U-L-T- -8-0-.-0-,-
+- - - - -s-o-u-r-c-e-s- -T-E-X-T- -D-E-F-A-U-L-T- -'-[-]-'-,-
+- - - - -n-o-t-e-s- -T-E-X-T-,-
+- - - - -c-r-e-a-t-e-d-_-a-t- -T-I-M-E-S-T-A-M-P- -D-E-F-A-U-L-T- -C-U-R-R-E-N-T-_-T-I-M-E-S-T-A-M-P-
+-)-;-
+-
+----- -4-.- -S-t-e-p- -1-:- -4---C-l-a-i-m- -E-v-i-d-e-n-c-e- -L-e-d-g-e-r-
+-C-R-E-A-T-E- -T-A-B-L-E- -I-F- -N-O-T- -E-X-I-S-T-S- -p-r-o-b-l-e-m-_-c-l-a-i-m-s- -(-
+- - - - -i-d- -T-E-X-T- -P-R-I-M-A-R-Y- -K-E-Y-,-
+- - - - -p-r-o-b-l-e-m-_-i-d- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -c-l-a-i-m-_-t-y-p-e- -T-E-X-T- -N-O-T- -N-U-L-L-,- ----- -F-R-I-C-T-I-O-N-_-R-E-A-L-I-T-Y-,- -F-R-E-Q-U-E-N-C-Y-_-C-O-N-S-E-Q-U-E-N-C-E-,- -W-O-R-K-A-R-O-U-N-D-_-D-I-S-S-A-T-I-S-F-A-C-T-I-O-N-,- -A-D-O-P-T-I-O-N-_-C-O-M-M-I-T-M-E-N-T-
+- - - - -c-l-a-i-m-_-t-e-x-t- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -m-o-d-e- -T-E-X-T- -D-E-F-A-U-L-T- -'-C-O-M-M-E-R-C-I-A-L-'-,- ----- -C-O-M-M-E-R-C-I-A-L- -(-W-T-P-)- -o-r- -C-I-V-I-C-_-I-N-S-T-I-T-U-T-I-O-N-A-L- -(-B-e-h-a-v-i-o-r-a-l- -F-e-a-s-i-b-i-l-i-t-y-)-
+- - - - -s-t-a-t-u-s- -T-E-X-T- -D-E-F-A-U-L-T- -'-U-N-V-E-R-I-F-I-E-D-'-,- ----- -U-N-V-E-R-I-F-I-E-D-,- -S-U-P-P-O-R-T-E-D-,- -V-A-L-I-D-A-T-E-D-,- -R-E-F-U-T-E-D-
+- - - - -s-u-p-p-o-r-t-i-n-g-_-e-v-i-d-e-n-c-e- -T-E-X-T-,-
+- - - - -c-r-e-a-t-e-d-_-a-t- -T-I-M-E-S-T-A-M-P- -D-E-F-A-U-L-T- -C-U-R-R-E-N-T-_-T-I-M-E-S-T-A-M-P-,-
+- - - - -F-O-R-E-I-G-N- -K-E-Y-(-p-r-o-b-l-e-m-_-i-d-)- -R-E-F-E-R-E-N-C-E-S- -p-r-o-b-l-e-m-s-(-i-d-)- -O-N- -D-E-L-E-T-E- -C-A-S-C-A-D-E-
+-)-;-
+-
+----- -5-.- -S-t-e-p- -1-:- -P-r-i-o-r-i-t-i-z-e-d- -A-s-s-u-m-p-t-i-o-n- -R-a-d-a-r-
+-C-R-E-A-T-E- -T-A-B-L-E- -I-F- -N-O-T- -E-X-I-S-T-S- -p-r-o-b-l-e-m-_-a-s-s-u-m-p-t-i-o-n-s- -(-
+- - - - -i-d- -T-E-X-T- -P-R-I-M-A-R-Y- -K-E-Y-,-
+- - - - -p-r-o-b-l-e-m-_-i-d- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -a-s-s-u-m-p-t-i-o-n-_-t-e-x-t- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -r-i-s-k-_-l-e-v-e-l- -T-E-X-T- -N-O-T- -N-U-L-L-,- ----- -C-R-I-T-I-C-A-L-,- -H-I-G-H-,- -M-E-D-I-U-M-,- -L-O-W-
+- - - - -m-o-m-_-t-e-s-t-_-q-u-e-s-t-i-o-n- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -s-t-a-t-u-s- -T-E-X-T- -D-E-F-A-U-L-T- -'-P-E-N-D-I-N-G-'-,- ----- -P-E-N-D-I-N-G-,- -V-A-L-I-D-A-T-E-D-,- -I-N-V-A-L-I-D-A-T-E-D-
+- - - - -c-r-e-a-t-e-d-_-a-t- -T-I-M-E-S-T-A-M-P- -D-E-F-A-U-L-T- -C-U-R-R-E-N-T-_-T-I-M-E-S-T-A-M-P-,-
+- - - - -F-O-R-E-I-G-N- -K-E-Y-(-p-r-o-b-l-e-m-_-i-d-)- -R-E-F-E-R-E-N-C-E-S- -p-r-o-b-l-e-m-s-(-i-d-)- -O-N- -D-E-L-E-T-E- -C-A-S-C-A-D-E-
+-)-;-
+-
+----- -6-.- -S-t-e-p- -2-:- -I-m-m-u-t-a-b-l-e- -D-e-c-i-s-i-o-n- -A-u-d-i-t- -R-e-c-o-r-d-s-
+-C-R-E-A-T-E- -T-A-B-L-E- -I-F- -N-O-T- -E-X-I-S-T-S- -d-e-c-i-s-i-o-n-_-r-e-c-o-r-d-s- -(-
+- - - - -i-d- -T-E-X-T- -P-R-I-M-A-R-Y- -K-E-Y-,-
+- - - - -s-e-s-s-i-o-n-_-i-d- -T-E-X-T-,-
+- - - - -s-t-a-g-e- -T-E-X-T- -N-O-T- -N-U-L-L-,- ----- -P-H-A-S-E-_-2-_-D-E-C-I-S-I-O-N-_-R-O-O-M-,- -P-H-A-S-E-_-3-_-P-I-V-O-T-_-L-O-O-P-,- -e-t-c-.-
+- - - - -s-e-l-e-c-t-e-d-_-p-r-o-b-l-e-m-_-i-d- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -r-e-j-e-c-t-e-d-_-p-r-o-b-l-e-m-_-i-d-s- -T-E-X-T- -D-E-F-A-U-L-T- -'-[-]-'-,-
+- - - - -d-e-c-i-s-i-o-n-_-r-a-t-i-o-n-a-l-e- -T-E-X-T- -N-O-T- -N-U-L-L-,-
+- - - - -s-u-p-p-o-r-t-i-n-g-_-e-v-i-d-e-n-c-e-_-i-d-s- -T-E-X-T- -D-E-F-A-U-L-T- -'-[-]-'-,-
+- - - - -c-r-e-a-t-e-d-_-a-t- -T-I-M-E-S-T-A-M-P- -D-E-F-A-U-L-T- -C-U-R-R-E-N-T-_-T-I-M-E-S-T-A-M-P-
+-)-;-
+-`-`-`-
+-
+-------
+-
+-#-#- -4-.- -P-h-a-s-e---b-y---P-h-a-s-e- -F-u-n-c-t-i-o-n-a-l- -S-p-e-c-i-f-i-c-a-t-i-o-n-
+-
+-#-#-#- -P-h-a-s-e- -1-:- -R-e-g-i-o-n-a-l- -P-r-o-b-l-e-m- -D-i-s-c-o-v-e-r-y-
+--- -*-*-E-n-g-i-n-e-:-*-*- -S-c-a-n-s- -r-e-g-i-o-n-a-l- -s-o-c-i-o---e-c-o-n-o-m-i-c- -s-e-c-t-o-r-s- -(-A-g-r-i-c-u-l-t-u-r-e-,- -H-e-a-l-t-h-c-a-r-e-,- -G-o-v-e-r-n-a-n-c-e-,- -L-o-g-i-s-t-i-c-s-,- -T-o-u-r-i-s-m-,- -M-S-M-E-,- -E-d-u-c-a-t-i-o-n-)-.-
+--- -*-*-Q-u-a-l-i-t-y- -G-a-t-e-:-*-*- -S-t-r-i-c-t- -e-x-t-r-a-c-t-i-o-n- -o-f- -5- -c-o-r-e- -p-a-r-a-m-e-t-e-r-s- -(-S-u-f-f-e-r-e-r-,- -L-o-c-a-t-i-o-n-,- -R-o-o-t- -F-r-i-c-t-i-o-n-,- -W-o-r-k-a-r-o-u-n-d-,- -Q-u-a-n-t-i-f-i-e-d- -L-o-s-s-)-.-
+-
+-#-#-#- -P-h-a-s-e- -2-:- -S-c-r-e-e-n-i-n-g- -&- -S-i-z-i-n-g- -(-D-e-c-i-s-i-o-n- -R-o-o-m-)-
+--- -*-*-E-n-g-i-n-e-:-*-*- -1-0---c-o-l-u-m-n- -m-u-l-t-i---c-a-n-d-i-d-a-t-e- -e-v-a-l-u-a-t-i-o-n- -m-a-t-r-i-x-.-
+--- -*-*-D-e-c-i-s-i-o-n- -R-o-o-m-:-*-*- -S-i-d-e---b-y---s-i-d-e- -c-o-m-p-a-r-i-s-o-n- -o-f- -E-v-i-d-e-n-c-e- -L-e-d-g-e-r-s-,- -A-s-s-u-m-p-t-i-o-n- -R-a-d-a-r-s-,- -a-n-d- -D-O-I- -r-e-s-e-a-r-c-h- -c-i-t-a-t-i-o-n-s-.-
+--- -*-*-A-I- -J-u-d-g-e-:-*-*- -E-x-p-l-a-i-n-a-b-l-e- -r-a-n-k-i-n-g- -w-i-t-h- -p-r-o-s-,- -r-i-s-k-s-,- -a-n-d- -u-n-r-e-s-o-l-v-e-d- -c-r-i-t-i-c-a-l- -a-s-s-u-m-p-t-i-o-n-s-.-
+--- -*-*-Q-u-a-l-i-t-y- -G-a-t-e-:-*-*- -L-o-c-k- -w-i-n-n-i-n-g- -t-h-e-s-i-s- -a-n-d- -c-o-m-m-i-t- -i-m-m-u-t-a-b-l-e- -`-d-e-c-i-s-i-o-n-_-r-e-c-o-r-d-`-.-
+-
+-#-#-#- -P-h-a-s-e- -3-:- -F-i-e-l-d- -V-a-l-i-d-a-t-i-o-n- -&- -M-o-m- -T-e-s-t- -C-l-i-n-i-c-
+--- -*-*-E-n-g-i-n-e-:-*-*- -S-o-c-r-a-t-i-c- -A-I- -i-n-t-e-r-r-o-g-a-t-o-r- -g-u-i-d-i-n-g- -s-t-u-d-e-n-t- -f-o-u-n-d-e-r-s- -t-h-r-o-u-g-h- -6- -p-r-o-g-r-e-s-s-i-v-e- -l-e-v-e-l-s-:-
+- - -1-.- -*-W-h-o- -S-p-e-c-i-f-i-c-a-l-l-y- -S-u-f-f-e-r-s-?-*-
+- - -2-.- -*-F-r-e-q-u-e-n-c-y- -&- -M-e-a-s-u-r-a-b-l-e- -C-o-n-s-e-q-u-e-n-c-e-?-*-
+- - -3-.- -*-W-h-a-t- -i-s- -t-h-e- -A-c-t-i-v-e- -W-o-r-k-a-r-o-u-n-d-?-*-
+- - -4-.- -*-D-i-s-s-a-t-i-s-f-a-c-t-i-o-n- -w-i-t-h- -C-u-r-r-e-n-t- -W-o-r-k-a-r-o-u-n-d-?-*-
+- - -5-.- -*-P-a-s-t- -F-i-n-a-n-c-i-a-l- -o-r- -T-i-m-e- -C-o-m-m-i-t-m-e-n-t-?-*-
+- - -6-.- -*-Q-u-a-n-t-i-f-i-e-d- -F-r-i-c-t-i-o-n- -V-e-r-i-f-i-c-a-t-i-o-n-?-*-
+--- -*-*-P-i-v-o-t- -L-o-o-p-:-*-*- -I-f- -a-n- -i-n-t-e-r-v-i-e-w- -r-e-f-u-t-e-s- -a-n- -a-s-s-u-m-p-t-i-o-n-,- -`-E-x-e-c-u-t-e- -P-i-v-o-t- -L-o-o-p-`- -s-a-f-e-l-y- -r-o-u-t-e-s- -b-a-c-k- -t-o- -P-h-a-s-e- -2- -w-h-i-l-e- -p-r-e-s-e-r-v-i-n-g- -h-i-s-t-o-r-i-c-a-l- -n-o-t-e-s- -a-n-d- -l-o-g-g-i-n-g- -t-h-e- -p-i-v-o-t- -r-a-t-i-o-n-a-l-e-.-
+-
+-#-#-#- -P-h-a-s-e- -4-:- -M-e-c-h-a-n-i-s-m- -D-e-s-i-g-n- -&- -A-r-c-h-i-t-e-c-t-u-r-e-
+--- -*-*-E-n-g-i-n-e-:-*-*- -G-e-n-e-r-a-t-e-s- -1-5- -m-e-c-h-a-n-i-s-m- -f-a-m-i-l-i-e-s- -(-I-o-T- -T-e-l-e-m-e-t-r-y-,- -C-o-o-p-e-r-a-t-i-v-e- -B-a-t-c-h-i-n-g-,- -S-M-S- -A-l-e-r-t-s-,- -O-f-f-l-i-n-e- -Q-u-e-u-i-n-g-,- -M-i-c-r-o---e-s-c-r-o-w-,- -e-t-c-.-)-.-
+--- -*-*-Q-u-a-l-i-t-y- -G-a-t-e-:-*-*- -S-o-l-u-t-i-o-n- -V-a-l-i-d-a-t-i-o-n- -B-o-a-r-d- -(-S-V-B-)- -c-a-n-v-a-s- -m-a-p-p-i-n-g- -m-e-c-h-a-n-i-s-m- -t-o- -r-o-o-t- -c-a-u-s-e-.-
+-
+-#-#-#- -P-h-a-s-e- -5-:- -U-n-i-t- -E-c-o-n-o-m-i-c-s- -&- -E-m-p-i-r-i-c-a-l- -A-u-d-i-t-
+--- -*-*-E-n-g-i-n-e-:-*-*- -U-n-i-t- -e-c-o-n-o-m-i-c-s- -m-o-d-e-l-i-n-g- -(-C-A-C-,- -L-T-V-,- -G-r-o-s-s- -M-a-r-g-i-n-,- -P-a-y-b-a-c-k- -P-e-r-i-o-d- -i-n- -P-H-P-)-.-
+--- -*-*-Q-u-a-l-i-t-y- -G-a-t-e-:-*-*- -E-m-p-i-r-i-c-a-l- -a-u-d-i-t- -v-e-r-i-f-y-i-n-g- -b-e-h-a-v-i-o-r-a-l- -c-o-m-m-i-t-m-e-n-t- -t-i-e-r-s- -(-p-r-e---o-r-d-e-r-s-,- -L-O-I-s-,- -i-n-s-t-i-t-u-t-i-o-n-a-l- -p-i-l-o-t-s-)-.-
+-
+-------
+-
+-#-#- -5-.- -S-t-e-p- -3-:- -P-r-o-j-e-c-t- -T-r-a-n-s-l-a-t-i-o-n- -&- -T-e-c-h-n-i-c-a-l- -S-R-S- -G-e-n-e-r-a-t-o-r-
+-
+-#-#-#- -5-.-1- -P-u-r-p-o-s-e- -&- -I-E-E-E- -8-3-0- -C-o-m-p-l-i-a-n-c-e-
+-T-r-a-n-s-l-a-t-e-s- -v-a-l-i-d-a-t-e-d- -p-r-o-b-l-e-m- -d-o-s-s-i-e-r-s- -i-n-t-o- -a-n- -e-n-g-i-n-e-e-r-i-n-g---g-r-a-d-e- -*-*-S-o-f-t-w-a-r-e- -R-e-q-u-i-r-e-m-e-n-t-s- -S-p-e-c-i-f-i-c-a-t-i-o-n- -(-S-R-S-)-*-*- -s-u-p-p-o-r-t-i-n-g-:-
+--- -*-*-A-c-a-d-e-m-i-c- -C-a-p-s-t-o-n-e- -M-o-d-e-:-*-*- -C-o-m-p-l-i-a-n-t- -w-i-t-h- -C-H-E-D- -C-I-C-T- -a-n-d- -P-h-i-l-i-p-p-i-n-e- -u-n-i-v-e-r-s-i-t-y- -t-h-e-s-i-s- -e-v-a-l-u-a-t-i-o-n- -r-u-b-r-i-c-s-.-
+--- -*-*-S-t-a-r-t-u-p- -M-V-P- -M-o-d-e-:-*-*- -L-e-a-n- -t-e-c-h-n-i-c-a-l- -s-p-e-c-i-f-i-c-a-t-i-o-n- -r-e-a-d-y- -f-o-r- -i-m-m-e-d-i-a-t-e- -d-e-v-e-l-o-p-e-r- -s-p-r-i-n-t- -e-x-e-c-u-t-i-o-n-.-
+-
+-#-#-#- -5-.-2- -S-i-x- -S-t-r-u-c-t-u-r-e-d- -S-e-c-t-i-o-n-s-
+-1-.- -*-*-S-y-s-t-e-m- -V-i-s-i-o-n- -&- -S-c-o-p-e-:-*-*- -C-l-e-a-r- -I-n---S-c-o-p-e- -(-M-V-P- -d-e-l-i-v-e-r-a-b-l-e-s-)- -v-s-.- -O-u-t---o-f---S-c-o-p-e- -(-d-e-f-e-r-r-e-d- -c-o-m-p-l-e-x-i-t-y-)-.-
+-2-.- -*-*-T-a-r-g-e-t- -U-s-e-r- -P-e-r-s-o-n-a-:-*-*- -O-p-e-r-a-t-i-n-g- -e-n-v-i-r-o-n-m-e-n-t-,- -p-r-i-m-a-r-y- -g-o-a-l-,- -a-n-d- -c-o-r-e- -f-r-i-c-t-i-o-n-.-
+-3-.- -*-*-F-u-n-c-t-i-o-n-a-l- -R-e-q-u-i-r-e-m-e-n-t-s- -(-F-R---0-0-1- -.-.-.- -F-R---0-0-8-)-:-*-*- -S-t-r-u-c-t-u-r-e-d- -U-s-e-r- -S-t-o-r-i-e-s- -w-i-t-h- -f-o-r-m-a-l- -G-i-v-e-n-/-W-h-e-n-/-T-h-e-n- -A-c-c-e-p-t-a-n-c-e- -C-r-i-t-e-r-i-a-.-
+-4-.- -*-*-N-o-n---F-u-n-c-t-i-o-n-a-l- -R-e-q-u-i-r-e-m-e-n-t-s- -(-N-F-R---0-0-1- -.-.-.- -N-F-R---0-0-5-)-:-*-*- -L-a-t-e-n-c-y- -(-<- -2-0-0-m-s-)-,- -o-f-f-l-i-n-e---f-i-r-s-t- -r-e-s-i-l-i-e-n-c-e- -(-I-n-d-e-x-e-d-D-B- -c-a-c-h-i-n-g-)-,- -a-n-d- -s-e-c-u-r-i-t-y- -(-A-E-S---2-5-6-)-.-
+-5-.- -*-*-S-y-s-t-e-m- -A-r-c-h-i-t-e-c-t-u-r-e- -B-l-u-e-p-r-i-n-t-:-*-*- -F-r-o-n-t-e-n-d-,- -b-a-c-k-e-n-d-,- -d-a-t-a-b-a-s-e-,- -a-n-d- -b-a-c-k-g-r-o-u-n-d- -s-y-n-c-h-r-o-n-i-z-a-t-i-o-n- -s-t-r-a-t-e-g-y-.-
+-6-.- -*-*-M-V-P- -V-a-l-i-d-a-t-i-o-n- -R-u-b-r-i-c-:-*-*- -O-b-j-e-c-t-i-v-e- -t-a-r-g-e-t- -t-h-r-e-s-h-o-l-d-s- -a-n-d- -f-i-e-l-d- -v-e-r-i-f-i-c-a-t-i-o-n- -m-e-t-h-o-d-s-.-
+-
+-------
+-
+-#-#- -6-.- -S-e-c-u-r-i-t-y-,- -A-c-c-e-s-s-i-b-i-l-i-t-y- -&- -U-X- -S-t-a-n-d-a-r-d-s-
+-
+-1-.- -*-*-A-c-c-e-s-s-i-b-i-l-i-t-y-:-*-*- -W-C-A-G- -2-.-2- -A-A- -c-o-m-p-l-i-a-n-t-.- -M-i-n-i-m-u-m- -4-4-×-4-4-p-x- -t-o-u-c-h- -t-a-r-g-e-t-s- -a-c-r-o-s-s- -a-l-l- -m-o-b-i-l-e- -a-n-d- -t-a-b-l-e-t- -i-n-t-e-r-f-a-c-e-s-.-
+-2-.- -*-*-C-o-l-o-r- -P-a-l-e-t-t-e- -(-6-0---3-0---1-0-)-:-*-*-
+- - - --- -6-0-%- -O-b-s-i-d-i-a-n- -B-l-a-c-k- -(-`-#-0-B-0-F-1-4-`-)-
+- - - --- -3-0-%- -M-i-d-n-i-g-h-t- -S-l-a-t-e- -(-`-#-0-F-1-7-2-A-`-)-
+- - - --- -1-0-%- -A-c-c-e-n-t-s- -(-E-l-e-c-t-r-i-c- -B-l-u-e- -`-#-0-0-6-6-F-F-`-,- -C-y-a-n- -`-#-0-6-B-6-D-4-`-,- -E-m-e-r-a-l-d- -`-#-1-0-B-9-8-1-`-,- -A-m-b-e-r- -`-#-F-5-9-E-0-B-`-)-
+-3-.- -*-*-T-y-p-o-g-r-a-p-h-y-:-*-*- -E-x-o- -2- -(-B-r-a-n-d- -/- -H-e-a-d-i-n-g-s-)-,- -I-n-t-e-r- -(-P-r-o-d-u-c-t- -U-I- -/- -B-o-d-y-)-,- -J-e-t-B-r-a-i-n-s- -M-o-n-o- -(-T-e-l-e-m-e-t-r-y- -/- -I-D-s-)-.-
+-4-.- -*-*-D-a-t-a- -P-r-i-v-a-c-y-:-*-*- -L-o-c-a-l---f-i-r-s-t- -a-r-c-h-i-t-e-c-t-u-r-e-;- -s-e-s-s-i-o-n- -s-t-a-t-e- -a-n-d- -p-a-s-s-c-o-d-e-s- -s-e-c-u-r-e-d- -i-n- -S-Q-L-i-t-e- -W-A-L-.-
+-

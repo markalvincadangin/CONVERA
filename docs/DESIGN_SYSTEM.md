@@ -1,89 +1,90 @@
-# CONVERA Design System Specification (v3.0)
-
-**Parent Brand:** EMAERX  
-**Product:** CONVERA — Evidence-Driven Project Intelligence and Opportunity Validation System  
-**Tagline:** *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*  
-**Standard Alignment:** WCAG 2.2 AA / AAA • Nielsen Norman Group 10 Usability Heuristics • 60-30-10 Color Hierarchy  
-
----
-
-## 1. Design Philosophy & Golden Rules
-
-1. **Clarity Over Decoration:** Every visual element must serve a functional purpose—communicating evidence confidence, assumption risk, or venture decision status.
-2. **The Mechanical Ratchet & Convergence Metaphor:** Visual language mirrors futuristic engineering—solid structural anchors, high-contrast status ratchets, and unyielding empirical gates.
-3. **No Solution Bias in UI:** Problem analysis and discovery spaces use analytical deep obsidian and electric blue/cyan tones; solution and economic spaces use vibrant emerald/teal accents.
-4. **Touch-First Accessibility:** All interactive elements maintain a minimum $44 \times 44\text{px}$ touch target with clear focus indicators.
-
----
-
-## 2. Color System (60-30-10 Rule)
-
-```
-┌───────────────────────────────────────────────────────────────────────────────────┐
-│ 60% DOMINANT BASE (Global Viewport Canvas & Deep Backgrounds)                     │
-│ Obsidian Black (#0B0F14 / slate-950) • Midnight Void (#030712)                    │
-├───────────────────────────────────────────────────────────────────────────────────┤
-│ 30% STRUCTURAL SURFACES (Cards, Headers, Modals & Data Grids)                     │
-│ Frosted Slate Glass (#0F172A with backdrop-blur-md) • Border Slate (#1E293B)      │
-├───────────────────────────────────────────────────────────────────────────────────┤
-│ 10% INTENTIONAL ACCENTS (Interactive Triggers, Verdicts & Telemetry)              │
-│ Electric Blue (#0066FF) • Active Cyan (#06B6D4) • Emerald (#10B981) • Amber/Rose  │
-└───────────────────────────────────────────────────────────────────────────────────┘
-```
-
-### 2.1 Brand & Semantic Token Palette
-
-| Token Name | Hex / Value | Semantic Role | Contrast vs #0B0F14 |
-|---|---|---|---|
-| `--color-brand-primary` | `#0066FF` | EMAERX Electric Blue primary brand accent | **8.1:1 (AAA)** |
-| `--color-bg-base` | `#0B0F14` | Global viewport canvas (Obsidian Black) | Base |
-| `--color-surface-glass` | `rgba(15, 23, 42, 0.75)` | Glassmorphism card surfaces | Structure |
-| `--color-surface-elevated` | `rgba(30, 41, 59, 0.85)` | Modals, drawers, dropdowns | 3.2:1 |
-| `--color-border-subtle` | `rgba(51, 65, 85, 0.6)` | Card and table borders | 2.1:1 |
-| `--color-text-primary` | `#FFFFFF` (Arctic White) | Headings and critical data | **19.5:1 (AAA)** |
-| `--color-text-secondary` | `#A7B0C0` (Silver Gray) | Descriptions and metadata | **8.4:1 (AAA)** |
-| `--color-accent-cyan` | `#06B6D4` (Cyan-500) | Research telemetry, active selection | **7.4:1 (AA)** |
-| `--color-accent-emerald` | `#10B981` (Emerald-500) | Validated claims, passed gates | **7.1:1 (AA)** |
-| `--color-accent-amber` | `#F59E0B` (Amber-500) | Workarounds, pending assumptions | **6.5:1 (AA)** |
-| `--color-accent-rose` | `#F43F5E` (Rose-500) | Critical risks, pivot loop actions | **5.8:1 (AA)** |
-
----
-
-## 3. Typography Hierarchy
-
-- **Brand & Headings:** `Exo 2` (Futuristic engineering, geometric, high-contrast)
-- **Product UI & Body:** `Inter` (Optimal legibility, clean human-centered spacing)
-- **Code & Telemetry:** `JetBrains Mono` (DOIs, Share Codes, Claims, and Metrics)
-
-```css
-/* Typography Scale */
---text-display: 1.875rem / 2.25rem (30px / 36px), font-weight: 800; /* Exo 2 */
---text-heading: 1.25rem / 1.75rem (20px / 28px), font-weight: 700;   /* Exo 2 */
---text-subhead: 1.00rem / 1.50rem (16px / 24px), font-weight: 600;   /* Inter */
---text-body:    0.875rem / 1.25rem (14px / 20px), font-weight: 400;  /* Inter */
---text-caption: 0.75rem / 1.00rem (12px / 16px), font-weight: 500;  /* Inter */
---text-mono:    0.6875rem / 0.95rem (11px / 15px), font-weight: 700; /* JetBrains Mono */
-```
-
----
-
-## 4. Component Standards
-
-### 4.1 Step 1: Evidence Ledger & Assumption Radar
-- **Evidence Ledger (`<EvidenceLedgerCard />`):** 4-claim matrix with Commercial (WTP) vs Civic/Academic Institutional feasibility toggle.
-- **Assumption Radar (`<AssumptionRadarCard />`):** Prioritized risk tiers (Critical, High, Medium, Low) with 1-tap Mom Test question copy.
-
-### 4.2 Step 2: Decision Room & Timeline
-- **Decision Room (`<DecisionRoomWorkspace />`):** Side-by-side candidate comparison with AI Judge explainable ranking and 1-click winner commitment.
-- **Decision Timeline (`<DecisionTimelineModal />`):** Chronological audit trail of all selections, rejected alternatives, and pivot loops.
-
-### 4.3 Step 3: Project Translation (SRS Spec)
-- **SRS Spec Viewer (`<SrsSpecView />`):** Dual-mode IEEE 830 / CHED CICT Capstone and Startup MVP specification view with 1-click Markdown copy.
-
----
-
-## 5. Accessibility & Heuristic Compliance
-
-- **WCAG 2.2 AA/AAA:** High contrast text ratios strictly $\ge 4.5:1$ for body and $\ge 3:1$ for large headings.
-- **Nielsen Norman Heuristic 1 (Visibility of System Status):** Clear progress indicators, phase lock badges, and model attribution pills.
-- **Nielsen Norman Heuristic 5 (Error Prevention):** Irreversible actions (Archive, Reset, Pivot) require explicit user confirmation.
+-#- -C-O-N-V-E-R-A- -D-e-s-i-g-n- -S-y-s-t-e-m- -S-p-e-c-i-f-i-c-a-t-i-o-n- -(-v-3-.-0-)-
+-
+-*-*-P-a-r-e-n-t- -B-r-a-n-d-:-*-*- -E-M-A-E-R-X- - -
+-*-*-P-r-o-d-u-c-t-:-*-*- -C-O-N-V-E-R-A- -—- -E-v-i-d-e-n-c-e---D-r-i-v-e-n- -P-r-o-j-e-c-t- -I-n-t-e-l-l-i-g-e-n-c-e- -a-n-d- -O-p-p-o-r-t-u-n-i-t-y- -V-a-l-i-d-a-t-i-o-n- -S-y-s-t-e-m- - -
+-*-*-T-a-g-l-i-n-e-:-*-*- -*-W-H-E-R-E- -P-O-S-S-I-B-I-L-I-T-I-E-S- -C-O-N-V-E-R-G-E- -I-N-T-O- -D-I-R-E-C-T-I-O-N-.-*- - -
+-*-*-S-t-a-n-d-a-r-d- -A-l-i-g-n-m-e-n-t-:-*-*- -W-C-A-G- -2-.-2- -A-A- -/- -A-A-A- -•- -N-i-e-l-s-e-n- -N-o-r-m-a-n- -G-r-o-u-p- -1-0- -U-s-a-b-i-l-i-t-y- -H-e-u-r-i-s-t-i-c-s- -•- -6-0---3-0---1-0- -C-o-l-o-r- -H-i-e-r-a-r-c-h-y- - -
+-
+-------
+-
+-#-#- -1-.- -D-e-s-i-g-n- -P-h-i-l-o-s-o-p-h-y- -&- -G-o-l-d-e-n- -R-u-l-e-s-
+-
+-1-.- -*-*-C-l-a-r-i-t-y- -O-v-e-r- -D-e-c-o-r-a-t-i-o-n-:-*-*- -E-v-e-r-y- -v-i-s-u-a-l- -e-l-e-m-e-n-t- -m-u-s-t- -s-e-r-v-e- -a- -f-u-n-c-t-i-o-n-a-l- -p-u-r-p-o-s-e-—-c-o-m-m-u-n-i-c-a-t-i-n-g- -e-v-i-d-e-n-c-e- -c-o-n-f-i-d-e-n-c-e-,- -a-s-s-u-m-p-t-i-o-n- -r-i-s-k-,- -o-r- -v-e-n-t-u-r-e- -d-e-c-i-s-i-o-n- -s-t-a-t-u-s-.-
+-2-.- -*-*-T-h-e- -M-e-c-h-a-n-i-c-a-l- -R-a-t-c-h-e-t- -&- -C-o-n-v-e-r-g-e-n-c-e- -M-e-t-a-p-h-o-r-:-*-*- -V-i-s-u-a-l- -l-a-n-g-u-a-g-e- -m-i-r-r-o-r-s- -f-u-t-u-r-i-s-t-i-c- -e-n-g-i-n-e-e-r-i-n-g-—-s-o-l-i-d- -s-t-r-u-c-t-u-r-a-l- -a-n-c-h-o-r-s-,- -h-i-g-h---c-o-n-t-r-a-s-t- -s-t-a-t-u-s- -r-a-t-c-h-e-t-s-,- -a-n-d- -u-n-y-i-e-l-d-i-n-g- -e-m-p-i-r-i-c-a-l- -g-a-t-e-s-.-
+-3-.- -*-*-N-o- -S-o-l-u-t-i-o-n- -B-i-a-s- -i-n- -U-I-:-*-*- -P-r-o-b-l-e-m- -a-n-a-l-y-s-i-s- -a-n-d- -d-i-s-c-o-v-e-r-y- -s-p-a-c-e-s- -u-s-e- -a-n-a-l-y-t-i-c-a-l- -d-e-e-p- -o-b-s-i-d-i-a-n- -a-n-d- -e-l-e-c-t-r-i-c- -b-l-u-e-/-c-y-a-n- -t-o-n-e-s-;- -s-o-l-u-t-i-o-n- -a-n-d- -e-c-o-n-o-m-i-c- -s-p-a-c-e-s- -u-s-e- -v-i-b-r-a-n-t- -e-m-e-r-a-l-d-/-t-e-a-l- -a-c-c-e-n-t-s-.-
+-4-.- -*-*-T-o-u-c-h---F-i-r-s-t- -A-c-c-e-s-s-i-b-i-l-i-t-y-:-*-*- -A-l-l- -i-n-t-e-r-a-c-t-i-v-e- -e-l-e-m-e-n-t-s- -m-a-i-n-t-a-i-n- -a- -m-i-n-i-m-u-m- -$-4-4- -\-t-i-m-e-s- -4-4-\-t-e-x-t-{-p-x-}-$- -t-o-u-c-h- -t-a-r-g-e-t- -w-i-t-h- -c-l-e-a-r- -f-o-c-u-s- -i-n-d-i-c-a-t-o-r-s-.-
+-
+-------
+-
+-#-#- -2-.- -C-o-l-o-r- -S-y-s-t-e-m- -(-6-0---3-0---1-0- -R-u-l-e-)-
+-
+-`-`-`-
+-+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+-|- -6-0-%- -D-O-M-I-N-A-N-T- -B-A-S-E- -(-G-l-o-b-a-l- -V-i-e-w-p-o-r-t- -C-a-n-v-a-s- -&- -D-e-e-p- -B-a-c-k-g-r-o-u-n-d-s-)- - - - - - - - - - - - - - - - - - - - - -|-
+-|- -O-b-s-i-d-i-a-n- -B-l-a-c-k- -(-#-0-B-0-F-1-4- -/- -s-l-a-t-e---9-5-0-)- -*- -M-i-d-n-i-g-h-t- -V-o-i-d- -(-#-0-3-0-7-1-2-)- - - - - - - - - - - - - - - - - - - - -|-
+-+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+-|- -3-0-%- -S-T-R-U-C-T-U-R-A-L- -S-U-R-F-A-C-E-S- -(-C-a-r-d-s-,- -H-e-a-d-e-r-s-,- -M-o-d-a-l-s- -&- -D-a-t-a- -G-r-i-d-s-)- - - - - - - - - - - - - - - - - - - - - -|-
+-|- -F-r-o-s-t-e-d- -S-l-a-t-e- -G-l-a-s-s- -(-#-0-F-1-7-2-A- -w-i-t-h- -b-a-c-k-d-r-o-p---b-l-u-r---m-d-)- -*- -B-o-r-d-e-r- -S-l-a-t-e- -(-#-1-E-2-9-3-B-)- - - - - - -|-
+-+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+-|- -1-0-%- -I-N-T-E-N-T-I-O-N-A-L- -A-C-C-E-N-T-S- -(-I-n-t-e-r-a-c-t-i-v-e- -T-r-i-g-g-e-r-s-,- -V-e-r-d-i-c-t-s- -&- -T-e-l-e-m-e-t-r-y-)- - - - - - - - - - - - - - -|-
+-|- -E-l-e-c-t-r-i-c- -B-l-u-e- -(-#-0-0-6-6-F-F-)- -*- -A-c-t-i-v-e- -C-y-a-n- -(-#-0-6-B-6-D-4-)- -*- -E-m-e-r-a-l-d- -(-#-1-0-B-9-8-1-)- -*- -A-m-b-e-r-/-R-o-s-e- - -|-
+-+-----------------------------------------------------------------------------------------------------------------------------------------------------------------------+-
+-`-`-`-
+-
+-#-#-#- -2-.-1- -B-r-a-n-d- -&- -S-e-m-a-n-t-i-c- -T-o-k-e-n- -P-a-l-e-t-t-e-
+-
+-|- -T-o-k-e-n- -N-a-m-e- -|- -H-e-x- -/- -V-a-l-u-e- -|- -S-e-m-a-n-t-i-c- -R-o-l-e- -|- -C-o-n-t-r-a-s-t- -v-s- -#-0-B-0-F-1-4- -|-
+-|-------|-------|-------|-------|-
+-|- -`-----c-o-l-o-r---b-r-a-n-d---p-r-i-m-a-r-y-`- -|- -`-#-0-0-6-6-F-F-`- -|- -E-M-A-E-R-X- -E-l-e-c-t-r-i-c- -B-l-u-e- -p-r-i-m-a-r-y- -b-r-a-n-d- -a-c-c-e-n-t- -|- -*-*-8-.-1-:-1- -(-A-A-A-)-*-*- -|-
+-|- -`-----c-o-l-o-r---b-g---b-a-s-e-`- -|- -`-#-0-B-0-F-1-4-`- -|- -G-l-o-b-a-l- -v-i-e-w-p-o-r-t- -c-a-n-v-a-s- -(-O-b-s-i-d-i-a-n- -B-l-a-c-k-)- -|- -B-a-s-e- -|-
+-|- -`-----c-o-l-o-r---s-u-r-f-a-c-e---g-l-a-s-s-`- -|- -`-r-g-b-a-(-1-5-,- -2-3-,- -4-2-,- -0-.-7-5-)-`- -|- -G-l-a-s-s-m-o-r-p-h-i-s-m- -c-a-r-d- -s-u-r-f-a-c-e-s- -|- -S-t-r-u-c-t-u-r-e- -|-
+-|- -`-----c-o-l-o-r---s-u-r-f-a-c-e---e-l-e-v-a-t-e-d-`- -|- -`-r-g-b-a-(-3-0-,- -4-1-,- -5-9-,- -0-.-8-5-)-`- -|- -M-o-d-a-l-s-,- -d-r-a-w-e-r-s-,- -d-r-o-p-d-o-w-n-s- -|- -3-.-2-:-1- -|-
+-|- -`-----c-o-l-o-r---b-o-r-d-e-r---s-u-b-t-l-e-`- -|- -`-r-g-b-a-(-5-1-,- -6-5-,- -8-5-,- -0-.-6-)-`- -|- -C-a-r-d- -a-n-d- -t-a-b-l-e- -b-o-r-d-e-r-s- -|- -2-.-1-:-1- -|-
+-|- -`-----c-o-l-o-r---t-e-x-t---p-r-i-m-a-r-y-`- -|- -`-#-F-F-F-F-F-F-`- -(-A-r-c-t-i-c- -W-h-i-t-e-)- -|- -H-e-a-d-i-n-g-s- -a-n-d- -c-r-i-t-i-c-a-l- -d-a-t-a- -|- -*-*-1-9-.-5-:-1- -(-A-A-A-)-*-*- -|-
+-|- -`-----c-o-l-o-r---t-e-x-t---s-e-c-o-n-d-a-r-y-`- -|- -`-#-A-7-B-0-C-0-`- -(-S-i-l-v-e-r- -G-r-a-y-)- -|- -D-e-s-c-r-i-p-t-i-o-n-s- -a-n-d- -m-e-t-a-d-a-t-a- -|- -*-*-8-.-4-:-1- -(-A-A-A-)-*-*- -|-
+-|- -`-----c-o-l-o-r---a-c-c-e-n-t---c-y-a-n-`- -|- -`-#-0-6-B-6-D-4-`- -(-C-y-a-n---5-0-0-)- -|- -R-e-s-e-a-r-c-h- -t-e-l-e-m-e-t-r-y-,- -a-c-t-i-v-e- -s-e-l-e-c-t-i-o-n- -|- -*-*-7-.-4-:-1- -(-A-A-)-*-*- -|-
+-|- -`-----c-o-l-o-r---a-c-c-e-n-t---e-m-e-r-a-l-d-`- -|- -`-#-1-0-B-9-8-1-`- -(-E-m-e-r-a-l-d---5-0-0-)- -|- -V-a-l-i-d-a-t-e-d- -c-l-a-i-m-s-,- -p-a-s-s-e-d- -g-a-t-e-s- -|- -*-*-7-.-1-:-1- -(-A-A-)-*-*- -|-
+-|- -`-----c-o-l-o-r---a-c-c-e-n-t---a-m-b-e-r-`- -|- -`-#-F-5-9-E-0-B-`- -(-A-m-b-e-r---5-0-0-)- -|- -W-o-r-k-a-r-o-u-n-d-s-,- -p-e-n-d-i-n-g- -a-s-s-u-m-p-t-i-o-n-s- -|- -*-*-6-.-5-:-1- -(-A-A-)-*-*- -|-
+-|- -`-----c-o-l-o-r---a-c-c-e-n-t---r-o-s-e-`- -|- -`-#-F-4-3-F-5-E-`- -(-R-o-s-e---5-0-0-)- -|- -C-r-i-t-i-c-a-l- -r-i-s-k-s-,- -p-i-v-o-t- -l-o-o-p- -a-c-t-i-o-n-s- -|- -*-*-5-.-8-:-1- -(-A-A-)-*-*- -|-
+-
+-------
+-
+-#-#- -3-.- -T-y-p-o-g-r-a-p-h-y- -H-i-e-r-a-r-c-h-y-
+-
+--- -*-*-B-r-a-n-d- -&- -H-e-a-d-i-n-g-s-:-*-*- -`-E-x-o- -2-`- -(-F-u-t-u-r-i-s-t-i-c- -e-n-g-i-n-e-e-r-i-n-g-,- -g-e-o-m-e-t-r-i-c-,- -h-i-g-h---c-o-n-t-r-a-s-t-)-
+--- -*-*-P-r-o-d-u-c-t- -U-I- -&- -B-o-d-y-:-*-*- -`-I-n-t-e-r-`- -(-O-p-t-i-m-a-l- -l-e-g-i-b-i-l-i-t-y-,- -c-l-e-a-n- -h-u-m-a-n---c-e-n-t-e-r-e-d- -s-p-a-c-i-n-g-)-
+--- -*-*-C-o-d-e- -&- -T-e-l-e-m-e-t-r-y-:-*-*- -`-J-e-t-B-r-a-i-n-s- -M-o-n-o-`- -(-D-O-I-s-,- -S-h-a-r-e- -C-o-d-e-s-,- -C-l-a-i-m-s-,- -a-n-d- -M-e-t-r-i-c-s-)-
+-
+-`-`-`-c-s-s-
+-/-*- -T-y-p-o-g-r-a-p-h-y- -S-c-a-l-e- -*-/-
+-----t-e-x-t---d-i-s-p-l-a-y-:- -1-.-8-7-5-r-e-m- -/- -2-.-2-5-r-e-m- -(-3-0-p-x- -/- -3-6-p-x-)-,- -f-o-n-t---w-e-i-g-h-t-:- -8-0-0-;- -/-*- -E-x-o- -2- -*-/-
+-----t-e-x-t---h-e-a-d-i-n-g-:- -1-.-2-5-r-e-m- -/- -1-.-7-5-r-e-m- -(-2-0-p-x- -/- -2-8-p-x-)-,- -f-o-n-t---w-e-i-g-h-t-:- -7-0-0-;- - - -/-*- -E-x-o- -2- -*-/-
+-----t-e-x-t---s-u-b-h-e-a-d-:- -1-.-0-0-r-e-m- -/- -1-.-5-0-r-e-m- -(-1-6-p-x- -/- -2-4-p-x-)-,- -f-o-n-t---w-e-i-g-h-t-:- -6-0-0-;- - - -/-*- -I-n-t-e-r- -*-/-
+-----t-e-x-t---b-o-d-y-:- - - - -0-.-8-7-5-r-e-m- -/- -1-.-2-5-r-e-m- -(-1-4-p-x- -/- -2-0-p-x-)-,- -f-o-n-t---w-e-i-g-h-t-:- -4-0-0-;- - -/-*- -I-n-t-e-r- -*-/-
+-----t-e-x-t---c-a-p-t-i-o-n-:- -0-.-7-5-r-e-m- -/- -1-.-0-0-r-e-m- -(-1-2-p-x- -/- -1-6-p-x-)-,- -f-o-n-t---w-e-i-g-h-t-:- -5-0-0-;- - -/-*- -I-n-t-e-r- -*-/-
+-----t-e-x-t---m-o-n-o-:- - - - -0-.-6-8-7-5-r-e-m- -/- -0-.-9-5-r-e-m- -(-1-1-p-x- -/- -1-5-p-x-)-,- -f-o-n-t---w-e-i-g-h-t-:- -7-0-0-;- -/-*- -J-e-t-B-r-a-i-n-s- -M-o-n-o- -*-/-
+-`-`-`-
+-
+-------
+-
+-#-#- -4-.- -C-o-m-p-o-n-e-n-t- -S-t-a-n-d-a-r-d-s-
+-
+-#-#-#- -4-.-1- -S-t-e-p- -1-:- -E-v-i-d-e-n-c-e- -L-e-d-g-e-r- -&- -A-s-s-u-m-p-t-i-o-n- -R-a-d-a-r-
+--- -*-*-E-v-i-d-e-n-c-e- -L-e-d-g-e-r- -(-`-<-E-v-i-d-e-n-c-e-L-e-d-g-e-r-C-a-r-d- -/->-`-)-:-*-*- -4---c-l-a-i-m- -m-a-t-r-i-x- -w-i-t-h- -C-o-m-m-e-r-c-i-a-l- -(-W-T-P-)- -v-s- -C-i-v-i-c-/-A-c-a-d-e-m-i-c- -I-n-s-t-i-t-u-t-i-o-n-a-l- -f-e-a-s-i-b-i-l-i-t-y- -t-o-g-g-l-e-.-
+--- -*-*-A-s-s-u-m-p-t-i-o-n- -R-a-d-a-r- -(-`-<-A-s-s-u-m-p-t-i-o-n-R-a-d-a-r-C-a-r-d- -/->-`-)-:-*-*- -P-r-i-o-r-i-t-i-z-e-d- -r-i-s-k- -t-i-e-r-s- -(-C-r-i-t-i-c-a-l-,- -H-i-g-h-,- -M-e-d-i-u-m-,- -L-o-w-)- -w-i-t-h- -1---t-a-p- -M-o-m- -T-e-s-t- -q-u-e-s-t-i-o-n- -c-o-p-y-.-
+-
+-#-#-#- -4-.-2- -S-t-e-p- -2-:- -D-e-c-i-s-i-o-n- -R-o-o-m- -&- -T-i-m-e-l-i-n-e-
+--- -*-*-D-e-c-i-s-i-o-n- -R-o-o-m- -(-`-<-D-e-c-i-s-i-o-n-R-o-o-m-W-o-r-k-s-p-a-c-e- -/->-`-)-:-*-*- -S-i-d-e---b-y---s-i-d-e- -c-a-n-d-i-d-a-t-e- -c-o-m-p-a-r-i-s-o-n- -w-i-t-h- -A-I- -J-u-d-g-e- -e-x-p-l-a-i-n-a-b-l-e- -r-a-n-k-i-n-g- -a-n-d- -1---c-l-i-c-k- -w-i-n-n-e-r- -c-o-m-m-i-t-m-e-n-t-.-
+--- -*-*-D-e-c-i-s-i-o-n- -T-i-m-e-l-i-n-e- -(-`-<-D-e-c-i-s-i-o-n-T-i-m-e-l-i-n-e-M-o-d-a-l- -/->-`-)-:-*-*- -C-h-r-o-n-o-l-o-g-i-c-a-l- -a-u-d-i-t- -t-r-a-i-l- -o-f- -a-l-l- -s-e-l-e-c-t-i-o-n-s-,- -r-e-j-e-c-t-e-d- -a-l-t-e-r-n-a-t-i-v-e-s-,- -a-n-d- -p-i-v-o-t- -l-o-o-p-s-.-
+-
+-#-#-#- -4-.-3- -S-t-e-p- -3-:- -P-r-o-j-e-c-t- -T-r-a-n-s-l-a-t-i-o-n- -(-S-R-S- -S-p-e-c-)-
+--- -*-*-S-R-S- -S-p-e-c- -V-i-e-w-e-r- -(-`-<-S-r-s-S-p-e-c-V-i-e-w- -/->-`-)-:-*-*- -D-u-a-l---m-o-d-e- -I-E-E-E- -8-3-0- -/- -C-H-E-D- -C-I-C-T- -C-a-p-s-t-o-n-e- -a-n-d- -S-t-a-r-t-u-p- -M-V-P- -s-p-e-c-i-f-i-c-a-t-i-o-n- -v-i-e-w- -w-i-t-h- -1---c-l-i-c-k- -M-a-r-k-d-o-w-n- -c-o-p-y-.-
+-
+-------
+-
+-#-#- -5-.- -A-c-c-e-s-s-i-b-i-l-i-t-y- -&- -H-e-u-r-i-s-t-i-c- -C-o-m-p-l-i-a-n-c-e-
+-
+--- -*-*-W-C-A-G- -2-.-2- -A-A-/-A-A-A-:-*-*- -H-i-g-h- -c-o-n-t-r-a-s-t- -t-e-x-t- -r-a-t-i-o-s- -s-t-r-i-c-t-l-y- -$-\-g-e- -4-.-5-:-1-$- -f-o-r- -b-o-d-y- -a-n-d- -$-\-g-e- -3-:-1-$- -f-o-r- -l-a-r-g-e- -h-e-a-d-i-n-g-s-.-
+--- -*-*-N-i-e-l-s-e-n- -N-o-r-m-a-n- -H-e-u-r-i-s-t-i-c- -1- -(-V-i-s-i-b-i-l-i-t-y- -o-f- -S-y-s-t-e-m- -S-t-a-t-u-s-)-:-*-*- -C-l-e-a-r- -p-r-o-g-r-e-s-s- -i-n-d-i-c-a-t-o-r-s-,- -p-h-a-s-e- -l-o-c-k- -b-a-d-g-e-s-,- -a-n-d- -m-o-d-e-l- -a-t-t-r-i-b-u-t-i-o-n- -p-i-l-l-s-.-
+--- -*-*-N-i-e-l-s-e-n- -N-o-r-m-a-n- -H-e-u-r-i-s-t-i-c- -5- -(-E-r-r-o-r- -P-r-e-v-e-n-t-i-o-n-)-:-*-*- -I-r-r-e-v-e-r-s-i-b-l-e- -a-c-t-i-o-n-s- -(-A-r-c-h-i-v-e-,- -R-e-s-e-t-,- -P-i-v-o-t-)- -r-e-q-u-i-r-e- -e-x-p-l-i-c-i-t- -u-s-e-r- -c-o-n-f-i-r-m-a-t-i-o-n-.-
+-
