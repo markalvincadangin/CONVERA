@@ -61,11 +61,17 @@ SECTOR_TO_CANONICAL_PREFIX = {
 
 LEGACY_PREFIX_MAP = {
     "HW": "HLT",
+    "HWS": "HLT",
     "MSME": "RET",
+    "MKT": "RET",
     "TRN": "LOG",
+    "TRA": "LOG",
     "HOU": "UTL",
+    "UTI": "UTL",
     "CRE": "FIN",
     "ED": "EDU",
+    "GSC": "GOV",
+    "GOVT": "GOV",
 }
 
 def canonicalize_problem_id(raw_id: str, sector: str, index: int = 1) -> str:
