@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ProblemRecord, DecisionSynthesis } from "@/lib/types";
 import { problemService } from "@/services/problemService";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import {
   Layers,
   Award,
@@ -34,6 +35,7 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
   onSelectWinningProblem,
   onOpenTimeline,
 }) => {
+  const toast = useToast();
   const [selectedId, setSelectedId] = useState<string>(candidates[0]?.id || "");
   const [isSynthesizing, setIsSynthesizing] = useState(false);
   const [synthesis, setSynthesis] = useState<DecisionSynthesis | null>(null);
@@ -49,7 +51,7 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
         setSelectedId(res.synthesis.recommended_winner_id);
       }
     } catch (err: any) {
-      alert("Decision synthesis error: " + err.message);
+      toast.error(err?.message || "Decision synthesis error", "Synthesis Error");
     } finally {
       setIsSynthesizing(false);
     }
@@ -77,7 +79,7 @@ export const DecisionRoomWorkspace: React.FC<DecisionRoomWorkspaceProps> = ({
 
       onSelectWinningProblem(winner);
     } catch (err: any) {
-      alert("Failed to commit decision: " + err.message);
+      toast.error(err?.message || "Failed to commit decision", "Commit Error");
     } finally {
       setIsCommitting(false);
     }

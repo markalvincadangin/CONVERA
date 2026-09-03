@@ -5,6 +5,7 @@ import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { Lightbulb, Sparkles, ArrowRight, ArrowLeft, CheckCircle2, Plus, LayoutGrid, AlertCircle, Layers } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import { Badge } from "@/components/common/Badge";
 import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { MECHANISM_FAMILIES } from "@/lib/constants";
@@ -24,6 +25,7 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
   onAdvanceToNextPhase,
   onGoBack,
 }) => {
+  const toast = useToast();
   const [currentStep, setCurrentStep] = useState<string>("solution_brief");
   const [isLoading, setIsLoading] = useState(false);
   const [userInput, setUserInput] = useState("");
@@ -49,7 +51,7 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
       setConcepts(res.concepts || []);
       setCurrentStep(stepName);
     } catch (err: any) {
-      alert(err.message || `Failed to run Phase 4 step: ${stepName}`);
+      toast.error(err?.message || `Failed to run Phase 4 step: ${stepName}`, "Phase 4 Error");
     } finally {
       setIsLoading(false);
     }
@@ -57,7 +59,7 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
 
   const handleAddConcept = () => {
     if (!newLabel.trim() || !newMechanism.trim()) {
-      alert("Please fill in the concept label and mechanism description.");
+      toast.warning("Please fill in the concept label and mechanism description.", "Fields Required");
       return;
     }
 

@@ -5,6 +5,7 @@ import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { Activity, Sparkles, CheckCircle2, AlertTriangle, ArrowLeft, Download, Award, ShieldAlert, TrendingUp } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import { Badge } from "@/components/common/Badge";
 import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { COMMITMENT_TIERS } from "@/lib/constants";
@@ -24,6 +25,7 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
   onGoBack,
   onExportDossier,
 }) => {
+  const toast = useToast();
   const [conceptLabel, setConceptLabel] = useState(
     session.phase4_concepts?.[0]?.label || "Top Advance Concept from Phase 4"
   );
@@ -57,7 +59,7 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
       });
       onUpdateSession(res.state);
     } catch (err: any) {
-      alert(err.message || "Failed to audit Phase 5 experiment data.");
+      toast.error(err?.message || "Failed to audit Phase 5 experiment data.", "Audit Error");
     } finally {
       setIsAuditing(false);
     }

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { AssumptionRecord } from "@/lib/types";
 import { problemService } from "@/services/problemService";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import {
   Radar,
   AlertTriangle,
@@ -61,6 +62,7 @@ export const AssumptionRadarCard: React.FC<AssumptionRadarCardProps> = ({
   onGenerateRequested,
   isGenerating = false,
 }) => {
+  const toast = useToast();
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -76,7 +78,7 @@ export const AssumptionRadarCard: React.FC<AssumptionRadarCardProps> = ({
       const res = await problemService.updateAssumption(problemId, assumptionId, newStatus);
       onAssumptionsUpdated(assumptions.map((a) => (a.id === assumptionId ? res.assumption : a)));
     } catch (err: any) {
-      alert("Failed to update assumption: " + err.message);
+      toast.error(err?.message || "Failed to update assumption", "Assumption Update Error");
     } finally {
       setUpdatingId(null);
     }

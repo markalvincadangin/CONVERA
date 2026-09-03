@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { Modal } from "@/components/common/Modal";
+import { useToast } from "@/components/common/ToastProvider";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { ProblemRecord } from "@/lib/types";
@@ -35,6 +36,7 @@ export const RawBrainstormIngestModal: React.FC<RawBrainstormIngestModalProps> =
   projectId,
   sessionId,
 }) => {
+  const toast = useToast();
   const [rawText, setRawText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [parsedCandidates, setParsedCandidates] = useState<Partial<ProblemRecord>[]>([]);
@@ -78,7 +80,7 @@ export const RawBrainstormIngestModal: React.FC<RawBrainstormIngestModalProps> =
       setRawText("");
       setParsedCandidates([]);
     } catch (err: any) {
-      alert("Failed to save to Problem Bank: " + err.message);
+      toast.error(err?.message || "Failed to save to Problem Bank", "Save Error");
     } finally {
       setIsSaving(false);
     }

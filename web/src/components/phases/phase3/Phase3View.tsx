@@ -5,6 +5,7 @@ import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { ShieldCheck, Send, RotateCcw, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, Sparkles, User, Bot, Award, Lightbulb, MapPin, DollarSign, Clock } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import { Badge } from "@/components/common/Badge";
 import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { LEVEL_ORDER, LEVEL_LABELS } from "@/lib/constants";
@@ -45,6 +46,7 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
   onGoBack,
   initialProblemStatement,
 }) => {
+  const toast = useToast();
   const [problemStatement, setProblemStatement] = useState(
     session.phase3_problem || initialProblemStatement || ""
   );
@@ -68,7 +70,7 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
 
   const handleStartClinic = async () => {
     if (!problemStatement.trim()) {
-      alert("Please enter a shortlisted problem statement to validate.");
+      toast.warning("Please enter a shortlisted problem statement to validate.", "Problem Required");
       return;
     }
     setIsInitializing(true);
@@ -77,7 +79,7 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
       onUpdateSession(res.state);
     } catch (err: any) {
       console.error(err);
-      alert("Failed to initialize Phase 3 Socratic validation.");
+      toast.error("Failed to initialize Phase 3 Socratic validation.", "Validation Error");
     } finally {
       setIsInitializing(false);
     }
@@ -95,10 +97,10 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
         current_problem_id: problemStatement,
         pivot_reason: reason.trim(),
       });
-      alert(res.message);
+      toast.info(res.message, "Pivot Alert");
       onGoBack();
     } catch (err: any) {
-      alert("Failed to execute pivot loop: " + err.message);
+      toast.error(err?.message || "Failed to execute pivot loop", "Pivot Error");
     }
   };
 

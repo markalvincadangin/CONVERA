@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/common/Modal";
+import { useToast } from "@/components/common/ToastProvider";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { ProblemRecord } from "@/lib/types";
@@ -35,6 +36,7 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
   onClose,
   onSourcesAttached,
 }) => {
+  const toast = useToast();
   if (!problem) return null;
 
   const [activeEngine, setActiveEngine] = useState<"ALL" | "OPENALEX" | "EUROPE_PMC" | "REGIONAL_NEWS">("ALL");
@@ -112,7 +114,7 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
         onClose();
       }, 1200);
     } catch (err: any) {
-      alert("Failed to attach citations: " + err.message);
+      toast.error(err?.message || "Failed to attach citations", "Attachment Error");
     } finally {
       setIsAttaching(false);
     }

@@ -5,6 +5,7 @@ import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { Compass, Sparkles, Plus, RefreshCw, Layers, ArrowRight, CheckCircle2, RotateCcw, Lightbulb, MapPin, FolderOpen } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import { Badge } from "@/components/common/Badge";
 import { AlertBanner } from "@/components/common/AlertBanner";
 import { LoadingStatusCard } from "@/components/common/LoadingStatusCard";
@@ -39,6 +40,7 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
   onUpdateSession,
   onAdvanceToNextPhase,
 }) => {
+  const toast = useToast();
   const [selectedSectors, setSelectedSectors] = useState<string[]>(
     session.phase1_sectors && session.phase1_sectors.length > 0
       ? session.phase1_sectors
@@ -62,7 +64,7 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
 
   const handleRunDiscovery = async () => {
     if (selectedSectors.length === 0) {
-      alert("Please select at least 1 target sector.");
+      toast.warning("Please select at least 1 target sector before generating discoveries.", "Sector Required");
       return;
     }
     setIsResearching(true);

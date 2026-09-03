@@ -14,6 +14,13 @@ import {
   X,
   Presentation,
   CheckCircle2,
+  Gauge,
+  Inbox,
+  GitMerge,
+  Compass,
+  Zap,
+  BookOpen,
+  GraduationCap,
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { VentureHealthBar } from "@/components/common/VentureHealthBar";
@@ -22,7 +29,6 @@ import { IconAvatar } from "@/components/common/IconAvatar";
 import { UserProfileModal } from "@/components/auth/UserProfileModal";
 import { RoomSecurityModal } from "@/components/auth/RoomSecurityModal";
 import { FrameworkSelectorModal } from "@/components/common/FrameworkSelectorModal";
-import { BookOpen, Zap, Compass, GraduationCap } from "lucide-react";
 import { SessionState, UserProfile } from "@/lib/types";
 import { authService, DEFAULT_USER } from "@/services/authService";
 
@@ -35,6 +41,9 @@ interface NavbarProps {
   onExportDossier: () => void;
   isExporting?: boolean;
   onFrameworkChanged?: (updatedSession: SessionState) => void;
+  onOpenScorecard?: () => void;
+  onOpenInbox?: () => void;
+  onOpenTraceability?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -46,6 +55,9 @@ export const Navbar: React.FC<NavbarProps> = ({
   onExportDossier,
   isExporting = false,
   onFrameworkChanged,
+  onOpenScorecard,
+  onOpenInbox,
+  onOpenTraceability,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER);
@@ -67,22 +79,22 @@ export const Navbar: React.FC<NavbarProps> = ({
   const getFrameworkBadge = () => {
     switch (frameworkId) {
       case "RESEARCH":
-        return { label: "Research", icon: <BookOpen className="w-3.5 h-3.5 text-emerald-400" />, border: "border-emerald-500/40 text-emerald-300 bg-emerald-950/40" };
+      case "RESEARCH_CRCDP":
+        return { label: "Research", icon: <BookOpen className="w-3.5 h-3.5 text-emerald-400" />, border: "border-emerald-500/40 text-emerald-300 bg-emerald-950/40 hover:bg-emerald-900/40" };
       case "CAPSTONE":
-        return { label: "Capstone", icon: <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />, border: "border-indigo-500/40 text-indigo-300 bg-indigo-950/40" };
+        return { label: "Capstone", icon: <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />, border: "border-indigo-500/40 text-indigo-300 bg-indigo-950/40 hover:bg-indigo-900/40" };
       case "PRODUCT":
-        return { label: "Product", icon: <Compass className="w-3.5 h-3.5 text-amber-400" />, border: "border-amber-500/40 text-amber-300 bg-amber-950/40" };
+        return { label: "Product", icon: <Compass className="w-3.5 h-3.5 text-amber-400" />, border: "border-amber-500/40 text-amber-300 bg-amber-950/40 hover:bg-amber-900/40" };
       default:
-        return { label: "Innovation", icon: <Zap className="w-3.5 h-3.5 text-blue-400" />, border: "border-blue-500/40 text-blue-300 bg-blue-950/40" };
+        return { label: "Innovation", icon: <Zap className="w-3.5 h-3.5 text-blue-400" />, border: "border-blue-500/40 text-blue-300 bg-blue-950/40 hover:bg-blue-900/40" };
     }
   };
   const fwBadge = getFrameworkBadge();
 
-
   return (
     <>
-      <header className="sticky top-0 z-40 w-full max-w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl transition-all shadow-lg shadow-black/20 overflow-x-hidden">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl transition-all shadow-lg shadow-black/20 overflow-visible">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-2 sm:gap-4 overflow-visible">
           
           {/* ========================================================= */}
           {/* 1. LEFT: Brand & System Identity                           */}
@@ -120,16 +132,15 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-
           {/* ========================================================= */}
           {/* 2. CENTER: Active Workspace & Framework Selector Cards    */}
           {/* ========================================================= */}
-          <div className="flex-1 max-w-md hidden md:flex items-center justify-center gap-2">
+          <div className="flex-1 max-w-md hidden md:flex items-center justify-center gap-2 overflow-visible">
             {/* Framework Selector Pill */}
             <Tooltip content="Switch methodology framework (Innovation, Research, Capstone, Product)" position="bottom">
               <button
                 onClick={() => setIsFrameworkModalOpen(true)}
-                className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-semibold hover:opacity-90 transition-all shadow-sm ${fwBadge.border}`}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all shadow-sm ${fwBadge.border}`}
               >
                 {fwBadge.icon}
                 <span className="font-mono tracking-wide">{fwBadge.label}</span>
@@ -182,7 +193,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* ========================================================= */}
           {/* 3. RIGHT: Identity Card, Health Bar & Utility Toolbar     */}
           {/* ========================================================= */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 overflow-visible">
             
             {/* User Profile Command Card */}
             <Tooltip content={`Active Identity: ${userProfile.name} • ${roleMeta.label} (Click to customize)`} position="bottom">
@@ -208,8 +219,44 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Venture Health Meter */}
             <VentureHealthBar session={session} />
 
-            {/* Desktop Utility Toolbar */}
-            <div className="hidden sm:flex items-center gap-1 p-1 rounded-2xl bg-slate-900/80 border border-slate-800">
+            {/* Desktop Intelligence & Utility Toolbar */}
+            <div className="hidden sm:flex items-center gap-1 p-1 rounded-2xl bg-slate-900/80 border border-slate-800 overflow-visible">
+              {/* Intelligence Scorecard HUD Trigger */}
+              {onOpenScorecard && (
+                <Tooltip content="Intelligence Scorecard & Tri-Part Confidence HUD" position="bottom">
+                  <button
+                    onClick={onOpenScorecard}
+                    className="p-2 rounded-xl text-slate-400 hover:text-cyan-400 hover:bg-cyan-500/10 border border-transparent hover:border-cyan-500/30 transition-all"
+                  >
+                    <Gauge className="w-3.5 h-3.5 text-cyan-400" />
+                  </button>
+                </Tooltip>
+              )}
+
+              {/* Research Inbox Drawer Trigger */}
+              {onOpenInbox && (
+                <Tooltip content="Research Inbox & Document Drops" position="bottom">
+                  <button
+                    onClick={onOpenInbox}
+                    className="p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-indigo-500/10 border border-transparent hover:border-indigo-500/30 transition-all"
+                  >
+                    <Inbox className="w-3.5 h-3.5 text-indigo-400" />
+                  </button>
+                </Tooltip>
+              )}
+
+              {/* Requirements Traceability Drawer Trigger */}
+              {onOpenTraceability && (
+                <Tooltip content="Requirements & Lineage Traceability Graph" position="bottom">
+                  <button
+                    onClick={onOpenTraceability}
+                    className="p-2 rounded-xl text-slate-400 hover:text-emerald-400 hover:bg-emerald-500/10 border border-transparent hover:border-emerald-500/30 transition-all"
+                  >
+                    <GitMerge className="w-3.5 h-3.5 text-emerald-400" />
+                  </button>
+                </Tooltip>
+              )}
+
               {projectId && (
                 <Tooltip content={session?.has_passcode ? "Change 4-Digit Room PIN" : "Set 4-Digit Room PIN"} position="bottom">
                   <button
@@ -285,8 +332,51 @@ export const Navbar: React.FC<NavbarProps> = ({
               </span>
             </button>
 
+            {/* Framework Switch Button */}
+            <button
+              onClick={() => {
+                setIsMobileMenuOpen(false);
+                setIsFrameworkModalOpen(true);
+              }}
+              className="w-full flex items-center justify-between p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-xs text-slate-200 font-medium"
+            >
+              <span className="flex items-center gap-2">
+                {fwBadge.icon}
+                <span>Methodology: <strong>{fwBadge.label}</strong></span>
+              </span>
+              <span className="font-mono text-[10px] text-blue-300 bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                Change
+              </span>
+            </button>
+
             {/* Grid of Quick Actions */}
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              {onOpenScorecard && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenScorecard();
+                  }}
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-cyan-300"
+                >
+                  <Gauge className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Scorecard HUD</span>
+                </button>
+              )}
+
+              {onOpenInbox && (
+                <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    onOpenInbox();
+                  }}
+                  className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-300 hover:text-indigo-300"
+                >
+                  <Inbox className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Research Inbox</span>
+                </button>
+              )}
+
               <button
                 onClick={() => {
                   setIsMobileMenuOpen(false);
@@ -353,6 +443,18 @@ export const Navbar: React.FC<NavbarProps> = ({
           mode="SET_PASSCODE"
         />
       )}
+
+      {/* Framework Selector Modal */}
+      <FrameworkSelectorModal
+        isOpen={isFrameworkModalOpen}
+        onClose={() => setIsFrameworkModalOpen(false)}
+        session={session}
+        onFrameworkChanged={(updated) => {
+          if (onFrameworkChanged) {
+            onFrameworkChanged(updated);
+          }
+        }}
+      />
     </>
   );
 };

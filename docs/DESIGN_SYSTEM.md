@@ -101,3 +101,65 @@ graph TD
 - **WCAG 2.2 AA/AAA:** High contrast text ratios strictly >= 4.5:1 for body and >= 3:1 for large headings.
 - **Nielsen Norman Heuristic 1 (Visibility of System Status):** Clear progress indicators, phase lock badges, and model attribution pills.
 - **Nielsen Norman Heuristic 5 (Error Prevention):** Irreversible actions (Archive, Reset, Pivot) require explicit user confirmation.
+
+---
+
+## 7. Interactive Component State Matrix (9 Standard States)
+
+Every interactive element (Buttons, Input Fields, Selectors, Table Rows, and Card Items) in CONVERA must implement the full **9-State Matrix** to guarantee cognitive predictability and WCAG 2.2 AA compliance:
+
+```text
+┌─────────────────────────┬─────────────────────────────────────────────────────────────────────────┐
+│ State                   │ Visual Behavior & Accessibility Token                                  │
+├─────────────────────────┼─────────────────────────────────────────────────────────────────────────┤
+│ 1. Default (Idle)       │ bg-slate-900/80, border-slate-800, text-slate-200, shadow-sm            │
+│ 2. Hover                │ border-cyan-500/50, bg-slate-850, shadow-cyan-500/10, scale-[1.01]       │
+│ 3. Focus-Visible (A11y) │ ring-2 ring-cyan-400 ring-offset-2 ring-offset-slate-950 outline-none    │
+│ 4. Active (Pressed)     │ scale-[0.98], bg-slate-800, border-cyan-500/80                          │
+│ 5. Disabled             │ opacity-40 cursor-not-allowed pointer-events-none select-none           │
+│ 6. Loading (Busy)       │ Spinner animation, opacity-75, cursor-wait, aria-busy="true"            │
+│ 7. Success              │ border-emerald-500/50 bg-emerald-950/30 text-emerald-300                │
+│ 8. Warning              │ border-amber-500/50 bg-amber-950/30 text-amber-300                      │
+│ 9. Error / Destructive  │ border-rose-500/50 bg-rose-950/30 text-rose-300                         │
+└─────────────────────────┴─────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 8. Toast Notifications & Custom Dialog Standards
+
+Browser-native `alert()`, `confirm()`, and `prompt()` dialogs are **strictly banned** across the CONVERA codebase. They violate design consistency, block UI rendering, and break accessibility.
+
+### 8.1 Toast Notification System (`useToast()`)
+- **Hook:** `const toast = useToast();`
+- **Variants:**
+  - `toast.success(message, title?, duration?)`: Emerald accent with CheckCircle2.
+  - `toast.error(message, title?, duration?)`: Rose accent with AlertCircle.
+  - `toast.warning(message, title?, duration?)`: Amber accent with AlertTriangle.
+  - `toast.info(message, title?, duration?)`: Cyan accent with Info.
+- **Positioning:** Fixed bottom-right (`bottom-5 right-5 z-[9999]`) with backdrop blur and smooth exit animations.
+
+### 8.2 Confirmation Dialog (`ConfirmModal`)
+- **Component:** `<ConfirmModal isOpen={...} onClose={...} onConfirm={...} title={...} message={...} variant="danger"|"warning"|"info" />`
+- **Destructive Deletion:** Must use `variant="danger"` with red button, explicit title, and non-blocking escape dismissal.
+
+---
+
+## 9. Badge Invariants & Formatting Hygiene
+
+To prevent typographic errors such as `"Tier Tier A"` or redundant labels:
+1. **Never double-prefix strings:** When receiving data from backend tables (e.g. `source_tier`), sanitize before prefixing:
+   ```typescript
+   export const formatTierBadge = (tier?: string) => {
+     if (!tier) return "Tier B";
+     const clean = tier.trim();
+     return clean.toLowerCase().startsWith("tier") ? clean : `Tier ${clean}`;
+   };
+   ```
+2. **Domain URL Beautification:** Replace raw truncated search URLs (`www.google.com/sea..`) with semantic badge pills (e.g. `PSA (Gov)`, `DA-BFAR (Gov)`, `Panay News`, `Peer-Reviewed Journal`).
+3. **Epistemic Confidence Standard:**
+   - `VALIDATED` (Emerald 500)
+   - `STRONGLY_SUPPORTED` (Teal 500)
+   - `SUPPORTED` (Cyan 500)
+   - `HYPOTHESIS` (Amber 500)
+   - `REFUTED / CONTESTED` (Rose 500)

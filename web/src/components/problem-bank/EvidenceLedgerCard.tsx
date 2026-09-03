@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ClaimRecord, ClaimStatus, ProblemRecord } from "@/lib/types";
 import { problemService } from "@/services/problemService";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import {
   ShieldCheck,
   CheckCircle2,
@@ -100,6 +101,7 @@ export const EvidenceLedgerCard: React.FC<EvidenceLedgerCardProps> = ({
   onGenerateRequested,
   isGenerating = false,
 }) => {
+  const toast = useToast();
   const [trackMode, setTrackMode] = useState<"COMMERCIAL" | "CIVIC_INSTITUTIONAL">("COMMERCIAL");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
@@ -109,7 +111,7 @@ export const EvidenceLedgerCard: React.FC<EvidenceLedgerCardProps> = ({
       const res = await problemService.updateClaim(problemId, claimId, newStatus);
       onClaimsUpdated(claims.map((c) => (c.id === claimId ? res.claim : c)));
     } catch (err: any) {
-      alert("Failed to update claim: " + err.message);
+      toast.error(err?.message || "Failed to update claim", "Claim Update Error");
     } finally {
       setUpdatingId(null);
     }

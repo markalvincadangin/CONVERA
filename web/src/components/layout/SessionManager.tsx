@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Badge } from "@/components/common/Badge";
 import { sessionService, SessionSnapshot } from "@/services/sessionService";
 import { SessionMeta } from "@/lib/types";
@@ -49,6 +51,20 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
   const [isRenaming, setIsRenaming] = useState(false);
+  const toast = useToast();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    onConfirm: () => void;
+    variant?: "danger" | "warning" | "info";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
 
   const fetchSessionsAndSnapshots = async () => {
     setIsLoading(true);
@@ -107,7 +123,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
       setEditingSessionId(null);
       await fetchSessionsAndSnapshots();
     } catch (err: any) {
-      alert("Failed to rename session: " + err.message);
+      toast.error(err?.message || "Failed to rename session", "Rename Error");
     } finally {
       setIsRenaming(false);
     }
@@ -118,13 +134,11 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
     setEditingSessionId(null);
   };
 
-  const handleDeleteSession = async (sessionId: string, name: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (!confirm(`Are you sure you want to permanently delete workspace '${name}'? This cannot be undone.`)) {
-      return;
-    }
+  const executeDeleteSession = async (sessionId: string, name: string) => {
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
     try {
       await sessionService.deleteSession(sessionId);
+      toast.success(`Workspace '${name}' permanently deleted.`, "Workspace Deleted");
       await fetchSessionsAndSnapshots();
       if (sessionId === currentSessionId && sessions.length > 1) {
         const remaining = sessions.filter((s) => s.session_id !== sessionId);
@@ -133,8 +147,20 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
         }
       }
     } catch (err: any) {
-      alert("Failed to delete session: " + err.message);
+      toast.error(err?.message || "Failed to delete session", "Delete Error");
     }
+  };
+
+  const handleDeleteSession = (sessionId: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setConfirmDialog({
+      isOpen: true,
+      title: "Delete Workspace",
+      message: `Are you sure you want to permanently delete workspace '${name}'? All un-snapshotted data will be lost.`,
+      confirmText: "Delete Workspace",
+      variant: "danger",
+      onConfirm: () => executeDeleteSession(sessionId, name),
+    });
   };
 
   const handleCreateSnapshot = async () => {
@@ -146,7 +172,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
       const updatedSnaps = await sessionService.listSnapshots(currentSessionId);
       setSnapshots(updatedSnaps);
     } catch (err: any) {
-      alert("Failed to save snapshot: " + err.message);
+      toast.error(err?.message || "Failed to save snapshot", "Snapshot Error");
     } finally {
       setIsCreatingSnapshot(false);
     }
@@ -162,24 +188,36 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
         setRoomCodeInput("");
         onClose();
       } else {
-        alert("Project room code not found. Check with your groupmate.");
+        toast.error("Project room code not found. Please verify with your team.", "Join Room Failed");
       }
     } catch (err: any) {
-      alert(err.message || "Invalid room code.");
+      toast.error(err?.message || "Invalid room code", "Join Room Error");
     } finally {
       setIsJoining(false);
     }
   };
 
-  const handleRestoreSnapshot = async (snapId: number) => {
-    if (!confirm("Restore this milestone checkpoint? Your active session state will be safely replaced with this snapshot.")) return;
+  const executeRestoreSnapshot = async (snapId: number) => {
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
     try {
       await sessionService.restoreSnapshot(currentSessionId, snapId);
+      toast.success("Milestone checkpoint successfully restored.", "Snapshot Restored");
       onSelectSession(currentSessionId);
       onClose();
     } catch (err: any) {
-      alert("Failed to restore snapshot: " + err.message);
+      toast.error(err?.message || "Failed to restore snapshot", "Restore Error");
     }
+  };
+
+  const handleRestoreSnapshot = (snapId: number) => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Restore Milestone Checkpoint",
+      message: "Are you sure you want to restore this milestone checkpoint? Your active session state will be safely replaced with this snapshot.",
+      confirmText: "Restore Checkpoint",
+      variant: "warning",
+      onConfirm: () => executeRestoreSnapshot(snapId),
+    });
   };
 
   const handleCopyCode = (code: string) => {
@@ -501,6 +539,17 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
           </div>
         )}
       </div>
+    
+      {/* Session Confirmation Dialog */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        variant={confirmDialog.variant}
+      />
     </Modal>
   );
 };

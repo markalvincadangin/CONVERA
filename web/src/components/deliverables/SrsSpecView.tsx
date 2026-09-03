@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { SrsSpecification, SessionState } from "@/lib/types";
 import { phaseService } from "@/services/phaseService";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 import {
   FileCode,
   Sparkles,
@@ -28,6 +29,7 @@ interface SrsSpecViewProps {
 }
 
 export const SrsSpecView: React.FC<SrsSpecViewProps> = ({ session }) => {
+  const toast = useToast();
   const [srs, setSrs] = useState<SrsSpecification | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -39,7 +41,7 @@ export const SrsSpecView: React.FC<SrsSpecViewProps> = ({ session }) => {
       const res = await phaseService.generateSrs(session.session_id, mode);
       setSrs(res.srs);
     } catch (err: any) {
-      alert("Failed to generate SRS specification: " + err.message);
+      toast.error(err?.message || "Failed to generate SRS specification", "Generation Error");
     } finally {
       setIsLoading(false);
     }

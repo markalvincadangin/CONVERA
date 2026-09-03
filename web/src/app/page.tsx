@@ -19,6 +19,9 @@ import {
 import { ProblemBankView } from "@/components/problem-bank/ProblemBankView";
 import { DeliverablesStudio } from "@/components/deliverables/DeliverablesStudio";
 import { ResearchWorkspaceView } from "@/components/frameworks/research/ResearchWorkspaceView";
+import { IntelligenceScorecardDrawer } from "@/components/knowledge/IntelligenceScorecardDrawer";
+import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
+import { useToast } from "@/components/common/ToastProvider";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
@@ -48,6 +51,9 @@ export default function Home() {
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isPresentationOpen, setIsPresentationOpen] = useState(false);
+  const [isScorecardOpen, setIsScorecardOpen] = useState(false);
+  const [isTraceabilityOpen, setIsTraceabilityOpen] = useState(false);
+  const toast = useToast();
   const [phase2SelectedIds, setPhase2SelectedIds] = useState<string[]>([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportedMarkdown, setExportedMarkdown] = useState("");
@@ -180,6 +186,7 @@ export default function Home() {
   const handleCopyMarkdown = () => {
     navigator.clipboard.writeText(exportedMarkdown);
     setCopiedDossier(true);
+    toast.success("Validation Dossier markdown copied to clipboard!", "Copied");
     setTimeout(() => setCopiedDossier(false), 2000);
   };
 
@@ -210,6 +217,9 @@ export default function Home() {
         onOpenPresentation={() => setIsPresentationOpen(true)}
         onExportDossier={handleExportDossier}
         isExporting={isExporting}
+        onOpenScorecard={() => setIsScorecardOpen(true)}
+        onOpenTraceability={() => setIsTraceabilityOpen(true)}
+        onFrameworkChanged={handleUpdateSession}
       />
 
       {/* Interactive Pipeline Timeline Stepper */}
@@ -279,12 +289,20 @@ export default function Home() {
           </div>
         ) : session ? (
           <div>
-            {activePhase === 0 && (
-              <ProblemBankView
+            {session.framework_id?.toUpperCase().includes("RESEARCH") ? (
+              <ResearchWorkspaceView
                 session={session}
-                onSendToPhase2={handleSendToPhase2}
+                problems={problems}
+                onUpdateSession={handleUpdateSession}
               />
-            )}
+            ) : (
+              <>
+                {activePhase === 0 && (
+                  <ProblemBankView
+                    session={session}
+                    onSendToPhase2={handleSendToPhase2}
+                  />
+                )}
 
             {activePhase === 1 && (
               <Phase1View
@@ -343,6 +361,8 @@ export default function Home() {
                 onExportDossier={handleExportDossier}
                 onNavigatePhase={(p) => setActivePhase(p)}
               />
+            )}
+              </>
             )}
           </div>
         ) : null}
@@ -423,6 +443,20 @@ export default function Home() {
           </div>
         </div>
       </Modal>
+    
+      {/* Intelligence Scorecard & Confidence Simulator Drawer */}
+      <IntelligenceScorecardDrawer
+        isOpen={isScorecardOpen}
+        onClose={() => setIsScorecardOpen(false)}
+        projectId={session?.project_id || session?.session_id}
+      />
+
+      {/* Requirements Lineage Traceability Drawer */}
+      <TraceabilityDrawer
+        isOpen={isTraceabilityOpen}
+        onClose={() => setIsTraceabilityOpen(false)}
+        problemId={session?.phase3_problem}
+      />
     </div>
   );
 }

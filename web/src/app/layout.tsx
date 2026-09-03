@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { ToastProvider } from "@/components/common/ToastProvider";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -9,7 +10,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "CONVERA — Evidence-Driven Project Intelligence | EMAERX",
+  title: "CONVERA - Evidence-Driven Project Intelligence | EMAERX",
   description: "Evidence-Driven Project Intelligence and Opportunity Validation System by EMAERX. Where possibilities converge into direction.",
   icons: {
     icon: "/brand/favicon.ico",
@@ -29,7 +30,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden w-full max-w-full"
       >
-        {children}
+        <ToastProvider>
+          {children}
+        </ToastProvider>
       </body>
     </html>
   );

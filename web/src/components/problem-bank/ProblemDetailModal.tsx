@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/common/Modal";
+import { useToast } from "@/components/common/ToastProvider";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Button } from "@/components/common/Button";
 import { ProblemCommentsSection } from "./ProblemCommentsSection";
 import { authService } from "@/services/authService";
@@ -47,6 +49,7 @@ interface ProblemDetailModalProps {
 }
 
 export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
+  // Toast hook
   problem,
   isOpen,
   onClose,
@@ -54,6 +57,9 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   onProblemDeleted,
   onAdvanceToPhase2,
 }) => {
+  const toast = useToast();
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
+
   if (!problem) return null;
 
   const [knowledgeGraph, setKnowledgeGraph] = useState<KnowledgeGraphData | null>(null);
@@ -77,7 +83,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
       const res = await problemService.generateAssumptions(problem.id, mode);
       setKnowledgeGraph(res.knowledge_graph);
     } catch (err: any) {
-      alert("Failed to generate: " + err.message);
+      toast.error(err?.message || "Failed to generate assumptions", "Generation Error");
     } finally {
       setIsGeneratingKG(false);
     }
@@ -147,8 +153,9 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
       });
       onProblemUpdated(res.problem);
       setIsEditing(false);
+      toast.success("Problem statement and evidence successfully updated.", "Problem Updated");
     } catch (err: any) {
-      alert("Failed to update problem: " + err.message);
+      toast.error(err?.message || "Failed to update problem", "Update Error");
     } finally {
       setIsSaving(false);
     }
@@ -176,7 +183,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
       onProblemUpdated(res.problem);
       onClose();
     } catch (err: any) {
-      alert("Failed to archive: " + err.message);
+      toast.error(err?.message || "Failed to archive problem", "Archive Error");
     }
   };
 
@@ -186,19 +193,20 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
       onProblemUpdated(res.problem);
       onClose();
     } catch (err: any) {
-      alert("Failed to restore: " + err.message);
+      toast.error(err?.message || "Failed to restore problem", "Restore Error");
     }
   };
 
-  const handleDelete = async () => {
-    if (!confirm(`Are you sure you want to remove problem ${problem.id} from the bank?`)) return;
+  const executeDelete = async () => {
     setIsDeleting(true);
     try {
       await problemService.deleteProblem(problem.id);
+      toast.success(`Problem ${problem.id} removed from Problem Bank.`, "Problem Deleted");
       onProblemDeleted(problem.id);
+      setIsConfirmDeleteOpen(false);
       onClose();
     } catch (err: any) {
-      alert("Failed to delete problem: " + err.message);
+      toast.error(err?.message || "Failed to delete problem", "Delete Error");
     } finally {
       setIsDeleting(false);
     }
@@ -461,7 +469,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
                               {src.source_name}
                             </span>
                             <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 border border-slate-700 shrink-0">
-                              Tier {src.source_tier || "B"}
+                              {src.source_tier?.toLowerCase().startsWith("tier") ? src.source_tier : `Tier ${src.source_tier || "B"}`}
                             </span>
                           </div>
 
@@ -516,7 +524,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
                         <div className="flex items-center gap-2">
                           <span className="font-bold text-white truncate">{src.source_name}</span>
                           <span className="text-[10px] font-mono px-1 rounded bg-slate-800 text-cyan-400">
-                            Tier {src.source_tier}
+                            {src.source_tier?.toLowerCase().startsWith("tier") ? src.source_tier : `Tier ${src.source_tier || "B"}`}
                           </span>
                         </div>
                         {src.source_url && (
@@ -660,7 +668,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
               <Button
                 variant="danger"
                 size="sm"
-                onClick={handleDelete}
+                onClick={() => setIsConfirmDeleteOpen(true)}
                 isLoading={isDeleting}
                 leftIcon={<Trash2 className="w-3.5 h-3.5" />}
               >
@@ -722,7 +730,20 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
             </div>
           </div>
         </div>
-      </Modal>
+      
+      {/* Custom Confirmation Modal */}
+      <ConfirmModal
+        isOpen={isConfirmDeleteOpen}
+        onClose={() => setIsConfirmDeleteOpen(false)}
+        onConfirm={executeDelete}
+        title={`Delete Problem ${problem.id}`}
+        message="Are you sure you want to delete this problem and all its linked claims and evidence? This action cannot be undone."
+        confirmText="Delete Problem"
+        variant="danger"
+        isLoading={isDeleting}
+      />
+    </Modal>
+
 
       {/* Nested Devil's Advocate Modal */}
       <DevilsAdvocateModal

@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
+import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { ProblemRecord, EvidenceTier, SessionState } from "@/lib/types";
 import { problemService } from "@/services/problemService";
 import { ALL_SECTORS } from "@/lib/constants";
@@ -65,6 +67,20 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isProcessingBatch, setIsProcessingBatch] = useState(false);
+  const toast = useToast();
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    confirmText?: string;
+    onConfirm: () => void;
+    variant?: "danger" | "warning" | "info";
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    onConfirm: () => {},
+  });
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   // Modals
@@ -158,67 +174,96 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   };
 
   // 1-Click Standardize & Canonicalize IDs
-  const handleReindexIds = async () => {
-    if (!window.confirm("Standardize all problem IDs into clean sequential format (e.g. AGR-001, HLT-001, RET-001)?")) {
-      return;
-    }
+  const executeReindex = async () => {
     setIsProcessingBatch(true);
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
     try {
       const res = await problemService.reindexIds(session?.project_id || undefined);
       setProblems(res.problems);
       setSelectedIds(new Set());
-      setFeedbackMessage(`Cleaned & standardized ${res.count} problem IDs!`);
-      setTimeout(() => setFeedbackMessage(null), 4000);
+      toast.success(`Standardized ${res.count} problem IDs into sequential format!`, "Reindex Complete");
     } catch (err: any) {
-      alert(`Reindexing failed: ${err.message}`);
+      toast.error(err?.message || "Reindexing failed", "Reindex Error");
     } finally {
       setIsProcessingBatch(false);
     }
   };
 
+  const handleReindexIds = () => {
+    setConfirmDialog({
+      isOpen: true,
+      title: "Standardize Problem IDs",
+      message: "Reindex and clean all problem IDs into standard sequential sector format (e.g. AGR-001, HLT-001)?",
+      confirmText: "Standardize IDs",
+      variant: "info",
+      onConfirm: executeReindex,
+    });
+  };
+
   // Bulk Delete
-  const handleBulkDelete = async () => {
+  const executeBulkDelete = async () => {
     const count = selectedIds.size;
-    if (!window.confirm(`Permanently delete ${count} selected problem records from the database?`)) {
-      return;
-    }
     setIsProcessingBatch(true);
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
     try {
       await problemService.bulkDelete(Array.from(selectedIds));
       setProblems((prev) => prev.filter((p) => !selectedIds.has(p.id)));
       setSelectedIds(new Set());
-      setFeedbackMessage(`Deleted ${count} problem records.`);
-      setTimeout(() => setFeedbackMessage(null), 4000);
+      toast.success(`Permanently deleted ${count} problem records.`, "Bulk Delete Complete");
     } catch (err: any) {
-      alert(`Bulk delete failed: ${err.message}`);
+      toast.error(err?.message || "Bulk delete failed", "Delete Error");
     } finally {
       setIsProcessingBatch(false);
     }
   };
 
+  const handleBulkDelete = () => {
+    const count = selectedIds.size;
+    setConfirmDialog({
+      isOpen: true,
+      title: "Bulk Delete Problems",
+      message: `Are you sure you want to permanently delete ${count} selected problem records? This cannot be undone.`,
+      confirmText: `Delete ${count} Problems`,
+      variant: "danger",
+      onConfirm: executeBulkDelete,
+    });
+  };
+
   // Merge Selected Duplicates
-  const handleMergeSelected = async () => {
+  const executeMerge = async () => {
     const ids = Array.from(selectedIds);
     if (ids.length < 2) return;
     const primaryId = ids[0];
     const duplicates = ids.slice(1);
 
-    if (!window.confirm(`Merge ${duplicates.join(", ")} into primary problem ${primaryId}? This combines citations and upvotes.`)) {
-      return;
-    }
-
     setIsProcessingBatch(true);
+    setConfirmDialog((prev) => ({ ...prev, isOpen: false }));
     try {
       await problemService.mergeProblems(primaryId, duplicates);
       await fetchProblems();
       setSelectedIds(new Set([primaryId]));
-      setFeedbackMessage(`Merged duplicates into ${primaryId}!`);
-      setTimeout(() => setFeedbackMessage(null), 4000);
+      toast.success(`Merged ${duplicates.length} duplicate problems into ${primaryId}.`, "Merge Complete");
     } catch (err: any) {
-      alert(`Merge failed: ${err.message}`);
+      toast.error(err?.message || "Merge failed", "Merge Error");
     } finally {
       setIsProcessingBatch(false);
     }
+  };
+
+  const handleMergeSelected = () => {
+    const ids = Array.from(selectedIds);
+    if (ids.length < 2) return;
+    const primaryId = ids[0];
+    const duplicates = ids.slice(1);
+
+    setConfirmDialog({
+      isOpen: true,
+      title: "Merge Duplicates",
+      message: `Merge ${duplicates.join(", ")} into primary problem ${primaryId}? This combines citations and upvotes.`,
+      confirmText: "Merge Problems",
+      variant: "info",
+      onConfirm: executeMerge,
+    });
   };
 
   const handleRestore = async (e: React.MouseEvent, problemId: string) => {
@@ -226,10 +271,10 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
     try {
       const res = await problemService.restoreProblem(problemId);
       setProblems((prev) => prev.map((p) => (p.id === problemId ? res.problem : p)));
-      setFeedbackMessage(`Restored ${problemId} back to active Problem Bank!`);
+      toast.success(`Restored ${problemId} back to active Problem Bank!`, "Problem Restored");
       setTimeout(() => setFeedbackMessage(null), 4000);
     } catch (err: any) {
-      alert("Restore failed: " + err.message);
+      toast.error(err?.message || "Failed to restore problem", "Restore Error");
     }
   };
 
@@ -916,6 +961,18 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         onApplyReframing={() => {
           fetchProblems();
         }}
+      />
+    
+      {/* Global Action Confirmation Dialog */}
+      <ConfirmModal
+        isOpen={confirmDialog.isOpen}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, isOpen: false }))}
+        onConfirm={confirmDialog.onConfirm}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        confirmText={confirmDialog.confirmText}
+        variant={confirmDialog.variant}
+        isLoading={isProcessingBatch}
       />
     </div>
   );
