@@ -10,11 +10,11 @@ from engines.devils_advocate import challenge_problem_with_agent
 from engines.blind_spot_detector import detect_portfolio_blind_spots
 from engines.research_client import FreeResearchClient
 from engines.srs_generator import generate_project_srs
-from prompts.phase1_system import PHASE1_SYSTEM
-from prompts.phase2_system import PHASE2_SYSTEM
-from prompts.phase3_system import PHASE3_SYSTEM
-from prompts.phase4_system import PHASE4_SYSTEM
-from prompts.phase5_system import PHASE5_SYSTEM
+from prompts.innovation_phase_1_system import INNOVATION_PHASE_1_SYSTEM as PHASE1_SYSTEM
+from prompts.innovation_phase_2_system import INNOVATION_PHASE_2_SYSTEM as PHASE2_SYSTEM
+from prompts.innovation_phase_3_system import INNOVATION_PHASE_3_SYSTEM as PHASE3_SYSTEM
+from prompts.innovation_phase_4_system import INNOVATION_PHASE_4_SYSTEM as PHASE4_SYSTEM
+from prompts.innovation_phase_5_system import INNOVATION_PHASE_5_SYSTEM as PHASE5_SYSTEM
 
 
 router = APIRouter(tags=["Pipeline & Phase Execution"])

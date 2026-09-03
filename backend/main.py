@@ -101,11 +101,11 @@ def create_agents():
     model = os.getenv("GEMINI_MODEL", "gemini-3.5-flash")
     enable_search = os.getenv("ENABLE_GOOGLE_SEARCH", "false").lower() in ("true", "1", "yes")
 
-    from prompts.phase1_system import PHASE1_SYSTEM
-    from prompts.phase2_system import PHASE2_SYSTEM
-    from prompts.phase3_system import PHASE3_SYSTEM
-    from prompts.phase4_system import PHASE4_SYSTEM
-    from prompts.phase5_system import PHASE5_SYSTEM
+    from prompts.innovation_phase_1_system import INNOVATION_PHASE_1_SYSTEM as PHASE1_SYSTEM
+    from prompts.innovation_phase_2_system import INNOVATION_PHASE_2_SYSTEM as PHASE2_SYSTEM
+    from prompts.innovation_phase_3_system import INNOVATION_PHASE_3_SYSTEM as PHASE3_SYSTEM
+    from prompts.innovation_phase_4_system import INNOVATION_PHASE_4_SYSTEM as PHASE4_SYSTEM
+    from prompts.innovation_phase_5_system import INNOVATION_PHASE_5_SYSTEM as PHASE5_SYSTEM
 
     # Phase 1: Research agent (optional search tool if configured)
     tools = []
