@@ -1,122 +1,63 @@
-# RatchetAI — Evidence-Ratcheted Venture Engine
+# CONVERA Backend Pipeline Architecture
 
-**RatchetAI** is an AI-powered, Evidence-Ratcheted Problem-to-Solution Venture Engine designed for startup incubators, founders, and technopreneurship programs. It operationalizes a 5-phase evidence ratchet with Google ADK agents and enforces empirical validation in code.
-
-*Empirical Validation Before Code. Relentless Evidence Over Polite Praise.*
-
----
-
-## 🏛️ System Architecture
-
-RatchetAI provides both a **Modern Full-Stack Web Application (Next.js 15 + FastAPI)** and an **Interactive Terminal CLI**:
-
-```
-                              ┌──────────────────────────────────────────────┐
-                              │            RatchetAI Engine Core             │
-                              │       (5-Phase Google ADK Multi-Agent)       │
-                              └──────────────────────┬───────────────────────┘
-                                                     │
-                       ┌─────────────────────────────┴─────────────────────────────┐
-                       ▼                                                           ▼
-         ┌───────────────────────────┐                               ┌───────────────────────────┐
-         │     FastAPI Backend       │                               │     Terminal CLI          │
-         │   (pipeline/server.py)    │                               │     (pipeline/main.py)    │
-         └─────────────┬─────────────┘                               └───────────────────────────┘
-                       │ REST / SSE
-                       ▼
-         ┌───────────────────────────┐
-         │   Next.js 15 Web App      │
-         │   (web/ on port 3000)     │
-         └───────────────────────────┘
-```
+**Product:** CONVERA — Evidence-Driven Project Intelligence and Opportunity Validation System  
+**Parent Brand:** EMAERX  
+**Version:** 3.0.0  
+**Stack:** Python 3.12 • FastAPI • Pydantic v2 • SQLite WAL • Asyncio  
 
 ---
 
-## 🚀 Quick Start (100% Free Tier)
+## 🏛️ Directory Structure
 
-### 1. Prerequisites
-- Python 3.10+
-- Node.js 18+ and npm
-- A Google Gemini API key (**100% free** at [https://aistudio.google.com/apikey](https://aistudio.google.com/apikey))
-
-### 2. Backend Setup
-```bash
-cd pipeline
-pip install -r requirements.txt
-copy .env.example .env
-# Edit .env and set: GOOGLE_API_KEY=your_key_here
 ```
-
-### 3. Running the Full-Stack Web App
-
-**Terminal 1 — Start the FastAPI Agent Backend:**
-```bash
-cd pipeline
-python -m uvicorn server:app --reload --port 8000
-```
-
-**Terminal 2 — Start the Next.js Frontend:**
-```bash
-cd web
-npm install
-npm run dev
-```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser!
-
----
-
-### 4. Running the Terminal CLI (Alternative)
-```bash
-cd pipeline
-python main.py
+pipeline/
+├── engines/                         # Specialized Intelligence & Research Engines
+│   ├── __init__.py                  # Unified package exports
+│   ├── assumption_engine.py         # Step 1: 4-Claim Ledger & Mom Test Generator
+│   ├── decision_engine.py           # Step 2: Decision Room AI Synthesis & Pivot Loops
+│   ├── srs_generator.py             # Step 3: IEEE 830 / CHED Capstone SRS Generator
+│   ├── deliverables_generator.py    # Lean Canvas, SWOT & 10-Slide Pitch Deck Engine
+│   ├── research_client.py           # Academic DOI Client (OpenAlex, Crossref, Europe PMC)
+│   ├── evidence_scorer.py           # Multi-Factor Evidence Scoring Engine
+│   ├── devils_advocate.py           # Adversarial Stress-Testing & Critique
+│   ├── blind_spot_detector.py       # Customer Assumption Blind Spot Extraction
+│   ├── problem_enricher.py          # Problem Bank AI Enrichment
+│   └── problem_parser.py            # Multi-AI Raw Brainstorm Ingestion Parser
+├── storage/                         # Database & Persistence Subsystem
+│   ├── __init__.py
+│   ├── base.py                      # Abstract Storage Engine Interface
+│   ├── factory.py                   # Pluggable Storage Factory (SQLite WAL / Postgres)
+│   └── sqlite_adapter.py            # Zero-Ops SQLite WAL Relational Knowledge Graph
+├── schemas/                         # Pydantic Input/Output Validation Models
+│   ├── __init__.py
+│   ├── phase1_output.py ... phase5_output.py
+│   └── (Request & Response schemas)
+├── prompts/                         # System Prompts & Socratic Interrogator Clinical Directives
+│   ├── __init__.py
+│   └── phase1_system.py ... phase5_system.py
+├── gates/                           # Strict Mechanical Ratchet Gates
+│   └── __init__.py
+├── scripts/                         # Maintenance & Ingestion Utilities
+│   ├── __init__.py
+│   └── clean_and_ground_problem_bank.py
+├── tests/                           # Complete Pytest Test Suite
+│   └── test_*.py
+├── config.py                        # Centralized Settings & Environment Config
+├── llm_gateway.py                   # Multi-Provider Failover LLM Client (Gemini / Groq / OpenRouter / Ollama)
+├── server.py                        # FastAPI Application & REST Route Controllers
+└── main.py                          # CLI Orchestrator & Standalone Entry Point
 ```
 
 ---
 
-## 📋 5-Phase Evidence Ratchet
+## 🚀 Running the Pipeline
 
-| Phase | Agent | Key Enforced Deliverable |
-|---|---|---|
-| **Phase 1: Discovery** | `phase1_researcher` | Multi-sector problem landscape with local Iloilo source citations |
-| **Phase 2: Screening** | `phase2_screener` | 10-column scorecard + ADVANCE shortlist & Winnability advisory |
-| **Phase 3: Validation** | `phase3_validator` | 6-level Mom Test clinic + 2-dimension scorecard (`/24` & `/20`) |
-| **Phase 4: Ideation** | `phase4_ideator` | 15 Mechanism families, SVB canvas, and P1-P4 Experiment Cards |
-| **Phase 5: MVP Testing** | `phase5_validator` | Behavioral Commitment Hierarchy audit (Tiers 1–5) & Pivot Analysis |
-
----
-
-## 📁 Repository Layout
-
-```
-├── Framework - Evidence-Ratcheted Problem-to-Solution Pipeline.md
-├── Phase 1 - Startup Problem Discovery.md
-├── Phase 2 - Startup Problem Shortlisting.md
-├── Phase 3 - Startup Problem Validation.md
-├── Phase 4 - Solution Ideation & Hypothesis Formation.md
-├── Phase 5 - Solution Validation & MVP Testing.md
-│
-├── pipeline/                          # Python Backend & ADK Agents
-│   ├── server.py                      # FastAPI REST & SSE backend
-│   ├── main.py                        # Terminal CLI runner
-│   ├── requirements.txt               # Dependencies
-│   ├── .env.example                   # API configuration
-│   ├── gates/                         # Code-enforced phase rules & level steppers
-│   ├── schemas/                       # Pydantic models (Phases 1-5)
-│   ├── prompts/                       # Agent system prompts (Phases 1-5)
-│   └── sessions/                      # File-based JSON project states
-│
-└── web/                               # Next.js 15 App Router Frontend
-    ├── src/
-    │   ├── app/                       # Page routes & global styles
-    │   ├── components/                # Modular React UI components
-    │   │   ├── common/                # Button, Badge, Card, Modal, Spinner
-    │   │   ├── layout/                # Navbar, PipelineStepper, SessionManager, CheatsheetDrawer
-    │   │   └── phases/                # Phase 1, 2, 3, 4, 5 Views
-    │   ├── hooks/                     # Custom React hooks
-    │   ├── lib/                       # Types, constants, formatters, api-client
-    │   └── services/                  # Session & Phase API service layer
-    ├── package.json
-    └── tailwind.config.ts
+### Development Server
+```powershell
+uvicorn server:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-
+### Running Tests
+```powershell
+python -m pytest tests/
+```
