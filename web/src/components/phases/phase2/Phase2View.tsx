@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { Filter, Sparkles, ArrowRight, CheckCircle2, ArrowLeft } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Filter, Sparkles, ArrowRight, CheckCircle2, ArrowLeft, Database, RotateCcw, ShieldCheck } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
@@ -11,13 +11,15 @@ import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { ScreeningScorecardGrid } from "./ScreeningScorecardGrid";
 import { phaseService } from "@/services/phaseService";
-import { SessionState } from "@/lib/types";
+import { problemService } from "@/services/problemService";
+import { SessionState, ProblemRecord } from "@/lib/types";
 
 interface Phase2ViewProps {
   session: SessionState;
   onUpdateSession: (newState: SessionState) => void;
   onAdvanceToNextPhase: (problemToValidate?: string) => void;
   onGoBack: () => void;
+  selectedProblemIds?: string[];
 }
 
 export const Phase2View: React.FC<Phase2ViewProps> = ({
@@ -25,27 +27,49 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
   onUpdateSession,
   onAdvanceToNextPhase,
   onGoBack,
+  selectedProblemIds = [],
 }) => {
   const [inputText, setInputText] = useState(session.phase1_response || "");
   const [isScreening, setIsScreening] = useState(false);
   const [selectedProblem, setSelectedProblem] = useState(session.phase3_problem || "");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [bankCount, setBankCount] = useState<number>(0);
+  const [screenSource, setScreenSource] = useState<"BANK" | "TEXT">(
+    selectedProblemIds.length > 0 ? "BANK" : "BANK"
+  );
+
+  useEffect(() => {
+    problemService
+      .listProblems({ project_id: session?.project_id || undefined })
+      .then((probs) => {
+        setBankCount(probs.length);
+      })
+      .catch(() => {});
+  }, [session?.project_id]);
 
   const handleRunScreening = async () => {
-    if (!inputText.trim()) {
-      setErrorMessage("Please provide Phase 1 discovery text to screen.");
-      return;
-    }
     setIsScreening(true);
     setErrorMessage(null);
     try {
-      const res = await phaseService.screen(session.session_id, inputText.trim());
+      const idsToScreen =
+        screenSource === "BANK" && selectedProblemIds.length > 0
+          ? selectedProblemIds
+          : undefined;
+
+      const textToScreen =
+        screenSource === "TEXT" ? inputText.trim() : session.phase1_response || undefined;
+
+      const res = await phaseService.screen(
+        session.session_id,
+        textToScreen,
+        idsToScreen
+      );
       onUpdateSession(res.state);
     } catch (err: any) {
       console.error(err);
       setErrorMessage(
         err.message ||
-          "Google Gemini servers are temporarily experiencing high demand (503). Click 'Retry Now' to re-evaluate."
+          "Google Gemini servers are temporarily experiencing high demand (503). Click 'Retry' to re-evaluate."
       );
     } finally {
       setIsScreening(false);
@@ -56,13 +80,11 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
   const parseScreeningData = (rawText: string | undefined) => {
     if (!rawText) return null;
     try {
-      // Direct parse
       const direct = JSON.parse(rawText);
       if (direct && Array.isArray(direct.results)) return direct;
     } catch {}
 
     try {
-      // Extract from markdown ```json ``` codeblock
       const jsonMatch = rawText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
       if (jsonMatch && jsonMatch[1]) {
         const parsed = JSON.parse(jsonMatch[1]);
@@ -71,12 +93,10 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
     } catch {}
 
     try {
-      // Find { "results": ... } block
       const startIdx = rawText.indexOf("{");
       const endIdx = rawText.lastIndexOf("}");
       if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
-        const substr = rawText.slice(startIdx, endIdx + 1);
-        const parsed = JSON.parse(substr);
+        const parsed = JSON.parse(rawText.slice(startIdx, endIdx + 1));
         if (parsed && Array.isArray(parsed.results)) return parsed;
       }
     } catch {}
@@ -84,119 +104,146 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
     return null;
   };
 
-  const structuredData = parseScreeningData(session.phase2_response);
+  const screeningData = parseScreeningData(session.phase2_response);
 
   return (
     <div className="space-y-6">
-      {/* Header card */}
-      <Card variant="glow" className="p-6">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">
-                <Filter className="w-5 h-5" />
-              </div>
-              <h2 className="text-xl font-bold text-white tracking-tight">Phase 2: Problem Screening & Shortlisting</h2>
-              <Badge variant="cyan">10-Column Scorecard</Badge>
+      {/* Top Banner / Hero */}
+      <Card variant="glass" className="p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+              <Filter className="w-6 h-6" />
             </div>
-            <p className="text-sm text-slate-300">
-              Batch-evaluates problem candidates against the 5 screening criteria + Winnability check to filter out solutions-in-disguise.
-            </p>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-bold text-white tracking-tight">
+                  Phase 2: Problem Screening & Shortlisting
+                </h2>
+                <Badge variant="cyan" size="sm">
+                  10-Column Scorecard
+                </Badge>
+              </div>
+              <p className="text-xs text-slate-400 max-w-2xl mt-0.5">
+                Evaluates candidate problems against the 5 screening criteria + Winnability check to filter out solutions-in-disguise.
+              </p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button
               variant="primary"
               onClick={handleRunScreening}
               isLoading={isScreening}
               leftIcon={<Sparkles className="w-4 h-4" />}
             >
-              {session.phase2_response ? "Re-Run Screening" : "Run Screening & Triage"}
+              {session.phase2_response ? "Re-Run Screening" : "Run Screening Matrix"}
             </Button>
           </div>
         </div>
+
+        {/* Source Configuration Pill */}
+        <div className="pt-3 border-t border-slate-800/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-300">
+          <div className="flex items-center gap-2">
+            <Database className="w-4 h-4 text-cyan-400" />
+            <span className="font-semibold text-slate-200">Problem Source:</span>
+            {selectedProblemIds.length > 0 ? (
+              <span className="px-2.5 py-0.5 rounded-lg bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-mono font-bold">
+                {selectedProblemIds.length} Selected from Problem Bank
+              </span>
+            ) : bankCount > 0 ? (
+              <span className="px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-mono font-bold">
+                All {bankCount} Problems in Problem Bank
+              </span>
+            ) : (
+              <span className="text-slate-400 font-mono">Phase 1 Report Output</span>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setScreenSource("BANK")}
+              className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono transition-all ${
+                screenSource === "BANK"
+                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+              }`}
+            >
+              Database Bank ({bankCount})
+            </button>
+            <button
+              onClick={() => setScreenSource("TEXT")}
+              className={`px-2.5 py-1 rounded-lg border text-[11px] font-mono transition-all ${
+                screenSource === "TEXT"
+                  ? "bg-cyan-500/20 text-cyan-300 border-cyan-500/40 font-bold"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-white"
+              }`}
+            >
+              Custom Text Input
+            </button>
+          </div>
+        </div>
+
+        {/* Custom Text Area if in TEXT mode */}
+        {screenSource === "TEXT" && (
+          <div className="pt-2 space-y-1.5">
+            <label className="text-[10px] uppercase font-bold tracking-wider text-slate-400 font-mono">
+              Raw Discovery Landscape / Markdown Table
+            </label>
+            <textarea
+              rows={4}
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder="Paste Phase 1 problem table or custom markdown..."
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
+            />
+          </div>
+        )}
       </Card>
 
-      {/* Error Alert Banner */}
+      {/* Error Banner */}
       {errorMessage && (
         <AlertBanner
           type="error"
-          title="Screening Error"
+          title="Screening Engine Error"
           message={errorMessage}
           onRetry={handleRunScreening}
-          onDismiss={() => setErrorMessage(null)}
-          isRetrying={isScreening}
         />
       )}
 
       {/* Loading Status Card */}
       {isScreening && (
         <LoadingStatusCard
-          title="Screening Problem Candidates & Generating Scorecard"
-          stages={[
-            "Eliminating solutions in disguise...",
-            "Scoring Pain, Frequency, Market Size, Existing Sacrifice, and Access (1-5)...",
-            "Checking for Fatal Red Flags...",
-            "Enforcing mandatory exit conditions for SECOND LOOK candidates...",
-          ]}
+          title="Evaluating Problem Candidates Against 5 Plausibility Criteria"
           onCancel={() => setIsScreening(false)}
         />
       )}
 
-      {/* Input container if Phase 1 response is empty or editable */}
-      {!session.phase2_response && !isScreening && (
-        <Card variant="glass" className="p-6 space-y-4">
-          <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
-            Problem Candidates Input
-          </h3>
-          <p className="text-xs text-slate-400">
-            {session.phase1_response
-              ? "Loaded automatically from Phase 1 Discovery. You can edit or append candidates below before screening."
-              : "Paste your Phase 1 problem candidates or observations below:"}
-          </p>
-
-          <textarea
-            rows={8}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            placeholder="Paste problem candidates or sector tables here..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-          />
-
-          <div className="flex justify-between items-center pt-2">
-            <Button variant="outline" size="sm" onClick={onGoBack} leftIcon={<ArrowLeft className="w-4 h-4" />}>
-              Back to Phase 1
-            </Button>
-
-            <Button
-              variant="primary"
-              onClick={handleRunScreening}
-              isLoading={isScreening}
-              leftIcon={<Sparkles className="w-4 h-4" />}
-            >
-              Evaluate Candidates
-            </Button>
-          </div>
-        </Card>
-      )}
-
-      {/* Screening Output View */}
+      {/* Results View */}
       {session.phase2_response && !isScreening && (
         <div className="space-y-6">
-          {structuredData ? (
+          {screeningData ? (
+            /* Structured Candidate Grid Component */
             <ScreeningScorecardGrid
-              data={structuredData}
-              onSelectProblem={(prob) => setSelectedProblem(prob)}
+              data={screeningData}
+              onSelectProblem={(stmt) => {
+                setSelectedProblem(stmt);
+                onAdvanceToNextPhase(stmt);
+              }}
               selectedProblem={selectedProblem}
             />
           ) : (
+            /* Fallback Markdown View */
             <Card variant="glass" className="p-6 space-y-4">
               <div className="flex items-center justify-between pb-3 border-b border-slate-800">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-                  <h3 className="text-base font-bold text-white">Screening Scorecard & Verdicts</h3>
+                  <h3 className="text-base font-bold text-white">Screening Scorecard Matrix</h3>
                 </div>
-                <Badge variant="emerald">Screening Complete</Badge>
+                <div className="flex items-center gap-2">
+                  <ModelAttributionBadge meta={session.phase2_model_meta} />
+                  <Badge variant="emerald">Screening Complete</Badge>
+                </div>
               </div>
 
               <div className="prose prose-invert max-w-none prose-sm prose-cyan overflow-x-auto text-slate-200">
@@ -205,41 +252,21 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
             </Card>
           )}
 
-          {/* Advance selection card */}
-          <Card variant="bordered" className="p-6 space-y-4 bg-gradient-to-b from-slate-900 to-slate-950 border-emerald-500/40 shadow-xl">
-            <div className="space-y-1">
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Selected Problem for Phase 3 Deep Validation
-              </h4>
-              <p className="text-xs text-slate-400">
-                The top candidate selected above will enter the Socratic Mom Test Defense Clinic.
-              </p>
-            </div>
+          {/* Bottom Advance Action */}
+          <div className="flex justify-between items-center pt-2">
+            <Button variant="ghost" onClick={onGoBack} leftIcon={<ArrowLeft className="w-4 h-4" />}>
+              Back to Phase 1 Discovery
+            </Button>
 
-            <textarea
-              rows={3}
-              placeholder="Select an ADVANCE candidate above or type the problem statement here..."
-              value={selectedProblem}
-              onChange={(e) => setSelectedProblem(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
-            />
-
-            <div className="flex justify-between items-center pt-2">
-              <Button variant="outline" size="sm" onClick={onGoBack} leftIcon={<ArrowLeft className="w-4 h-4" />}>
-                Back to Phase 1
-              </Button>
-
-              <Button
-                variant="emerald"
-                size="lg"
-                disabled={!selectedProblem.trim()}
-                onClick={() => onAdvanceToNextPhase(selectedProblem.trim())}
-                rightIcon={<ArrowRight className="w-4 h-4" />}
-              >
-                Proceed to Problem Validation Clinic
-              </Button>
-            </div>
-          </Card>
+            <Button
+              variant="emerald"
+              size="lg"
+              onClick={() => onAdvanceToNextPhase(selectedProblem || undefined)}
+              rightIcon={<ArrowRight className="w-4 h-4" />}
+            >
+              Advance to Phase 3: Socratic Mom Test
+            </Button>
+          </div>
         </div>
       )}
     </div>

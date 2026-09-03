@@ -47,6 +47,7 @@ export default function Home() {
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isPresentationOpen, setIsPresentationOpen] = useState(false);
+  const [phase2SelectedIds, setPhase2SelectedIds] = useState<string[]>([]);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportedMarkdown, setExportedMarkdown] = useState("");
   const [copiedDossier, setCopiedDossier] = useState(false);
@@ -193,6 +194,7 @@ export default function Home() {
   };
 
   const handleSendToPhase2 = (selectedIds: string[]) => {
+    setPhase2SelectedIds(selectedIds);
     setActivePhase(2);
   };
 
@@ -295,6 +297,7 @@ export default function Home() {
               <Phase2View
                 session={session}
                 onUpdateSession={handleUpdateSession}
+                selectedProblemIds={phase2SelectedIds}
                 onAdvanceToNextPhase={(problem) => {
                   if (problem) {
                     setSession({ ...session, phase3_problem: problem });
