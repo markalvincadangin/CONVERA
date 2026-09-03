@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
@@ -33,13 +33,19 @@ export const DevilsAdvocateModal: React.FC<DevilsAdvocateModalProps> = ({
   onClose,
   onApplyReframing,
 }) => {
-  if (!problem) return null;
-
   const [report, setReport] = useState<DevilsAdvocateReport | null>(
-    problem.devils_advocate_data || null
+    problem?.devils_advocate_data || null
   );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (problem?.devils_advocate_data) {
+      setReport(problem.devils_advocate_data);
+    }
+  }, [problem]);
+
+  if (!problem) return null;
 
   const handleRunChallenge = async () => {
     setIsLoading(true);

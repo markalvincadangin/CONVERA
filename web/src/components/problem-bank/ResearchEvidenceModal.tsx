@@ -37,8 +37,6 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
   onSourcesAttached,
 }) => {
   const toast = useToast();
-  if (!problem) return null;
-
   const [activeEngine, setActiveEngine] = useState<"ALL" | "OPENALEX" | "EUROPE_PMC" | "REGIONAL_NEWS">("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -56,7 +54,9 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
       setSelectedSources({});
       setSuccessMessage(null);
     }
-  }, [isOpen, problem.id]);
+  }, [isOpen, problem?.id]);
+
+  if (!problem) return null;
 
   const handleAutoResearch = async () => {
     setIsLoading(true);
