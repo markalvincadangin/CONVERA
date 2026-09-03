@@ -2,17 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import {
-  FolderOpen,
+  FolderKanban,
   HelpCircle,
   Download,
   Sparkles,
   ChevronDown,
   Lock,
   Key,
+  Shield,
+  Layers,
+  Copy,
+  Check,
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { VentureHealthBar } from "@/components/common/VentureHealthBar";
-import { UserRoleBadge, getRoleMeta } from "@/components/auth/UserRoleBadge";
+import { getRoleMeta } from "@/components/auth/UserRoleBadge";
 import { IconAvatar } from "@/components/common/IconAvatar";
 import { UserProfileModal } from "@/components/auth/UserProfileModal";
 import { RoomSecurityModal } from "@/components/auth/RoomSecurityModal";
@@ -42,25 +46,38 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(false);
 
   useEffect(() => {
     setUserProfile(authService.getCurrentUser());
   }, []);
 
   const projectName = session?.project_name || "Iloilo Venture Project";
-  const sessionId = session?.session_id || "";
   const projectId = session?.project_id || session?.session_id || "proj_default";
+  const shareCode = session?.share_code || "";
+  const roleMeta = getRoleMeta(userProfile.role);
+
+  const handleCopyCode = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!shareCode) return;
+    navigator.clipboard.writeText(shareCode);
+    setCopiedCode(true);
+    setTimeout(() => setCopiedCode(false), 2000);
+  };
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl transition-all shadow-sm">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl transition-all shadow-lg shadow-black/20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-6">
-          {/* Left: Brand & Product Identity */}
+          
+          {/* ========================================================= */}
+          {/* 1. LEFT: Brand & System Identity                           */}
+          {/* ========================================================= */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="relative group flex items-center justify-center">
-              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-2xl blur-md opacity-25 group-hover:opacity-50 transition-opacity" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-2xl blur-md opacity-25 group-hover:opacity-60 transition-opacity" />
               
-              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900/95 border border-slate-700/80 p-1 flex items-center justify-center shadow-lg shadow-black/40 overflow-hidden">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900 border border-slate-700/80 p-1 flex items-center justify-center shadow-lg shadow-black/50 overflow-hidden">
                 {!imageError ? (
                   <img
                     src="/brand/brandmark.png"
@@ -89,127 +106,142 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </div>
 
-          {/* Center: Active Venture Workspace Switcher */}
+          {/* ========================================================= */}
+          {/* 2. CENTER: Polished Active Workspace Selector Card        */}
+          {/* ========================================================= */}
           <div className="flex-1 max-w-md hidden sm:flex justify-center">
             {session ? (
-              <Tooltip content="Switch session, copy room share code, or restore milestone snapshots" position="bottom">
+              <Tooltip content="Switch workspace, manage snapshots, or copy room share code" position="bottom">
                 <button
                   onClick={onOpenSessionManager}
-                  className="group w-full max-w-sm flex items-center justify-between gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-850 text-left transition-all duration-200 shadow-sm"
+                  className="group w-full max-w-sm flex items-center justify-between gap-3 px-3.5 py-2 rounded-2xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-850 text-left transition-all duration-200 shadow-sm hover:shadow-cyan-500/10"
                 >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-1.5 rounded-lg bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 shrink-0">
-                      <FolderOpen className="w-3.5 h-3.5" />
-                    </div>
-                    <div className="min-w-0 flex flex-col">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold text-slate-100 group-hover:text-white truncate">
-                          {projectName}
+                  {/* Left: Icon Badge */}
+                  <div className="p-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/25 shrink-0 group-hover:scale-105 transition-transform">
+                    <FolderKanban className="w-4 h-4" />
+                  </div>
+
+                  {/* Center: Title & Formatted Metadata */}
+                  <div className="min-w-0 flex-1 flex flex-col justify-center">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate max-w-[170px] leading-tight">
+                        {projectName}
+                      </span>
+                      {session.has_passcode && (
+                        <span title="PIN Protected Workspace">
+                          <Lock className="w-3 h-3 text-amber-400 shrink-0" />
                         </span>
-                        {session.has_passcode && (
-                          <span title="PIN Protected Room"><Lock className="w-3 h-3 text-amber-400 shrink-0" /></span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-[10px] text-slate-400 font-mono mt-0.5">
+                      <div className="flex items-center gap-1">
                         <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                        <span>{sessionId}</span>
-                        {session.share_code && (
-                          <>
-                            <span> </span>
-                            <span className="text-cyan-300 font-bold">{session.share_code}</span>
-                          </>
-                        )}
+                        <span className="text-slate-300 font-medium">Live</span>
                       </div>
+                      {shareCode && (
+                        <>
+                          <span className="text-slate-600">•</span>
+                          <span className="text-cyan-300 font-bold tracking-wider">{shareCode}</span>
+                        </>
+                      )}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-1 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0">
-                    <span className="text-[10px] uppercase font-bold tracking-wider hidden lg:inline">Switch</span>
-                    <ChevronDown className="w-3.5 h-3.5" />
+                  {/* Right: Switch Pill Action */}
+                  <div className="flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-950/80 border border-slate-800/90 text-slate-400 group-hover:text-cyan-300 group-hover:border-cyan-500/30 transition-all shrink-0">
+                    <span className="text-[10px] uppercase font-bold tracking-wider font-mono hidden md:inline">
+                      Switch
+                    </span>
+                    <ChevronDown className="w-3.5 h-3.5 transition-transform group-hover:translate-y-0.5" />
                   </div>
                 </button>
               </Tooltip>
             ) : (
-              <div className="text-xs text-slate-500">Initializing workspace...</div>
+              <div className="text-xs text-slate-500 font-mono">Initializing workspace...</div>
             )}
           </div>
 
-          {/* Right: User Profile, Health Meter & Action Toolbar */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            {/* User Profile Command Pill */}
-            <Tooltip content={`Active Profile: ${userProfile.name} (${getRoleMeta(userProfile.role).label}) • Click to customize avatar & role`} position="bottom">
+          {/* ========================================================= */}
+          {/* 3. RIGHT: Identity Card, Health Bar & Utility Toolbar     */}
+          {/* ========================================================= */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            
+            {/* User Profile Command Card */}
+            <Tooltip content={`Active Identity: ${userProfile.name} • ${roleMeta.label} (Click to customize)`} position="bottom">
               <button
                 onClick={() => setIsProfileModalOpen(true)}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800/90 hover:border-slate-700 transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
               >
                 <div className="relative shrink-0 flex items-center justify-center">
                   <IconAvatar iconKey={userProfile.avatar} size="sm" />
                   <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-sm" />
                 </div>
                 <div className="flex flex-col text-left justify-center min-w-0 pr-0.5">
-                  <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[110px]">
+                  <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[100px]">
                     {userProfile.name}
                   </span>
-                  <span className={`text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none ${getRoleMeta(userProfile.role).text}`}>
-                    {getRoleMeta(userProfile.role).label}
+                  <span className={`text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none ${roleMeta.text}`}>
+                    {roleMeta.label}
                   </span>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 ml-0.5" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 hidden sm:block" />
               </button>
             </Tooltip>
 
             {/* Venture Health Meter */}
             <VentureHealthBar session={session} />
 
-            {/* Room Security PIN Button */}
-            {projectId && (
-              <Tooltip content={session?.has_passcode ? "Change room PIN passcode" : "Set room PIN passcode"} position="bottom">
+            {/* Utility Action Toolbar */}
+            <div className="flex items-center gap-1 p-1 rounded-2xl bg-slate-900/80 border border-slate-800">
+              
+              {/* Security PIN Button */}
+              {projectId && (
+                <Tooltip content={session?.has_passcode ? "Change 4-Digit Room PIN" : "Set 4-Digit Room PIN"} position="bottom">
+                  <button
+                    onClick={() => setIsSecurityModalOpen(true)}
+                    className={`p-2 rounded-xl text-xs transition-all ${
+                      session?.has_passcode
+                        ? "bg-amber-500/15 text-amber-400 border border-amber-500/30 hover:bg-amber-500/25"
+                        : "text-slate-400 hover:text-white hover:bg-slate-800"
+                    }`}
+                  >
+                    <Key className="w-3.5 h-3.5" />
+                  </button>
+                </Tooltip>
+              )}
+
+              {/* Help & Guide Modal Trigger */}
+              <Tooltip content="User Manual & 5-Phase Playbook" position="bottom">
                 <button
-                  onClick={() => setIsSecurityModalOpen(true)}
-                  className={`p-2 rounded-xl border text-xs transition-all shadow-sm ${
-                    session?.has_passcode
-                      ? "bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20"
-                      : "bg-slate-900/80 border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800"
-                  }`}
+                  onClick={onOpenHelp}
+                  className="p-2 rounded-xl text-slate-400 hover:text-cyan-400 hover:bg-slate-800 transition-all"
                 >
-                  <Key className="w-3.5 h-3.5" />
+                  <HelpCircle className="w-3.5 h-3.5" />
                 </button>
               </Tooltip>
-            )}
 
-            {/* Help & Guide Button */}
-            <Tooltip content="Open user manual, 5-phase playbook, snapshots guide & FAQs" position="bottom">
-              <button
-                onClick={onOpenHelp}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white transition-all shadow-sm"
-              >
-                <HelpCircle className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="hidden md:inline">Help</span>
-              </button>
-            </Tooltip>
+              {/* Cheatsheet Drawer Trigger */}
+              <Tooltip content="Quick Reference & Rubric Gates" position="bottom">
+                <button
+                  onClick={onOpenCheatsheet}
+                  className="p-2 rounded-xl text-slate-400 hover:text-amber-400 hover:bg-slate-800 transition-all"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                </button>
+              </Tooltip>
 
-            {/* Cheatsheet Button */}
-            <Tooltip content="Quick reference rules, banned words & scoring gates" position="bottom">
-              <button
-                onClick={onOpenCheatsheet}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/40 hover:bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-white transition-all shadow-sm"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span className="hidden md:inline">Cheatsheet</span>
-              </button>
-            </Tooltip>
-
-            {/* Export Dossier Button */}
-            <Tooltip content="Export complete venture evidence dossier to Markdown" position="bottom">
-              <button
-                onClick={onExportDossier}
-                disabled={isExporting}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 hover:bg-slate-800/80 text-xs font-semibold text-slate-300 hover:text-emerald-400 transition-all shadow-sm"
-              >
-                <Download className={`w-3.5 h-3.5 text-emerald-400 ${isExporting ? "animate-bounce" : ""}`} />
-                <span className="hidden md:inline">Export</span>
-              </button>
-            </Tooltip>
+              {/* Export Dossier Button */}
+              <Tooltip content="Export Venture Dossier to Markdown" position="bottom">
+                <button
+                  onClick={onExportDossier}
+                  disabled={isExporting}
+                  className="p-2 rounded-xl text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-all"
+                >
+                  <Download className={`w-3.5 h-3.5 ${isExporting ? "animate-bounce text-emerald-400" : ""}`} />
+                </button>
+              </Tooltip>
+            </div>
           </div>
         </div>
       </header>
