@@ -140,7 +140,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
     },
   ];
 
-  // Research framework stages
+  // Research framework stages (8 slots total: Bank, Stages A through F, Deliverables Studio)
   const researchPhases = [
     {
       id: 0,
@@ -190,7 +190,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       id: 4,
       name: "Stage D",
       title: "Formulation",
-      desc: "Artifact architecture",
+      desc: "4 DSR Artifacts",
       icon: Cpu,
       isComplete: Boolean(session?.phase4_complete),
       isAvailable: Boolean(session?.phase3_complete),
@@ -201,7 +201,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       id: 5,
       name: "Stage E",
       title: "Evaluation [G3]",
-      desc: "Metrics & baselines",
+      desc: "Kothari Trapping",
       icon: BarChart2,
       isComplete: Boolean(session?.phase5_complete),
       isAvailable: Boolean(session?.phase4_complete),
@@ -210,10 +210,21 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
     },
     {
       id: 6,
+      name: "Stage F",
+      title: "Feasibility [G4]",
+      desc: "Ethics & DOST/SDG",
+      icon: ShieldCheck,
+      isComplete: Boolean(session?.phase5_complete),
+      isAvailable: true,
+      lockReason: "",
+      isBank: false,
+    },
+    {
+      id: 7,
       name: "Studio",
-      title: "Deliverables [G4]",
-      desc: "Proposals & SRS",
-      icon: FileCheck,
+      title: "Deliverables",
+      desc: "Proposal Suite",
+      icon: Sparkles,
       isComplete: Boolean(session?.phase5_complete),
       isAvailable: true,
       lockReason: "",
@@ -340,7 +351,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
         </div>
 
         {/* Row 2: Stepper Pills (7 Tabs) */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-1.5">
+        <div className={`grid grid-cols-2 sm:grid-cols-4 ${isResearch ? "lg:grid-cols-8" : "lg:grid-cols-7"} gap-1.5`}>
           {phases.map((phase) => {
             const Icon = phase.icon;
             const isActive = activePhase === phase.id;

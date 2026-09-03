@@ -287,73 +287,80 @@ export default function Home() {
                 onSendToPhase2={handleSendToPhase2}
               />
             ) : session.framework_id?.toUpperCase().includes("RESEARCH") ? (
-              <ResearchWorkspaceView
-                session={session}
-                problems={problems}
-                activePhase={activePhase}
-                onUpdateSession={handleUpdateSession}
-              />
+              activePhase >= 1 && activePhase <= 6 ? (
+                <ResearchWorkspaceView
+                  session={session}
+                  problems={problems}
+                  activePhase={activePhase}
+                  onUpdateSession={handleUpdateSession}
+                />
+              ) : (
+                <DeliverablesStudio
+                  session={session}
+                  onExportDossier={handleExportDossier}
+                  onNavigatePhase={(p) => setActivePhase(p)}
+                />
+              )
             ) : (
               <>
+                {activePhase === 1 && (
+                  <Phase1View
+                    session={session}
+                    onUpdateSession={handleUpdateSession}
+                    onAdvanceToNextPhase={() => setActivePhase(2)}
+                  />
+                )}
 
-            {activePhase === 1 && (
-              <Phase1View
-                session={session}
-                onUpdateSession={handleUpdateSession}
-                onAdvanceToNextPhase={() => setActivePhase(2)}
-              />
-            )}
+                {activePhase === 2 && (
+                  <Phase2View
+                    session={session}
+                    onUpdateSession={handleUpdateSession}
+                    selectedProblemIds={phase2SelectedIds}
+                    onAdvanceToNextPhase={(problem) => {
+                      if (problem) {
+                        setSession({ ...session, phase3_problem: problem });
+                      }
+                      setActivePhase(3);
+                    }}
+                    onGoBack={() => setActivePhase(1)}
+                  />
+                )}
 
-            {activePhase === 2 && (
-              <Phase2View
-                session={session}
-                onUpdateSession={handleUpdateSession}
-                selectedProblemIds={phase2SelectedIds}
-                onAdvanceToNextPhase={(problem) => {
-                  if (problem) {
-                    setSession({ ...session, phase3_problem: problem });
-                  }
-                  setActivePhase(3);
-                }}
-                onGoBack={() => setActivePhase(1)}
-              />
-            )}
+                {activePhase === 3 && (
+                  <Phase3View
+                    session={session}
+                    onUpdateSession={handleUpdateSession}
+                    onAdvanceToNextPhase={() => setActivePhase(4)}
+                    onGoBack={() => setActivePhase(2)}
+                    initialProblemStatement={session.phase3_problem}
+                  />
+                )}
 
-            {activePhase === 3 && (
-              <Phase3View
-                session={session}
-                onUpdateSession={handleUpdateSession}
-                onAdvanceToNextPhase={() => setActivePhase(4)}
-                onGoBack={() => setActivePhase(2)}
-                initialProblemStatement={session.phase3_problem}
-              />
-            )}
+                {activePhase === 4 && (
+                  <Phase4View
+                    session={session}
+                    onUpdateSession={handleUpdateSession}
+                    onAdvanceToNextPhase={() => setActivePhase(5)}
+                    onGoBack={() => setActivePhase(3)}
+                  />
+                )}
 
-            {activePhase === 4 && (
-              <Phase4View
-                session={session}
-                onUpdateSession={handleUpdateSession}
-                onAdvanceToNextPhase={() => setActivePhase(5)}
-                onGoBack={() => setActivePhase(3)}
-              />
-            )}
+                {activePhase === 5 && (
+                  <Phase5View
+                    session={session}
+                    onUpdateSession={handleUpdateSession}
+                    onGoBack={() => setActivePhase(4)}
+                    onExportDossier={handleExportDossier}
+                  />
+                )}
 
-            {activePhase === 5 && (
-              <Phase5View
-                session={session}
-                onUpdateSession={handleUpdateSession}
-                onGoBack={() => setActivePhase(4)}
-                onExportDossier={handleExportDossier}
-              />
-            )}
-
-            {activePhase === 6 && (
-              <DeliverablesStudio
-                session={session}
-                onExportDossier={handleExportDossier}
-                onNavigatePhase={(p) => setActivePhase(p)}
-              />
-            )}
+                {activePhase === 6 && (
+                  <DeliverablesStudio
+                    session={session}
+                    onExportDossier={handleExportDossier}
+                    onNavigatePhase={(p) => setActivePhase(p)}
+                  />
+                )}
               </>
             )}
           </div>
