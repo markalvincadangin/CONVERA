@@ -236,6 +236,13 @@ export interface SessionState extends SessionMeta {
   phase1_response?: string;
   phase1_sectors?: string[];
   phase1_model_meta?: ModelMetadata;
+  phase1_ingestion_summary?: {
+    total_count: number;
+    new_created_count: number;
+    merged_count: number;
+    created_ids: string[];
+    merged_ids: string[];
+  };
   phase2_response?: string;
   phase2_scorecard?: string;
   phase2_model_meta?: ModelMetadata;

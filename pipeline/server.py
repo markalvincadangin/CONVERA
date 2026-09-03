@@ -574,9 +574,17 @@ async def parse_phase1_output(req: ParsePhase1Request):
         project_id=req.project_id
     )
     if parsed:
-        saved = storage.bulk_upsert_problems(parsed)
-        return {"status": "success", "count": len(saved), "problems": saved}
-    return {"status": "success", "count": 0, "problems": []}
+        upsert_res = storage.bulk_upsert_problems(parsed)
+        return {
+            "status": "success",
+            "count": upsert_res["total_count"],
+            "new_created_count": upsert_res["new_created_count"],
+            "merged_count": upsert_res["merged_count"],
+            "created_ids": upsert_res["created_ids"],
+            "merged_ids": upsert_res["merged_ids"],
+            "problems": upsert_res["problems"]
+        }
+    return {"status": "success", "count": 0, "new_created_count": 0, "merged_count": 0, "problems": []}
 
 
 # ----------------------------------------------------------------------
@@ -618,8 +626,15 @@ async def phase1_discover(req: Phase1DiscoverRequest):
             project_id=state.get("project_id")
         )
         if parsed:
-            storage.bulk_upsert_problems(parsed)
-            parsed_count = len(parsed)
+            upsert_res = storage.bulk_upsert_problems(parsed)
+            parsed_count = upsert_res["total_count"]
+            state["phase1_ingestion_summary"] = {
+                "total_count": upsert_res["total_count"],
+                "new_created_count": upsert_res["new_created_count"],
+                "merged_count": upsert_res["merged_count"],
+                "created_ids": upsert_res["created_ids"],
+                "merged_ids": upsert_res["merged_ids"],
+            }
     except Exception as err:
         print(f"[!] Warning: Auto-parsing Phase 1 problems failed: {err}")
 

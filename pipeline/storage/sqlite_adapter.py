@@ -914,12 +914,31 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 "created_at": datetime.now(timezone.utc).isoformat()
             }
 
-    def bulk_upsert_problems(self, problems: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def bulk_upsert_problems(self, problems: List[Dict[str, Any]]) -> Dict[str, Any]:
         results = []
+        created_ids = []
+        merged_ids = []
         for p in problems:
+            raw_id = p.get("id") or p.get("problem_id")
+            existing_by_id = self.get_problem(clean_problem_id(raw_id)) if raw_id else None
+            matching = existing_by_id or self.find_matching_problem(p)
+            
             res = self.add_problem(p)
             results.append(res)
-        return results
+            
+            if matching:
+                merged_ids.append(res["id"])
+            else:
+                created_ids.append(res["id"])
+                
+        return {
+            "problems": results,
+            "created_ids": created_ids,
+            "merged_ids": merged_ids,
+            "total_count": len(results),
+            "new_created_count": len(created_ids),
+            "merged_count": len(merged_ids),
+        }
 
     def vote_problem(self, problem_id: str, vote_type: str = "up") -> Dict[str, Any]:
         delta = 1 if vote_type == "up" else -1
