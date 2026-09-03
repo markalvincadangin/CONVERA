@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { Compass, Sparkles, Plus, ArrowRight, CheckCircle2, RotateCcw, Lightbulb, MapPin } from "lucide-react";
+import { Compass, Sparkles, Plus, ArrowRight, CheckCircle2, RotateCcw, Lightbulb, MapPin, FolderOpen } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
@@ -279,16 +279,32 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
             </div>
           </Card>
 
-          {/* Bottom Advance Action */}
-          <div className="flex justify-end pt-2">
-            <Button
-              variant="emerald"
-              size="lg"
-              onClick={onAdvanceToNextPhase}
-              rightIcon={<ArrowRight className="w-4 h-4" />}
-            >
-              Advance to Phase 2: Problem Screening
-            </Button>
+          {/* Auto-Sync Banner & Advance Actions */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-xl bg-cyan-500/20 text-cyan-400 shrink-0">
+                <FolderOpen className="w-5 h-5" />
+              </div>
+              <div className="text-left">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                  Auto-Synced to Problem Bank
+                </h4>
+                <p className="text-[11px] text-slate-300">
+                  All discovered problem statements, evidence tiers, and citations have been parsed and populated into your persistent database.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2 shrink-0 w-full sm:w-auto justify-end">
+              <Button
+                variant="emerald"
+                size="md"
+                onClick={onAdvanceToNextPhase}
+                rightIcon={<ArrowRight className="w-4 h-4" />}
+              >
+                Advance to Phase 2
+              </Button>
+            </div>
           </div>
         </div>
       )}
