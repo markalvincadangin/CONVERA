@@ -12,12 +12,10 @@ from storage.sqlite_adapter import SQLiteStorageAdapter
 
 def test_list_frameworks():
     fws = list_frameworks()
-    assert len(fws) >= 4
+    assert len(fws) == 2
     ids = {f["id"] for f in fws}
     assert "INNOVATION" in ids
     assert "RESEARCH" in ids
-    assert "CAPSTONE" in ids
-    assert "PRODUCT" in ids
 
 
 def test_get_innovation_framework():
