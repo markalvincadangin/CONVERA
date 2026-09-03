@@ -4,6 +4,10 @@ import {
   DevilsAdvocateReport,
   ScoreBreakdown,
   BlindSpotAnalysis,
+  KnowledgeGraphData,
+  ClaimRecord,
+  AssumptionRecord,
+  ClaimStatus,
 } from "@/lib/types";
 
 export interface ListProblemsParams {
@@ -47,6 +51,41 @@ export const problemService = {
     return fetchApi<{ status: string; problem: ProblemRecord }>(`/api/problems/${id}`, {
       method: "PUT",
       body: JSON.stringify(updates),
+    });
+  },
+
+  async getKnowledgeGraph(id: string): Promise<{ status: string; knowledge_graph: KnowledgeGraphData }> {
+    return fetchApi<{ status: string; knowledge_graph: KnowledgeGraphData }>(`/api/problems/${id}/knowledge-graph`);
+  },
+
+  async generateAssumptions(id: string, mode: "COMMERCIAL" | "CIVIC_INSTITUTIONAL" = "COMMERCIAL"): Promise<{ status: string; knowledge_graph: KnowledgeGraphData }> {
+    return fetchApi<{ status: string; knowledge_graph: KnowledgeGraphData }>(`/api/problems/${id}/generate-assumptions`, {
+      method: "POST",
+      body: JSON.stringify({ mode }),
+    });
+  },
+
+  async updateClaim(
+    problemId: string,
+    claimId: string,
+    status: ClaimStatus,
+    confidenceScore?: number,
+    evidenceNotes?: string
+  ): Promise<{ status: string; claim: ClaimRecord }> {
+    return fetchApi<{ status: string; claim: ClaimRecord }>(`/api/problems/${problemId}/claims/${claimId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status, confidence_score: confidenceScore, evidence_notes: evidenceNotes }),
+    });
+  },
+
+  async updateAssumption(
+    problemId: string,
+    assumptionId: string,
+    status: string
+  ): Promise<{ status: string; assumption: AssumptionRecord }> {
+    return fetchApi<{ status: string; assumption: AssumptionRecord }>(`/api/problems/${problemId}/assumptions/${assumptionId}`, {
+      method: "PATCH",
+      body: JSON.stringify({ status }),
     });
   },
 

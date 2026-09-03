@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { ProblemCommentsSection } from "./ProblemCommentsSection";
@@ -10,6 +10,9 @@ import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { ResearchEvidenceModal } from "./ResearchEvidenceModal";
+import { EvidenceLedgerCard } from "./EvidenceLedgerCard";
+import { AssumptionRadarCard } from "./AssumptionRadarCard";
+import { KnowledgeGraphData, ClaimRecord, AssumptionRecord } from "@/lib/types";
 import {
   ExternalLink, Search, Plus, Globe, BookOpen,
   ShieldCheck,
@@ -50,6 +53,33 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   onAdvanceToPhase2,
 }) => {
   if (!problem) return null;
+
+  const [knowledgeGraph, setKnowledgeGraph] = useState<KnowledgeGraphData | null>(null);
+  const [isGeneratingKG, setIsGeneratingKG] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && problem?.id) {
+      problemService
+        .getKnowledgeGraph(problem.id)
+        .then((res) => {
+          setKnowledgeGraph(res.knowledge_graph);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, problem?.id]);
+
+  const handleGenerateKG = async (mode: "COMMERCIAL" | "CIVIC_INSTITUTIONAL" = "COMMERCIAL") => {
+    if (!problem?.id) return;
+    setIsGeneratingKG(true);
+    try {
+      const res = await problemService.generateAssumptions(problem.id, mode);
+      setKnowledgeGraph(res.knowledge_graph);
+    } catch (err: any) {
+      alert("Failed to generate: " + err.message);
+    } finally {
+      setIsGeneratingKG(false);
+    }
+  };
 
   const [isEditing, setIsEditing] = useState(false);
   const [statement, setStatement] = useState(problem.problem_statement);

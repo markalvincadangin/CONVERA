@@ -164,6 +164,55 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
 
+                                -- -----------------------------------------------------------
+                -- Relational Knowledge Graph Tables (Step 1 Foundation)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS problem_claims (
+                    id TEXT PRIMARY KEY,
+                    problem_id TEXT NOT NULL,
+                    claim_type TEXT NOT NULL,
+                    claim_text TEXT NOT NULL,
+                    status TEXT DEFAULT 'HYPOTHESIS',
+                    confidence_score REAL DEFAULT 50.0,
+                    mode TEXT DEFAULT 'COMMERCIAL',
+                    evidence_notes TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS problem_assumptions (
+                    id TEXT PRIMARY KEY,
+                    problem_id TEXT NOT NULL,
+                    assumption_text TEXT NOT NULL,
+                    risk_level TEXT DEFAULT 'HIGH',
+                    status TEXT DEFAULT 'UNTESTED',
+                    origin TEXT DEFAULT 'DEVILS_ADVOCATE',
+                    testable_question TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS problem_alternatives (
+                    id TEXT PRIMARY KEY,
+                    problem_id TEXT NOT NULL,
+                    alternative_name TEXT NOT NULL,
+                    category TEXT DEFAULT 'MANUAL_WORKAROUND',
+                    why_it_fails TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS decision_records (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT,
+                    stage TEXT NOT NULL,
+                    selected_problem_id TEXT NOT NULL,
+                    rejected_problem_ids TEXT DEFAULT '[]',
+                    decision_rationale TEXT NOT NULL,
+                    supporting_evidence_ids TEXT DEFAULT '[]',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
                 CREATE TABLE IF NOT EXISTS problem_comments (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     problem_id TEXT NOT NULL,
@@ -1137,3 +1186,121 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             merged_count += 1
             
         return merged_count
+
+    # ------------------------------------------------------------------------
+    # Relational Knowledge Graph Methods (Step 1 Foundation)
+    # ------------------------------------------------------------------------
+
+    def get_problem_knowledge_graph(self, problem_id: str) -> Dict[str, Any]:
+        """Retrieve complete relational knowledge graph for a problem."""
+        problem = self.get_problem(problem_id)
+        if not problem:
+            return {}
+
+        with self._get_connection() as conn:
+            claims = [
+                dict(r) for r in conn.execute(
+                    "SELECT * FROM problem_claims WHERE problem_id = ? ORDER BY created_at ASC", (problem_id,)
+                ).fetchall()
+            ]
+            assumptions = [
+                dict(r) for r in conn.execute(
+                    "SELECT * FROM problem_assumptions WHERE problem_id = ? ORDER BY CASE risk_level WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END, created_at ASC", (problem_id,)
+                ).fetchall()
+            ]
+            alternatives = [
+                dict(r) for r in conn.execute(
+                    "SELECT * FROM problem_alternatives WHERE problem_id = ? ORDER BY created_at ASC", (problem_id,)
+                ).fetchall()
+            ]
+
+        return {
+            "problem": problem,
+            "claims": claims,
+            "assumptions": assumptions,
+            "alternatives": alternatives,
+            "sources": problem.get("sources", []),
+        }
+
+    def set_problem_claims(self, problem_id: str, claims: List[Dict[str, Any]]):
+        """Save or replace claims for a problem."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM problem_claims WHERE problem_id = ?", (problem_id,))
+            for idx, c in enumerate(claims, 1):
+                cid = c.get("id") or f"CLM-{problem_id}-{idx}"
+                conn.execute(
+                    """INSERT INTO problem_claims (id, problem_id, claim_type, claim_text, status, confidence_score, mode, evidence_notes)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        cid,
+                        problem_id,
+                        c.get("claim_type", "FRICTION_REALITY"),
+                        c.get("claim_text", ""),
+                        c.get("status", "HYPOTHESIS"),
+                        c.get("confidence_score", 50.0),
+                        c.get("mode", "COMMERCIAL"),
+                        c.get("evidence_notes", ""),
+                    )
+                )
+
+    def set_problem_assumptions(self, problem_id: str, assumptions: List[Dict[str, Any]]):
+        """Save or replace assumptions for a problem."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM problem_assumptions WHERE problem_id = ?", (problem_id,))
+            for idx, a in enumerate(assumptions, 1):
+                aid = a.get("id") or f"ASM-{problem_id}-{idx}"
+                conn.execute(
+                    """INSERT INTO problem_assumptions (id, problem_id, assumption_text, risk_level, status, origin, testable_question)
+                       VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                    (
+                        aid,
+                        problem_id,
+                        a.get("assumption_text", ""),
+                        a.get("risk_level", "HIGH"),
+                        a.get("status", "UNTESTED"),
+                        a.get("origin", "DEVILS_ADVOCATE"),
+                        a.get("testable_question", ""),
+                    )
+                )
+
+    def set_problem_alternatives(self, problem_id: str, alternatives: List[Dict[str, Any]]):
+        """Save or replace alternatives for a problem."""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM problem_alternatives WHERE problem_id = ?", (problem_id,))
+            for idx, alt in enumerate(alternatives, 1):
+                alt_id = alt.get("id") or f"ALT-{problem_id}-{idx}"
+                conn.execute(
+                    """INSERT INTO problem_alternatives (id, problem_id, alternative_name, category, why_it_fails)
+                       VALUES (?, ?, ?, ?, ?)""",
+                    (
+                        alt_id,
+                        problem_id,
+                        alt.get("alternative_name", ""),
+                        alt.get("category", "MANUAL_WORKAROUND"),
+                        alt.get("why_it_fails", ""),
+                    )
+                )
+
+    def update_claim_status(self, claim_id: str, status: str, confidence_score: Optional[float] = None, evidence_notes: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """Update claim validation status and confidence."""
+        with self._get_connection() as conn:
+            set_clauses = ["status = ?"]
+            params = [status]
+            if confidence_score is not None:
+                set_clauses.append("confidence_score = ?")
+                params.append(confidence_score)
+            if evidence_notes is not None:
+                set_clauses.append("evidence_notes = ?")
+                params.append(evidence_notes)
+            params.append(claim_id)
+
+            conn.execute(f"UPDATE problem_claims SET {', '.join(set_clauses)} WHERE id = ?", params)
+            row = conn.execute("SELECT * FROM problem_claims WHERE id = ?", (claim_id,)).fetchone()
+            return dict(row) if row else None
+
+    def update_assumption_status(self, assumption_id: str, status: str) -> Optional[Dict[str, Any]]:
+        """Update assumption test status."""
+        with self._get_connection() as conn:
+            conn.execute("UPDATE problem_assumptions SET status = ? WHERE id = ?", (status, assumption_id))
+            row = conn.execute("SELECT * FROM problem_assumptions WHERE id = ?", (assumption_id,)).fetchone()
+            return dict(row) if row else None

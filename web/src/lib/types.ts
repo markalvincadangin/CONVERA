@@ -364,3 +364,58 @@ export interface MentorSignoff {
   notes?: string;
   created_at?: string;
 }
+
+
+export type ClaimType =
+  | "FRICTION_REALITY"
+  | "FREQUENCY_CONSEQUENCE"
+  | "WORKAROUND_DISSATISFACTION"
+  | "ADOPTION_COMMITMENT";
+
+export type ClaimStatus =
+  | "UNKNOWN"
+  | "HYPOTHESIS"
+  | "SUPPORTED"
+  | "STRONGLY_SUPPORTED"
+  | "VALIDATED"
+  | "REFUTED";
+
+export interface ClaimRecord {
+  id: string;
+  problem_id: string;
+  claim_type: ClaimType;
+  claim_text: string;
+  status: ClaimStatus;
+  confidence_score: number;
+  mode: "COMMERCIAL" | "CIVIC_INSTITUTIONAL";
+  evidence_notes?: string;
+  created_at?: string;
+}
+
+export interface AssumptionRecord {
+  id: string;
+  problem_id: string;
+  assumption_text: string;
+  risk_level: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
+  status: "UNTESTED" | "IN_TESTING" | "SUPPORTED" | "INVALIDATED";
+  origin: "DEVILS_ADVOCATE" | "MANUAL" | "PHASE1_AI";
+  testable_question?: string;
+  created_at?: string;
+}
+
+export interface AlternativeRecord {
+  id: string;
+  problem_id: string;
+  alternative_name: string;
+  category: "DIRECT_COMPETITOR" | "ADJACENT_APP" | "MANUAL_WORKAROUND";
+  why_it_fails?: string;
+  created_at?: string;
+}
+
+export interface KnowledgeGraphData {
+  problem: ProblemRecord;
+  claims: ClaimRecord[];
+  assumptions: AssumptionRecord[];
+  alternatives: AlternativeRecord[];
+  sources: ProblemSource[];
+}

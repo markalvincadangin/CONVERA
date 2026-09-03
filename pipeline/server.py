@@ -219,6 +219,17 @@ class ResearchQueryRequest(BaseModel):
     engine: Optional[str] = "ALL"  # OPENALEX, EUROPE_PMC, REGIONAL_NEWS, ALL
     limit: Optional[int] = 5
 
+class UpdateClaimRequest(BaseModel):
+    status: str
+    confidence_score: Optional[float] = None
+    evidence_notes: Optional[str] = None
+
+class UpdateAssumptionRequest(BaseModel):
+    status: str
+
+class GenerateAssumptionsRequest(BaseModel):
+    mode: Optional[str] = "COMMERCIAL"
+
 class ArchiveProblemRequest(BaseModel):
     reason: str
     author: Optional[str] = "Team Member"
@@ -649,6 +660,55 @@ async def auto_research_problem_endpoint(problem_id: str):
         "problem_id": problem_id,
         "results": research_data,
     }
+
+@app.get("/api/problems/{problem_id}/knowledge-graph")
+async def get_knowledge_graph_endpoint(problem_id: str):
+    """Retrieve relational knowledge graph (claims, assumptions, alternatives, sources)."""
+    storage = get_storage()
+    kg = storage.get_problem_knowledge_graph(problem_id)
+    if not kg or not kg.get("problem"):
+        raise HTTPException(status_code=404, detail="Problem not found")
+    return {"status": "success", "knowledge_graph": kg}
+
+@app.post("/api/problems/{problem_id}/generate-assumptions")
+async def generate_assumptions_endpoint(problem_id: str, req: GenerateAssumptionsRequest):
+    """Generate and persist structured claims, prioritized assumptions, and alternatives."""
+    from assumption_engine import extract_claims_and_assumptions
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    mode = req.mode or "COMMERCIAL"
+    extracted = await extract_claims_and_assumptions(problem, mode=mode)
+
+    if extracted.get("claims"):
+        storage.set_problem_claims(problem_id, extracted["claims"])
+    if extracted.get("assumptions"):
+        storage.set_problem_assumptions(problem_id, extracted["assumptions"])
+    if extracted.get("alternatives"):
+        storage.set_problem_alternatives(problem_id, extracted["alternatives"])
+
+    updated_kg = storage.get_problem_knowledge_graph(problem_id)
+    return {"status": "success", "knowledge_graph": updated_kg}
+
+@app.patch("/api/problems/{problem_id}/claims/{claim_id}")
+async def update_claim_endpoint(problem_id: str, claim_id: str, req: UpdateClaimRequest):
+    """Update claim validation status and confidence score."""
+    storage = get_storage()
+    updated = storage.update_claim_status(claim_id, req.status, req.confidence_score, req.evidence_notes)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Claim not found")
+    return {"status": "success", "claim": updated}
+
+@app.patch("/api/problems/{problem_id}/assumptions/{assumption_id}")
+async def update_assumption_endpoint(problem_id: str, assumption_id: str, req: UpdateAssumptionRequest):
+    """Update assumption testing status."""
+    storage = get_storage()
+    updated = storage.update_assumption_status(assumption_id, req.status)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Assumption not found")
+    return {"status": "success", "assumption": updated}
 
 @app.post("/api/problems/{problem_id}/archive")
 async def archive_problem_endpoint(problem_id: str, req: ArchiveProblemRequest):
