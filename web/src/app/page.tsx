@@ -222,25 +222,16 @@ export default function Home() {
         onFrameworkChanged={handleUpdateSession}
       />
 
-      {/* Interactive Pipeline Timeline Stepper */}
+      {/* Interactive Pipeline Timeline Stepper & Integrated Command Deck */}
       <PipelineStepper
         activePhase={activePhase}
         onSelectPhase={(phase) => setActivePhase(phase)}
         session={session}
+        problems={problems}
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Methodology Execution HUD */}
-        {session && (
-          <MethodologyHudCard
-            session={session}
-            problems={problems}
-            activePhase={activePhase}
-            onNavigate={(phase) => setActivePhase(phase)}
-            onOpenScorecard={() => setIsScorecardOpen(true)}
-          />
-        )}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-4 space-y-6">
 
         {isLoadingSession ? (
           <div className="py-24 flex items-center justify-center">

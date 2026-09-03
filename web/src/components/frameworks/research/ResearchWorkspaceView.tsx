@@ -26,6 +26,7 @@ import { SessionState, ProblemRecord } from "@/lib/types";
 interface ResearchWorkspaceViewProps {
   session: SessionState | null;
   problems: ProblemRecord[];
+  activePhase?: number;
   onUpdateSession?: (updatedSession: SessionState) => void;
 }
 
@@ -41,9 +42,22 @@ const PHASES = [
 export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   session,
   problems,
+  activePhase,
   onUpdateSession,
 }) => {
   const [activePhaseId, setActivePhaseId] = useState<string>("A");
+  const phaseMap: Record<number, string> = {
+    0: "A",
+    1: "A",
+    2: "B",
+    3: "C",
+    4: "D",
+    5: "E",
+    6: "F",
+  };
+
+  const currentPhaseId = activePhase !== undefined ? phaseMap[activePhase] || "A" : activePhaseId;
+  const activePhaseMeta = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
   const [searchQuery, setSearchQuery] = useState<string>("agricultural pest detection edge AI");
   const [matrixRows, setMatrixRows] = useState<LiteratureRow[]>([]);
   const [matrixGaps, setMatrixGaps] = useState<ResearchGapItem[]>([]);
@@ -72,75 +86,63 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in duration-300">
-      {/* Workspace Top Banner */}
-      <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/50 via-slate-900/80 to-indigo-950/40 p-8 shadow-2xl backdrop-blur-xl">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-mono">
-                Academic DSR Track (CRCDP)
+      {/* Compact Stage Action Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 bg-slate-900/90 rounded-2xl border border-slate-800 shadow-lg">
+        <div className="space-y-0.5">
+          <div className="flex items-center gap-2">
+            <span className="px-2 py-0.5 rounded text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+              {activePhaseMeta.name.split(": ")[0]}
+            </span>
+            <h2 className="text-sm font-bold text-white tracking-tight">
+              {activePhaseMeta.name.split(": ")[1]}
+            </h2>
+            {activePhaseMeta.gate && (
+              <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-950/60 border border-indigo-500/30 px-2 py-0.5 rounded-full">
+                {activePhaseMeta.gate}
               </span>
-              <span className="text-xs text-slate-400 font-mono">6 Phases &bull; 4 Quality Gates</span>
-            </div>
-            <h1 className="text-3xl font-black tracking-tight text-white sm:text-4xl">
-              Computing Research Concept Development Workspace
-            </h1>
-            <p className="text-sm text-slate-300 max-w-3xl leading-relaxed">
-              Ground your thesis or capstone in Herbert Simon&apos;s <em>Sciences of the Artificial</em>, Bordens &amp; Abbott scouting, Kothari experimental designs, and rigorous scholarly gap matrices.
-            </p>
+            )}
           </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setIsScorecardOpen(true)}
-              className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 transition flex items-center gap-1.5"
-            >
-              <Sparkles className="w-3.5 h-3.5" /> Intelligence Scorecard
-            </button>
-            <button
-              onClick={() => setIsTraceabilityOpen(true)}
-              className="rounded-2xl border border-slate-700 bg-slate-900/80 hover:bg-slate-800 px-4 py-3 text-xs font-bold text-cyan-300 shadow-xl transition-all"
-            >
-              ⟲ Traceability Lineage
-            </button>
-          </div>
+          <p className="text-xs text-slate-400">
+            {activePhaseMeta.desc}
+          </p>
         </div>
 
-        {/* Phase Stepper Pills */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-8 pt-6 border-t border-slate-800/80">
-          {PHASES.map((p) => {
-            const isActive = activePhaseId === p.id;
-            return (
-              <button
-                key={p.id}
-                onClick={() => setActivePhaseId(p.id)}
-                className={`flex flex-col text-left p-3.5 rounded-2xl border transition-all duration-200 ${
-                  isActive
-                    ? "bg-emerald-950/80 border-emerald-500 shadow-lg shadow-emerald-950/50 ring-1 ring-emerald-500/50"
-                    : "bg-slate-950/40 border-slate-800/80 hover:border-slate-700 text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className={`text-xs font-black font-mono ${isActive ? "text-emerald-300" : "text-slate-400"}`}>
-                    PHASE {p.id}
-                  </span>
-                  {p.gate && (
-                    <span className="text-[9px] px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/60 font-semibold">
-                      Gate
-                    </span>
-                  )}
-                </div>
-                <div className="text-xs font-bold text-slate-200 mt-1 line-clamp-1">{p.name.split(": ")[1]}</div>
-              </button>
-            );
-          })}
+        <div className="flex items-center gap-2 shrink-0">
+          {activePhaseMeta.gate && (
+            <button
+              onClick={() => {
+                if (currentPhaseId === "B") setActiveGateModal("GATE_1");
+                else if (currentPhaseId === "C") setActiveGateModal("GATE_2");
+                else if (currentPhaseId === "E") setActiveGateModal("GATE_3");
+                else if (currentPhaseId === "F") setActiveGateModal("GATE_4");
+              }}
+              className="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 transition flex items-center gap-1.5 shadow-sm font-mono"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+              Evaluate Gate
+            </button>
+          )}
+
+          <button
+            onClick={() => setIsScorecardOpen(true)}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 transition flex items-center gap-1.5"
+          >
+            <Sparkles className="w-3.5 h-3.5" /> Scorecard
+          </button>
+          
+          <button
+            onClick={() => setIsTraceabilityOpen(true)}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 transition flex items-center gap-1.5"
+          >
+            <Layers className="w-3.5 h-3.5 text-cyan-400" /> Traceability
+          </button>
         </div>
       </div>
 
       {/* Dynamic Phase Workspace Content */}
       <div className="space-y-8">
         {/* PHASE A */}
-        {activePhaseId === "A" && (
+        {currentPhaseId === "A" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
               <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
@@ -169,7 +171,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         )}
 
         {/* PHASE B */}
-        {activePhaseId === "B" && (
+        {currentPhaseId === "B" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
               <div className="flex items-center justify-between">
@@ -189,7 +191,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         )}
 
         {/* PHASE C (Literature Matrix) */}
-        {activePhaseId === "C" && (
+        {currentPhaseId === "C" && (
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="relative flex-1">
@@ -223,7 +225,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         )}
 
         {/* PHASE D */}
-        {activePhaseId === "D" && (
+        {currentPhaseId === "D" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
               <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
@@ -261,7 +263,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         )}
 
         {/* PHASE E */}
-        {activePhaseId === "E" && (
+        {currentPhaseId === "E" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
               <div className="flex items-center justify-between">
@@ -296,7 +298,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         )}
 
         {/* PHASE F */}
-        {activePhaseId === "F" && (
+        {currentPhaseId === "F" && (
           <div className="space-y-6">
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
               <div className="flex items-center justify-between">

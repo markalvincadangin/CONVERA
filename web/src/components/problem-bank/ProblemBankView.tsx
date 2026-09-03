@@ -388,7 +388,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       />
 
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 rounded-3xl border border-slate-800 shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 sm:p-4 bg-slate-900/80 rounded-2xl border border-slate-800 shadow-lg">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-bold text-white tracking-tight">{terminology.bankTitle}</h2>
