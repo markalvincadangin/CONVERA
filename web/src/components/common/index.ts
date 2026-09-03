@@ -16,3 +16,4 @@ export * from "./ContextualAiHint";
 export * from "./ToastProvider";
 export * from "./ConfirmModal";
 export * from "./MethodologyHudCard";
+export * from "./CommandPaletteModal";

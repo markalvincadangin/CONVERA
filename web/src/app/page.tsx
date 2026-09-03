@@ -28,6 +28,7 @@ import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { Card } from "@/components/common/Card";
 import { MethodologyHudCard } from "@/components/common/MethodologyHudCard";
+import { CommandPaletteModal } from "@/components/common/CommandPaletteModal";
 import { SessionState, ProblemRecord } from "@/lib/types";
 import { sessionService } from "@/services/sessionService";
 import { problemService } from "@/services/problemService";
@@ -49,6 +50,7 @@ export default function Home() {
 
   // Modals
   const [isSessionManagerOpen, setIsSessionManagerOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isPresentationOpen, setIsPresentationOpen] = useState(false);
@@ -220,6 +222,7 @@ export default function Home() {
         isExporting={isExporting}
         onOpenScorecard={() => setIsScorecardOpen(true)}
         onOpenTraceability={() => setIsTraceabilityOpen(true)}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onFrameworkChanged={handleUpdateSession}
       />
 
@@ -375,6 +378,19 @@ export default function Home() {
           </AnimatePresence>
         ) : null}
       </main>
+
+            {/* Global Spotlight / Command Palette Modal */}
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        session={session}
+        problems={problems}
+        onNavigatePhase={(p) => setActivePhase(p)}
+        onOpenScorecard={() => setIsScorecardOpen(true)}
+        onOpenTraceability={() => setIsTraceabilityOpen(true)}
+        onOpenSessionManager={() => setIsSessionManagerOpen(true)}
+        onExportDossier={handleExportDossier}
+      />
 
       {/* Session & Snapshots Manager Modal */}
       <SessionManager

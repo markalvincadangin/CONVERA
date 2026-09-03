@@ -6,6 +6,7 @@ import {
   HelpCircle,
   Download,
   Sparkles,
+  Search,
   ChevronDown,
   Lock,
   Key,
@@ -44,6 +45,7 @@ interface NavbarProps {
   onOpenScorecard?: () => void;
   onOpenInbox?: () => void;
   onOpenTraceability?: () => void;
+  onOpenCommandPalette?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -58,6 +60,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenScorecard,
   onOpenInbox,
   onOpenTraceability,
+  onOpenCommandPalette,
 }) => {
   const [imageError, setImageError] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER);
@@ -218,6 +221,21 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* Venture Health Meter */}
             <VentureHealthBar session={session} />
+
+            {/* Global Spotlight / Command Palette Button */}
+            {onOpenCommandPalette && (
+              <button
+                onClick={onOpenCommandPalette}
+                className="hidden lg:flex items-center gap-2 px-2.5 py-1.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-cyan-500/40 text-slate-400 hover:text-white transition-all text-xs font-mono shadow-sm group active:scale-[0.98]"
+                title="Open Global Command Palette (Ctrl+K / Cmd+K)"
+              >
+                <Search className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400" />
+                <span className="text-[11px] text-slate-400 group-hover:text-slate-200">Command</span>
+                <kbd className="px-1.5 py-0.5 rounded-lg bg-slate-800 border border-slate-700 text-[10px] font-bold text-cyan-400">
+                  Ctrl K
+                </kbd>
+              </button>
+            )}
 
             {/* Desktop Intelligence & Utility Toolbar */}
             <div className="hidden sm:flex items-center gap-1 p-1 rounded-2xl bg-slate-900/80 border border-slate-800 overflow-visible">
