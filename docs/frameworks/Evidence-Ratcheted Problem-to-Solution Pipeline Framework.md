@@ -1,4 +1,4 @@
-# RatchetAI: Evidence-Ratcheted Venture Engine
+# CONVERA: Evidence-Ratcheted Problem-to-Solution Pipeline Framework
 ## Framework Reference v1.1
 
 *The Evidence-Ratcheted Problem-to-Solution Venture Engine for Technopreneurship & Startup Incubators*  

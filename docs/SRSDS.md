@@ -55,15 +55,15 @@ graph TD
     ClientTier -->|HTTPS / API Proxy| APITier
 
     subgraph APITier["API / SERVICE ORCHESTRATION TIER (FastAPI • Python 3.12 • Pydantic v2)"]
-        ENG1["Assumption & Claim Engine (pipeline/engines/assumption_engine.py)"]
-        ENG2["Decision Room & Pivot Engine (pipeline/engines/decision_engine.py)"]
-        ENG3["Capstone / MVP SRS Generator (pipeline/engines/srs_generator.py)"]
+        ENG1["Assumption & Claim Engine (backend/engines/assumption_engine.py)"]
+        ENG2["Decision Room & Pivot Engine (backend/engines/decision_engine.py)"]
+        ENG3["Capstone / MVP SRS Generator (backend/engines/srs_generator.py)"]
         ENG4["Academic Research Client (OpenAlex, Europe PMC, Crossref)"]
         ENG5["6-Level Socratic Mom Test Validation Engine"]
     end
 
     APITier --> LLMTier["UNIVERSAL MULTI-PROVIDER GATEWAY<br/>(Gemini 3.8 Flash • Groq Llama 3.3 • OpenRouter • Local Ollama)"]
-    APITier --> StorageTier[("STORAGE ADAPTER SUBSYSTEM<br/>• SQLite WAL (pipeline/ratchetai.db)<br/>• PostgreSQL (Neon Cloud)<br/>• Relational Schema + Zero-Ops WAL")]
+    APITier --> StorageTier[("STORAGE ADAPTER SUBSYSTEM<br/>• SQLite WAL (backend/storage/convera.db)<br/>• PostgreSQL (Neon Cloud)<br/>• Relational Schema + Zero-Ops WAL")]
 
     style ClientTier fill:#0b0f14,stroke:#0066ff,stroke-width:2px,color:#ffffff
     style APITier fill:#0f172a,stroke:#38bdf8,stroke-width:2px,color:#ffffff
