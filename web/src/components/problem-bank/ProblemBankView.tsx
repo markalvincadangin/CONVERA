@@ -665,11 +665,106 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             Try Again
           </Button>
         </div>
+      ) : problems.length === 0 ? (
+        <div className="rounded-3xl border border-cyan-500/30 bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950 p-8 text-center space-y-6 shadow-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center mx-auto text-cyan-400">
+            <Sparkles className="w-7 h-7" />
+          </div>
+
+          <div className="max-w-xl mx-auto space-y-2">
+            <h3 className="text-lg font-bold text-white tracking-tight">
+              Your Problem Bank is Ready for Intake
+            </h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Every breakthrough project starts with grounded friction. Choose a pathway below to populate your concept workspace with verified field observations:
+            </p>
+          </div>
+
+          {/* 3 Socratic Pathways Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left max-w-4xl mx-auto">
+            {/* Pathway 1: AI Note Structuring */}
+            <div
+              onClick={() => setIsRawIngestOpen(true)}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group"
+            >
+              <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
+                <Sparkles className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
+                  AI Note Structuring
+                </h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Paste raw interview transcripts, GC messages, or field observations. AI extracts 5 core grounding anchors.
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-cyan-400 flex items-center gap-1 font-mono">
+                Ingest Notes <ArrowRight className="w-3 h-3" />
+              </span>
+            </div>
+
+            {/* Pathway 2: Blind Spot Scanner */}
+            <div
+              onClick={() => setIsBlindSpotModalOpen(true)}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group"
+            >
+              <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
+                <Radar className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white group-hover:text-purple-300 transition-colors">
+                  Blind Spot Scanner
+                </h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Uncover overlooked friction across Agriculture, Healthcare, MSME, and Governance in Western Visayas.
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-purple-400 flex items-center gap-1 font-mono">
+                Scan Sectors <ArrowRight className="w-3 h-3" />
+              </span>
+            </div>
+
+            {/* Pathway 3: Manual 5-Anchor Entry */}
+            <div
+              onClick={() => setIsAddModalOpen(true)}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group"
+            >
+              <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
+                <Plus className="w-4 h-4" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">
+                  Manual 5-Anchor Entry
+                </h4>
+                <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+                  Directly log Sufferer, Location, Root Cause, Workaround, and Quantified Loss in structured fields.
+                </p>
+              </div>
+              <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1 font-mono">
+                Add Statement <ArrowRight className="w-3 h-3" />
+              </span>
+            </div>
+          </div>
+        </div>
       ) : filteredProblems.length === 0 ? (
-        <div className="py-20 text-center space-y-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 p-8">
-          <p className="text-sm text-slate-400">No problems found matching your filters.</p>
-          <Button variant="primary" size="sm" onClick={() => setIsAddModalOpen(true)}>
-            + Add New Problem
+        <div className="py-16 text-center space-y-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 p-8">
+          <Search className="w-8 h-8 text-slate-600 mx-auto" />
+          <h4 className="text-sm font-bold text-white">No Matching Problems Found</h4>
+          <p className="text-xs text-slate-400 max-w-md mx-auto">
+            No problems match your current search query or active filter chips.
+          </p>
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              setSearchQuery("");
+              setSelectedSector("All");
+              setSelectedTier("All");
+              setQuickFilter("ALL");
+            }}
+            leftIcon={<RotateCcw className="w-3.5 h-3.5" />}
+          >
+            Reset All Filters
           </Button>
         </div>
       ) : viewMode === "table" ? (
