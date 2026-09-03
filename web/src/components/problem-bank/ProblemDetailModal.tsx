@@ -88,13 +88,16 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   };
 
   const getDeepSearchUrl = (srcName: string, domainUrl?: string | null) => {
-    const query = `${srcName} ${problem.sufferer_location || "Iloilo"} ${problem.problem_statement.slice(0, 45)}`;
-    if (domainUrl && domainUrl.startsWith("http")) {
-      try {
-        const hostname = new URL(domainUrl).hostname.replace(/^www\./, "");
-        return `https://www.google.com/search?q=site:${hostname}+${encodeURIComponent(query)}`;
-      } catch (e) {}
-    }
+    const cleanKeywords = (problem.problem_statement || "")
+      .replace(/[^a-zA-Z0-9\s]/g, " ")
+      .split(/\s+/)
+      .filter((w) => w.length > 3 && !["with", "from", "that", "this", "they", "have", "been", "their", "into", "over"].includes(w.toLowerCase()))
+      .slice(0, 3)
+      .join(" ");
+
+    const cleanLoc = (problem.sufferer_location || "Iloilo").split(",")[0].trim();
+    const cleanSrc = srcName.replace(/\(.*?\)/g, "").trim();
+    const query = `${cleanSrc} ${cleanLoc} ${cleanKeywords}`;
     return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
   };
 
@@ -650,6 +653,17 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
           setStatement(newStatement);
           handleSave();
           setIsDevilsAdvocateOpen(false);
+        }}
+      />
+
+      {/* Free Academic & Regional News Evidence Modal */}
+      <ResearchEvidenceModal
+        isOpen={isResearchModalOpen}
+        onClose={() => setIsResearchModalOpen(false)}
+        problem={problem}
+        onSourcesAttached={(updatedProb) => {
+          onProblemUpdated(updatedProb);
+          setSources(updatedProb.sources || []);
         }}
       />
     </>
