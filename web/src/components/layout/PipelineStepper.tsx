@@ -138,8 +138,8 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
         </div>
 
         {/* Responsive Stepper Navigation: Horizontal Swipeable on Mobile, Grid on Desktop */}
-        <nav aria-label="Pipeline Progress" className="w-full">
-          <ol className="flex md:grid md:grid-cols-7 gap-2 overflow-x-auto no-scrollbar pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 snap-x snap-mandatory">
+        <nav aria-label="Pipeline Progress" className="w-full max-w-full overflow-hidden">
+          <ol className="flex md:grid md:grid-cols-7 gap-2 overflow-x-auto no-scrollbar pb-1 w-full max-w-full snap-x snap-mandatory touch-pan-x">
             {phases.map((phase) => {
               const Icon = phase.icon;
               const isActive = activePhase === phase.id;

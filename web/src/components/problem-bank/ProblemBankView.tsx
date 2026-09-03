@@ -303,19 +303,21 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
           <Button
             variant="secondary"
             size="sm"
+            className="w-full sm:w-auto justify-center text-xs"
             onClick={() => setIsBlindSpotModalOpen(true)}
             leftIcon={<Radar className="w-3.5 h-3.5 text-purple-400" />}
           >
-            Blind Spot Radar
+            Blind Spot
           </Button>
 
           <Button
             variant="secondary"
             size="sm"
+            className="w-full sm:w-auto justify-center text-xs"
             onClick={fetchProblems}
             leftIcon={<RefreshCw className={`w-3.5 h-3.5 ${isLoading ? "animate-spin" : ""}`} />}
           >
@@ -325,6 +327,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           <Button
             variant="secondary"
             size="sm"
+            className="w-full sm:w-auto justify-center text-xs"
             onClick={handleExportCSV}
             leftIcon={<Download className="w-3.5 h-3.5" />}
           >
@@ -334,6 +337,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           <Button
             variant="primary"
             size="sm"
+            className="w-full sm:w-auto justify-center text-xs"
             onClick={() => setIsAddModalOpen(true)}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
           >
