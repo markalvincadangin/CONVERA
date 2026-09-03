@@ -39,15 +39,15 @@ htmlcov/
 *.db-journal
 *.db-wal
 *.db-shm
-pipeline/*.db
-pipeline/*.db-wal
-pipeline/*.db-shm
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
 
 # Secrets & Environment
 .env
-pipeline/.env
+backend/.env
 !.env.example
-!pipeline/.env.example
+!backend/.env.example
 
 # OS / Editor
 .DS_Store

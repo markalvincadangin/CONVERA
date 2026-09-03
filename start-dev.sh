@@ -6,15 +6,15 @@ echo "=========================================================="
 echo "   Starting RatchetAI: Full-Stack Venture Engine          "
 echo "=========================================================="
 
-if [ ! -f "pipeline/.env" ]; then
-    echo "[!] pipeline/.env not found. Copying from .env.example..."
-    cp pipeline/.env.example pipeline/.env
-    echo "[*] Please verify your GOOGLE_API_KEY in pipeline/.env"
+if [ ! -f "backend/.env" ]; then
+    echo "[!] backend/.env not found. Copying from .env.example..."
+    cp backend/.env.example backend/.env
+    echo "[*] Please verify your GOOGLE_API_KEY in backend/.env"
 fi
 
 # Start FastAPI Backend in background
 echo "[+] Starting FastAPI Agent Backend on http://localhost:8000..."
-(cd pipeline && python -m uvicorn server:app --reload --port 8000) &
+(cd backend && python -m uvicorn server:app --reload --port 8000) &
 BACKEND_PID=$!
 
 # Trap exit to kill backend process on Ctrl+C

@@ -73,7 +73,7 @@ git checkout develop
 
 ### 3. Setup Python Backend
 ```bash
-cd pipeline
+cd backend
 python -m venv venv
 # On Windows PowerShell:
 .\venv\Scripts\Activate.ps1
@@ -104,7 +104,7 @@ Before submitting any Pull Request, you **MUST verify that all automated test su
 
 ```bash
 # 1. Run Python pytest suite (10/10 tests must pass)
-cd pipeline
+cd backend
 python -m pytest tests/
 
 # 2. Run Next.js production build check (0 errors)

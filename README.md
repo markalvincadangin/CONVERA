@@ -13,10 +13,10 @@
   [![IEEE 830 Compliant](https://img.shields.io/badge/Standard-IEEE%20830%20%2F%20ISO%2029148-cyan.svg)](docs/SRSDS.md)
   [![CHED CICT Aligned](https://img.shields.io/badge/Academic-CHED%20CICT%20Capstone-blue.svg)](docs/SRSDS.md)
   [![UI/UX Standards](https://img.shields.io/badge/UX-WCAG%202.2%20%7C%20NN%2Fg%20Heuristics-purple.svg)](docs/DESIGN_SYSTEM.md)
-  [![Python](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python&logoColor=white)](pipeline/)
+  [![Python](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python&logoColor=white)](backend/)
   [![Next.js](https://img.shields.io/badge/Next.js-16.0-black.svg?logo=next.js&logoColor=white)](web/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?logo=fastapi&logoColor=white)](pipeline/)
-  [![SQLite WAL](https://img.shields.io/badge/Storage-SQLite%20WAL%20%7C%20Postgres-amber.svg)](pipeline/storage/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?logo=fastapi&logoColor=white)](backend/)
+  [![SQLite WAL](https://img.shields.io/badge/Storage-SQLite%20WAL%20%7C%20Postgres-amber.svg)](backend/storage/)
 
   <p align="center">
     <strong>Transforms fragmented project ideas, research papers, AI-generated outputs, assumptions, and field observations into structured, evidence-backed, validated, and decision-ready project opportunities.</strong>
@@ -100,9 +100,9 @@ CONVERA is built as a decoupled, zero-ops **PC-Powered Hybrid Architecture**:
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
 │                             API / SERVICE ORCHESTRATION TIER                            │
 │  FastAPI (Python 3.12) • Pydantic v2 • Asyncio Service Engine (Host: 0.0.0.0:8000)     │
-│  • Assumption & Claim Extraction Engine (pipeline/assumption_engine.py)                │
-│  • Multi-Candidate Decision Room & Pivot Engine (pipeline/decision_engine.py)          │
-│  • Capstone / MVP Technical SRS Generator (pipeline/srs_generator.py)                  │
+│  • Assumption & Claim Extraction Engine (backend/assumption_engine.py)                │
+│  • Multi-Candidate Decision Room & Pivot Engine (backend/decision_engine.py)          │
+│  • Capstone / MVP Technical SRS Generator (backend/srs_generator.py)                  │
 │  • Academic Research Client (OpenAlex, Europe PMC, Crossref with AI Relevance Gate)    │
 │  • 6-Level Socratic Mom Test Validation Engine                                         │
 └────────────────────────────────────────────────────────────────────────────────────────┘
@@ -111,7 +111,7 @@ CONVERA is built as a decoupled, zero-ops **PC-Powered Hybrid Architecture**:
 ┌────────────────────────────────────────┐     ┌────────────────────────────────────────┐
 │        UNIVERSAL MULTI-PROVIDER GATEWAY│     │       STORAGE ADAPTER SUBSYSTEM        │
 │  Dynamic Multi-Model Failover Cascade  │     │  Pluggable Local & Cloud Persistence   │
-│  1. Google Gemini (gemini-3.8-flash)   │     │  • SQLite WAL (pipeline/ratchetai.db)  │
+│  1. Google Gemini (gemini-3.8-flash)   │     │  • SQLite WAL (backend/ratchetai.db)  │
 │  2. Groq Cloud (llama-3.3-70b @ 500t/s)│     │  • PostgreSQL (Neon / Supabase Cloud)  │
 │  3. OpenRouter (Llama 3.3 70B Instruct)│     │  • Relational Schema + Zero-Ops WAL    │
 │  4. Local Ollama (qwen2.5 / llama3.2)  │     │  • Cascading Foreign Key Integrity     │

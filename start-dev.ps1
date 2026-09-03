@@ -6,7 +6,7 @@ if (-not $RootDir) {
 }
 
 # If user is in web/ or pipeline/, move up to project root
-if (Test-Path "$RootDir\..\pipeline") {
+if (Test-Path "$RootDir\..\backend") {
     $RootDir = (Resolve-Path "$RootDir\..").Path
 }
 
@@ -25,20 +25,20 @@ Write-Host "[*] Teammates on same Wi-Fi: http://$($LocalIP):3000" -ForegroundCol
 Write-Host "==========================================================" -ForegroundColor Cyan
 
 # Check if .env exists in pipeline
-$EnvPath = "$RootDir\pipeline\.env"
-$EnvExamplePath = "$RootDir\pipeline\.env.example"
+$EnvPath = "$RootDir\backend\.env"
+$EnvExamplePath = "$RootDir\backend\.env.example"
 
 if (-not (Test-Path $EnvPath)) {
     if (Test-Path $EnvExamplePath) {
-        Write-Host "[!] pipeline\.env not found. Copying from .env.example..." -ForegroundColor Yellow
+        Write-Host "[!] backend\.env not found. Copying from .env.example..." -ForegroundColor Yellow
         Copy-Item $EnvExamplePath $EnvPath
-        Write-Host "[*] Please verify your API keys in pipeline\.env" -ForegroundColor Yellow
+        Write-Host "[*] Please verify your API keys in backend\.env" -ForegroundColor Yellow
     }
 }
 
 # Start FastAPI Backend with 0.0.0.0 host binding for multi-device support
 Write-Host "[+] Launching FastAPI Agent Backend on 0.0.0.0:8000 (SQLite WAL)..." -ForegroundColor Green
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$RootDir\pipeline'; Write-Host 'FastAPI Backend Running on port 8000...' -ForegroundColor Cyan; python -m uvicorn server:app --reload --host 0.0.0.0 --port 8000"
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$RootDir\backend'; Write-Host 'FastAPI Backend Running on port 8000...' -ForegroundColor Cyan; python -m uvicorn server:app --reload --host 0.0.0.0 --port 8000"
 
 # Start Next.js Frontend bound to 0.0.0.0 for LAN access
 Write-Host "[+] Launching Next.js Frontend on 0.0.0.0:3000..." -ForegroundColor Green

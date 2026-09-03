@@ -5,12 +5,12 @@
   "description": "RatchetAI: Evidence-Ratcheted Problem-to-Solution Venture Engine",
   "scripts": {
     "dev": "npm run dev --prefix web",
-    "dev:backend": "cd pipeline && python -m uvicorn server:app --reload --port 8000",
+    "dev:backend": "cd backend && python -m uvicorn server:app --reload --port 8000",
     "dev:frontend": "npm run dev --prefix web",
-    "dev:cli": "cd pipeline && python main.py",
+    "dev:cli": "cd backend && python main.py",
     "build": "npm run build --prefix web",
     "lint": "npm run lint --prefix web",
-    "test:backend": "cd pipeline && pytest"
+    "test:backend": "cd backend && pytest"
   },
   "keywords": [
     "technopreneurship",
