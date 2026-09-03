@@ -36,6 +36,8 @@ load_dotenv(Path(__file__).parent / ".env")
 # Setup storage engine (SQLite WAL default with PostgreSQL cloud fallback)
 from storage import get_storage
 
+storage = get_storage()
+
 from main import ALL_SECTORS
 from gates import (
     LEVEL_ORDER, LEVEL_LABELS, LEVEL_INSTRUCTIONS,
