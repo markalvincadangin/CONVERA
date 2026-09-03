@@ -92,7 +92,8 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
       setFieldObservations(
         `[Anchor: ${prob.id}] ${prob.problem_statement} | Setting: ${prob.sufferer_location || "Regional Setting"} | Impact: ${prob.quantified_impact || "Observed loss"}`
       );
-      toast.success(`Loaded "${prob.id}" into Stage A Field Observations!`, "Problem Anchor Loaded");
+      handleDecomposeToUnknowns(prob);
+      toast.success(`Loaded "${prob.id}" into Stage A Field Observations and Unknowns Map!`, "Problem Anchor Loaded");
     } else if (currentPhaseId === "B") {
       toast.success(`Set "${prob.id}" as active problem for Gate 1 Problem Significance Review!`, "Stage B Anchor Set");
     } else if (currentPhaseId === "C") {
@@ -319,9 +320,15 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
       if (res.discovered_problems && res.discovered_problems.length > 0) {
         setDiscoveredProblems(res.discovered_problems);
+        // Automatically decompose the first discovered problem into the Unknowns Map
+        try {
+          await handleDecomposeToUnknowns(res.discovered_problems[0]);
+        } catch (e) {
+          console.warn("Auto-decomposition on discovery:", e);
+        }
         setUnknownsKey((k) => k + 1);
         toast.success(
-          `Discovered ${res.discovered_problems.length} computing research problems! Saved directly to Problem Bank.`,
+          `Discovered ${res.discovered_problems.length} computing research problems! Saved to Problem Bank and decomposed into Unknowns Map.`,
           "Stage A Discovery Complete"
         );
       } else {
