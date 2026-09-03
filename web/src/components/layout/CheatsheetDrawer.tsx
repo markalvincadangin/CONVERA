@@ -4,7 +4,7 @@ import React from "react";
 import { Modal } from "@/components/common/Modal";
 import { Badge } from "@/components/common/Badge";
 import { MECHANISM_FAMILIES, COMMITMENT_TIERS } from "@/lib/constants";
-import { Shield, Target, Lightbulb, TrendingUp } from "lucide-react";
+import { Shield, Target, Lightbulb, TrendingUp, BarChart3, Crown, Presentation, CheckCircle2 } from "lucide-react";
 
 interface CheatsheetDrawerProps {
   isOpen: boolean;
@@ -21,8 +21,45 @@ export const CheatsheetDrawer: React.FC<CheatsheetDrawerProps> = ({ isOpen, onCl
             <Target className="w-5 h-5" /> The Golden Rule of Discovery
           </div>
           <p className="text-slate-300 italic text-sm leading-relaxed">
-            &ldquo;Effective ideation searches for problems, each with a concrete, field-ready sufferer definition so you can go out and find people who are already bleeding cash and already spending to cope—no hypotheticals, no solution talk.&rdquo;
+            &ldquo;Effective ideation searches for problems, each with a concrete, field-ready sufferer definition so you can go out and find people who are already bleeding cash and already spending to cope-no hypotheticals, no solution talk.&rdquo;
           </p>
+        </div>
+
+        {/* 5-Dimension Evidence Rubric */}
+        <div className="p-4 rounded-2xl bg-slate-950/60 border border-teal-500/30 space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-teal-400 font-bold">
+              <BarChart3 className="w-5 h-5" /> 5-Dimension Evidence Scoring Rubric (0-100%)
+            </div>
+            <Badge variant="emerald" size="sm">Gate Threshold: &ge; 75%</Badge>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">1. Diversity</span>
+              <strong className="text-cyan-300 font-mono text-sm">20 pts</strong>
+              <p className="text-[10px] text-slate-500 mt-0.5">&ge; 3 distinct primary or institutional citations</p>
+            </div>
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">2. Tier Quality</span>
+              <strong className="text-emerald-300 font-mono text-sm">25 pts</strong>
+              <p className="text-[10px] text-slate-500 mt-0.5">Tier A (PSA/DA) or Tier B (Direct interview)</p>
+            </div>
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">3. Consequence</span>
+              <strong className="text-purple-300 font-mono text-sm">20 pts</strong>
+              <p className="text-[10px] text-slate-500 mt-0.5">Specific economic, time, or life loss (e.g. &#8369;45k)</p>
+            </div>
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">4. Workaround</span>
+              <strong className="text-amber-300 font-mono text-sm">20 pts</strong>
+              <p className="text-[10px] text-slate-500 mt-0.5">Active makeshift workaround already used</p>
+            </div>
+            <div className="p-2.5 bg-slate-900 rounded-xl border border-slate-800">
+              <span className="text-slate-400 block text-[10px]">5. Geography</span>
+              <strong className="text-teal-300 font-mono text-sm">15 pts</strong>
+              <p className="text-[10px] text-slate-500 mt-0.5">Barangay/LGU level precision (e.g. Miagao, Iloilo)</p>
+            </div>
+          </div>
         </div>
 
         {/* Mom Test Anti-Pitch Rules */}
@@ -48,16 +85,17 @@ export const CheatsheetDrawer: React.FC<CheatsheetDrawerProps> = ({ isOpen, onCl
 
         {/* 15 Mechanism Families */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-emerald-400 font-bold">
-            <Lightbulb className="w-5 h-5" /> 15 Mechanism Families (Phase 4 Ideation)
+          <div className="flex items-center gap-2 text-purple-400 font-bold">
+            <Lightbulb className="w-5 h-5" /> 15 Divergent Mechanism Families (Phase 4)
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-            {MECHANISM_FAMILIES.map((m, idx) => (
-              <div key={m.id} className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
-                <div className="flex items-center gap-1.5 font-semibold text-white text-xs">
-                  <Badge variant="cyan" size="sm">{idx + 1}</Badge> {m.name}
-                </div>
-                <p className="text-[11px] text-slate-400 mt-1 leading-tight">{m.description}</p>
+          <p className="text-xs text-slate-400">
+            Never default directly to a mobile app or dashboard. Consider all 15 operational mechanism families to discover unfair operational leverage:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            {MECHANISM_FAMILIES.map((fam) => (
+              <div key={fam.id} className="p-2.5 rounded-xl bg-slate-950 border border-slate-800/80">
+                <span className="font-mono text-cyan-400 font-bold text-xs block">{fam.name}</span>
+                <p className="text-[11px] text-slate-400 mt-0.5 leading-snug">{fam.description}</p>
               </div>
             ))}
           </div>
@@ -65,15 +103,17 @@ export const CheatsheetDrawer: React.FC<CheatsheetDrawerProps> = ({ isOpen, onCl
 
         {/* Behavioral Commitment Hierarchy */}
         <div className="space-y-3">
-          <div className="flex items-center gap-2 text-purple-400 font-bold">
-            <TrendingUp className="w-5 h-5" /> Behavioral Commitment Hierarchy (Phase 5 MVP Audit)
+          <div className="flex items-center gap-2 text-emerald-400 font-bold">
+            <TrendingUp className="w-5 h-5" /> Behavioral Commitment Hierarchy (Phase 5)
           </div>
           <div className="space-y-2">
-            {COMMITMENT_TIERS.map((t) => (
-              <div key={t.tier} className="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex items-start justify-between gap-3">
-                <div>
-                  <h5 className="font-semibold text-white text-xs">{t.label}</h5>
-                  <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
+            {COMMITMENT_TIERS.map((tier) => (
+              <div key={tier.tier} className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-start gap-3">
+                <Badge variant={tier.tier === "TIER_1_FINANCIAL" ? "emerald" : tier.tier === "TIER_5_POLITE_INTEREST" ? "rose" : "cyan"} size="sm">
+                  {tier.label}
+                </Badge>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-slate-300 leading-relaxed">{tier.desc}</p>
                 </div>
               </div>
             ))}

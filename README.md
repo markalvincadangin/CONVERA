@@ -3,7 +3,7 @@
   <img src="web/public/brand/brandmark.png" alt="RatchetAI Logo" width="120" height="120" />
 
   # RatchetAI ⚙️
-  ### Evidence-Ratcheted Problem-to-Solution Technopreneurship Engine
+  ### Evidence-Ratcheted Problem-to-Solution Technopreneurship Engine (v3.1)
 
   [![CI Quality Gate](https://github.com/markalvincadangin/RatchetAI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/markalvincadangin/RatchetAI/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
@@ -37,7 +37,7 @@
 - [The Mechanical Ratchet Invariant](#-the-mechanical-ratchet-invariant)
 - [System Architecture](#-system-architecture)
 - [The 5-Phase Validation Pipeline](#-the-5-phase-validation-pipeline)
-- [Key Features (v2.0.0)](#-key-features-v200)
+- [Key Features (v3.1.0)](#-key-features-v200)
 - [Quickstart Guide](#-quickstart-guide)
   - [Prerequisites](#prerequisites)
   - [1-Click Multi-Device Launch](#1-click-multi-device-launch)
@@ -135,7 +135,7 @@ RatchetAI employs a decoupled **3-Tier PC-Powered Local/Cloud Hybrid Architectur
 
 ---
 
-## ✨ Key Features (v2.0.0)
+## ✨ Key Features (v3.1.0)
 
 * **⚡ High-Concurrency SQLite WAL Database:** Instant persistence with zero lock contention (`pipeline/ratchetai.db`) and PostgreSQL (Neon/Supabase) cloud readiness.
 * **👥 Multi-Device Team Collaboration:** Connect groupmates over campus Wi-Fi or share worldwide with zero-config Cloudflare Quick Tunnels.
