@@ -438,7 +438,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         </div>
 
         {/* Quick Filter Chips */}
-        <div className="flex flex-wrap items-center gap-2 pt-1">
+        <div className="flex items-center gap-2 pt-1 overflow-x-auto no-scrollbar pb-1 -mx-2 px-2 sm:mx-0 sm:px-0">
           <span className="text-[10px] font-mono uppercase font-bold text-slate-500 mr-1">Quick Filter:</span>
           <button
             onClick={() => setQuickFilter("ALL")}

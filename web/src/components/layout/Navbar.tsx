@@ -167,22 +167,31 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* ========================================================= */}
           <div className="flex items-center gap-2 sm:gap-3">
             
+            {/* Mobile Workspace Trigger Button (Shown only on small screens) */}
+            <button
+              onClick={onOpenSessionManager}
+              className="sm:hidden flex items-center justify-center p-2 rounded-2xl bg-slate-900/90 border border-slate-800 text-cyan-400 hover:bg-slate-850 transition-all shrink-0"
+              title="Switch Workspace / Session"
+            >
+              <FolderKanban className="w-4 h-4" />
+            </button>
+
             {/* User Profile Command Card */}
             <Tooltip content={`Active Identity: ${userProfile.name} • ${roleMeta.label} (Click to customize)`} position="bottom">
               <button
                 onClick={() => setIsProfileModalOpen(true)}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
+                className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
               >
                 <div className="relative shrink-0 flex items-center justify-center">
                   <IconAvatar iconKey={userProfile.avatar} size="sm" />
                   <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-sm" />
                 </div>
-                <div className="flex flex-col text-left justify-center min-w-0 pr-0.5">
-                  <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[100px]">
+                <div className="flex flex-col text-left justify-center min-w-0 pr-0.5 hidden xs:flex sm:flex">
+                  <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[80px] sm:max-w-[100px]">
                     {userProfile.name}
                   </span>
                   <span className={`text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none ${roleMeta.text}`}>
-                    {roleMeta.label}
+                    {roleMeta.shortLabel}
                   </span>
                 </div>
                 <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 hidden sm:block" />

@@ -1,19 +1,20 @@
 "use client";
 
 import React from "react";
-import { SessionState } from "@/lib/types";
-import { Tooltip } from "@/components/common/Tooltip";
 import {
   Compass,
   Filter,
   ShieldCheck,
   Lightbulb,
   Activity,
-  FolderOpen,
+  Sparkles,
   Lock,
   CheckCircle2,
-  Sparkles,
+  FolderOpen,
+  ChevronRight,
 } from "lucide-react";
+import { Tooltip } from "@/components/common/Tooltip";
+import { SessionState } from "@/lib/types";
 
 interface PipelineStepperProps {
   activePhase: number;
@@ -117,16 +118,16 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
   ];
 
   return (
-    <div className="w-full bg-slate-900/60 border-b border-slate-800/80 py-4 px-4 sm:px-6 lg:px-8 backdrop-blur-md">
-      <div className="max-w-7xl mx-auto space-y-3">
+    <div className="w-full bg-slate-900/80 border-b border-slate-800/80 py-3 sm:py-4 px-3 sm:px-6 lg:px-8 backdrop-blur-md sticky top-16 z-30 shadow-md">
+      <div className="max-w-7xl mx-auto space-y-2.5 sm:space-y-3">
         {/* Progress bar header */}
         <div className="flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-slate-300">Venture Validation Engine:</span>
-            <span className="font-mono text-cyan-400 font-bold">{completedCount} of 5 Gates Passed</span>
+            <span className="font-semibold text-slate-300 text-[11px] sm:text-xs">Venture Validation Engine:</span>
+            <span className="font-mono text-cyan-400 font-bold text-[11px] sm:text-xs">{completedCount} of 5 Gates Passed</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-28 sm:w-40 h-2 bg-slate-800 rounded-full overflow-hidden p-[1px]">
+            <div className="w-20 sm:w-40 h-2 bg-slate-800 rounded-full overflow-hidden p-[1px]">
               <div
                 className="h-full bg-gradient-to-r from-cyan-500 via-teal-400 to-emerald-400 rounded-full transition-all duration-500 shadow-sm shadow-cyan-500/50"
                 style={{ width: `${Math.max(5, progressPercent)}%` }}
@@ -136,9 +137,9 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
           </div>
         </div>
 
-        {/* Stepper Cards */}
-        <nav aria-label="Pipeline Progress">
-          <ol className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-2">
+        {/* Responsive Stepper Navigation: Horizontal Swipeable on Mobile, Grid on Desktop */}
+        <nav aria-label="Pipeline Progress" className="w-full">
+          <ol className="flex md:grid md:grid-cols-7 gap-2 overflow-x-auto no-scrollbar pb-1 -mx-3 px-3 sm:mx-0 sm:px-0 snap-x snap-mandatory">
             {phases.map((phase) => {
               const Icon = phase.icon;
               const isActive = activePhase === phase.id;
@@ -148,9 +149,9 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
                   onClick={() => phase.isAvailable && onSelectPhase(phase.id)}
                   disabled={!phase.isAvailable}
                   aria-current={isActive ? "step" : undefined}
-                  className={`w-full text-left p-2.5 rounded-2xl border transition-all duration-200 flex flex-col gap-1 relative ${
+                  className={`w-full text-left p-2 sm:p-2.5 rounded-2xl border transition-all duration-200 flex flex-col justify-between gap-1 relative shrink-0 min-w-[125px] sm:min-w-[135px] md:min-w-0 snap-start active:scale-[0.98] ${
                     isActive
-                      ? "bg-slate-800/95 border-cyan-500/60 shadow-xl shadow-cyan-500/10 ring-2 ring-cyan-500/40"
+                      ? "bg-slate-850 border-cyan-500/60 shadow-lg shadow-cyan-500/10 ring-2 ring-cyan-500/40"
                       : phase.isBank
                       ? "bg-slate-900/90 border-cyan-500/20 hover:border-cyan-500/40 hover:bg-slate-800/70"
                       : phase.id === 6
@@ -182,44 +183,44 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
                     </div>
 
                     {phase.isComplete ? (
-                      <span className="flex items-center gap-0.5 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1 py-0.5 rounded-full border border-emerald-500/20">
-                        <CheckCircle2 className="w-2 h-2" /> Done
+                      <span className="flex items-center gap-0.5 text-[9px] font-semibold text-emerald-400 bg-emerald-500/10 px-1 py-0.2 rounded-full border border-emerald-500/20">
+                        <CheckCircle2 className="w-2.5 h-2.5" /> Done
                       </span>
                     ) : isActive ? (
-                      <span className="text-[9px] font-semibold text-cyan-300 bg-cyan-500/10 px-1 py-0.5 rounded-full border border-cyan-500/30 animate-pulse">
+                      <span className="text-[9px] font-semibold text-cyan-300 bg-cyan-500/10 px-1.5 py-0.2 rounded-full border border-cyan-500/30 animate-pulse">
                         Active
                       </span>
                     ) : phase.isBank ? (
-                      <span className="text-[9px] font-semibold text-cyan-400/80 bg-cyan-500/5 px-1 py-0.5 rounded-full border border-cyan-500/15">
+                      <span className="text-[9px] font-semibold text-cyan-400/80 bg-cyan-500/5 px-1 py-0.2 rounded-full border border-cyan-500/15">
                         Bank
                       </span>
                     ) : phase.id === 6 ? (
-                      <span className="text-[9px] font-semibold text-purple-400/80 bg-purple-500/5 px-1 py-0.5 rounded-full border border-purple-500/15">
+                      <span className="text-[9px] font-semibold text-purple-400/80 bg-purple-500/5 px-1 py-0.2 rounded-full border border-purple-500/15">
                         Studio
                       </span>
                     ) : !phase.isAvailable ? (
                       <span className="text-[9px] text-slate-500 flex items-center gap-0.5">
-                        <Lock className="w-2 h-2 text-slate-600" /> Lock
+                        <Lock className="w-2.5 h-2.5 text-slate-600" /> Lock
                       </span>
                     ) : (
-                      <span className="text-[9px] text-slate-400">Ready</span>
+                      <span className="text-[9px] text-slate-400 font-mono">Ready</span>
                     )}
                   </div>
 
-                  <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block">
+                  <div className="mt-0.5">
+                    <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 block font-mono">
                       {phase.name}
                     </span>
-                    <h4 className="text-[11px] font-bold text-white tracking-tight truncate">
+                    <h4 className="text-[11px] font-bold text-white tracking-tight truncate leading-tight">
                       {phase.title}
                     </h4>
-                    <p className="text-[9px] text-slate-400 truncate mt-0.5">{phase.desc}</p>
+                    <p className="text-[9px] text-slate-400 truncate mt-0.2 font-sans">{phase.desc}</p>
                   </div>
                 </button>
               );
 
               return (
-                <li key={phase.id} className="relative">
+                <li key={phase.id} className="relative shrink-0 md:shrink">
                   {!phase.isAvailable ? (
                     <Tooltip content={phase.lockReason} position="bottom">
                       {cardButton}
