@@ -1,4 +1,4 @@
-name: RatchetAI CI / Automated Quality Gate
+name: CONVERA CI / Automated Quality Gate
 
 on:
   push:
@@ -8,52 +8,52 @@ on:
 
 jobs:
   backend-test:
-    name: 🐍 Backend Pytest Suite
+    name: Backend Pytest Suite
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./pipeline
+        working-directory: ./backend
 
     steps:
-      - name: 📥 Check out repository
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Set up Python 3.12
+      - name: Set up Python 3.12
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
           cache: "pip"
-          cache-dependency-path: pipeline/requirements.txt
+          cache-dependency-path: backend/requirements.txt
 
-      - name: 📦 Install Python Dependencies & Test Runners
+      - name: Install Python Dependencies & Test Runners
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest httpx
 
-      - name: 🧪 Run Pytest Test Suite
+      - name: Run Pytest Test Suite
         run: |
           python -m pytest tests/ -v
 
   frontend-build:
-    name: ⚛️ Frontend Build & Typecheck
+    name: Frontend Build & Typecheck
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: ./web
 
     steps:
-      - name: 📥 Check out repository
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: ⚙️ Set up Node.js 20
+      - name: Set up Node.js 20
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: "npm"
           cache-dependency-path: web/package-lock.json
 
-      - name: 📦 Install NPM Dependencies
+      - name: Install NPM Dependencies
         run: npm ci
 
-      - name: 🏗️ Run Next.js Production Build
+      - name: Run Next.js Production Build
         run: npm run build
