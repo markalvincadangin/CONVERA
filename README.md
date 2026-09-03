@@ -28,6 +28,7 @@
     <a href="#-system-architecture">Architecture</a> • 
     <a href="#-5-phase-validation-pipeline">5-Phase Pipeline</a> • 
     <a href="docs/CONVERA_MASTER_ARCHITECTURE.md">Master Architecture</a> • 
+    <a href="docs/CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md">Intelligence & Integration (CIIA)</a> • 
     <a href="docs/SRSDS.md">Technical Specs (SRSDS)</a> • 
     <a href="docs/about/product/CONVERA.md">Product Profile</a>
   </p>
