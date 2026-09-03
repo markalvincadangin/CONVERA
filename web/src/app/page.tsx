@@ -26,7 +26,7 @@ import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { Card } from "@/components/common/Card";
-import { ContextualAiHint } from "@/components/common/ContextualAiHint";
+import { MethodologyHudCard } from "@/components/common/MethodologyHudCard";
 import { SessionState, ProblemRecord } from "@/lib/types";
 import { sessionService } from "@/services/sessionService";
 import { problemService } from "@/services/problemService";
@@ -231,13 +231,14 @@ export default function Home() {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Contextual AI Hint Banner */}
+        {/* Methodology Execution HUD */}
         {session && (
-          <ContextualAiHint
+          <MethodologyHudCard
             session={session}
             problems={problems}
             activePhase={activePhase}
             onNavigate={(phase) => setActivePhase(phase)}
+            onOpenScorecard={() => setIsScorecardOpen(true)}
           />
         )}
 

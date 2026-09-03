@@ -13,6 +13,10 @@ import {
   Trash2,
   X,
   Lock,
+  Zap,
+  BookOpen,
+  GraduationCap,
+  Compass,
 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
@@ -40,6 +44,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
   const [snapshots, setSnapshots] = useState<SessionSnapshot[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
+  const [selectedFramework, setSelectedFramework] = useState<string>("INNOVATION");
   const [roomCodeInput, setRoomCodeInput] = useState("");
   const [newSnapshotLabel, setNewSnapshotLabel] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -95,7 +100,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
     if (isCreating) return;
     setIsCreating(true);
     try {
-      const res = await sessionService.createSession(undefined, newProjectName.trim() || undefined);
+      const res = await sessionService.createSession(undefined, newProjectName.trim() || undefined, selectedFramework);
       if (res && res.session_id) {
         onSelectSession(res.session_id);
       }

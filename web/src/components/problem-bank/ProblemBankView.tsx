@@ -63,6 +63,29 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [sortBy, setSortBy] = useState<"SCORE_DESC" | "VOTES_DESC" | "TIER_DESC" | "ID_ASC" | "SECTOR_ASC">("SCORE_DESC");
   const [quickFilter, setQuickFilter] = useState<"ALL" | "CHALLENGED" | "STRONG" | "VOTED" | "ARCHIVED">("ALL");
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
+  const frameworkId = session?.framework_id?.toUpperCase() || "INNOVATION";
+  const isResearch = frameworkId.includes("RESEARCH") || frameworkId.includes("CRCDP");
+  const isCapstone = frameworkId.includes("CAPSTONE");
+  const isProduct = frameworkId.includes("PRODUCT");
+
+  const terminology = {
+    bankTitle: isResearch
+      ? "Research Problem & Intake Bank"
+      : isCapstone
+      ? "Capstone Problem & Intake Bank"
+      : isProduct
+      ? "Product Discovery & Pain Point Bank"
+      : "Venture Problem & Friction Bank",
+    bankDesc: isResearch
+      ? "Central repository of empirical breakdowns, domain bottlenecks, and candidate computing research opportunities grounded in indexed academic literature."
+      : isCapstone
+      ? "Repository of verified domain operational breakdowns mapped to software and system engineering specifications."
+      : isProduct
+      ? "Central backlog of user friction, workflow breakdowns, and customer pain points prioritized for sprint discovery."
+      : "Single source of truth for your venture team. Ingest discoveries from Phase 1, enrich raw field observations with AI, and stress-test assumptions with the Devil's Advocate agent.",
+    suffererLabel: isResearch ? "Affected Domain / System" : isProduct ? "Target User / Role" : "Target Sufferer",
+    workaroundLabel: isResearch ? "Prior Art Baseline" : isProduct ? "Current Workflow" : "Workaround Inefficiency",
+  };
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -368,13 +391,13 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 rounded-3xl border border-slate-800 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2.5">
-            <h2 className="text-lg font-bold text-white tracking-tight">Structured Problem Bank</h2>
+            <h2 className="text-lg font-bold text-white tracking-tight">{terminology.bankTitle}</h2>
             <span className="text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
               {problems.length} Records
             </span>
           </div>
           <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
-            Single source of truth for your venture team. Ingest discoveries from Phase 1, enrich raw field observations with AI, and stress-test assumptions with the Devil's Advocate agent.
+            {terminology.bankDesc}
           </p>
         </div>
 

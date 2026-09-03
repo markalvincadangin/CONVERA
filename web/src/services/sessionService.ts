@@ -28,10 +28,18 @@ export const sessionService = {
     return res;
   },
 
-  async createSession(sessionId?: string, projectName?: string): Promise<{ session_id: string; state: SessionState }> {
+  async createSession(
+    sessionId?: string,
+    projectName?: string,
+    frameworkId: string = "INNOVATION"
+  ): Promise<{ session_id: string; state: SessionState }> {
     const res = await fetchApi<any>("/api/sessions", {
       method: "POST",
-      body: JSON.stringify({ session_id: sessionId, project_name: projectName }),
+      body: JSON.stringify({
+        session_id: sessionId,
+        project_name: projectName,
+        framework_id: frameworkId,
+      }),
     });
     if (res && res.state) return res;
     return { session_id: res.session_id || "", state: res };
