@@ -1,7 +1,17 @@
 import { fetchApi } from "@/lib/api-client";
-import { Phase3TurnResponse, Phase4StepResponse, Phase5AuditResponse, SessionState } from "@/lib/types";
+import { Phase3TurnResponse, Phase4StepResponse, Phase5AuditResponse, SessionState, SrsSpecification } from "@/lib/types";
 
 export const phaseService = {
+  async generateSrs(sessionId: string, mode: "CAPSTONE" | "STARTUP" = "CAPSTONE"): Promise<{ status: string; srs: SrsSpecification }> {
+    return await fetchApi<{ status: string; srs: SrsSpecification }>("/api/deliverables/generate-srs", {
+      method: "POST",
+      body: JSON.stringify({
+        session_id: sessionId,
+        mode,
+      }),
+    });
+  },
+
   // Phase 1: Discovery
   async discover(sessionId: string, sectors: string[], fieldObservations?: string): Promise<{ response: string; state: SessionState }> {
     return await fetchApi<{ response: string; state: SessionState }>("/api/phases/1/discover", {

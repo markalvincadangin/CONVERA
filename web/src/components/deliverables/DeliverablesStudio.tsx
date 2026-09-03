@@ -6,6 +6,8 @@ import { LeanCanvasView } from "./LeanCanvasView";
 import { SwotMatrixView } from "./SwotMatrixView";
 import { PitchDeckView } from "./PitchDeckView";
 import { Phase2DossierCard } from "./Phase2DossierCard";
+import { SrsSpecView } from "./SrsSpecView";
+import { FileCode } from "lucide-react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { Button } from "@/components/common/Button";
 import {
@@ -35,7 +37,7 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
   onExportDossier,
   onNavigatePhase,
 }) => {
-  const [activeTab, setActiveTab] = useState<"canvas" | "swot" | "deck" | "dossier">("canvas");
+  const [activeTab, setActiveTab] = useState<"canvas" | "swot" | "deck" | "dossier" | "srs">("canvas");
   const [copiedDossier, setCopiedDossier] = useState(false);
   const [rawViewMode, setRawViewMode] = useState<Record<string, boolean>>({});
 
@@ -203,6 +205,8 @@ export const DeliverablesStudio: React.FC<DeliverablesStudioProps> = ({
           projectName={session.project_name}
         />
       )}
+
+      {activeTab === "srs" && <SrsSpecView session={session} />}
 
       {activeTab === "dossier" && (
         <div className="space-y-6">

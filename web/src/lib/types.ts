@@ -443,3 +443,43 @@ export interface DecisionSynthesis {
     verdict: "RECOMMENDED" | "VIABLE_ALTERNATIVE" | "HIGH_RISK";
   }[];
 }
+
+
+export interface SrsSpecification {
+  project_title: string;
+  executive_summary: string;
+  scope: {
+    in_scope: string[];
+    out_of_scope: string[];
+  };
+  primary_persona: {
+    name: string;
+    context: string;
+    primary_goal: string;
+    core_frustration: string;
+  };
+  functional_requirements: {
+    id: string;
+    title: string;
+    user_story: string;
+    acceptance_criteria: string[];
+  }[];
+  non_functional_requirements: {
+    id: string;
+    category: string;
+    requirement: string;
+    metric: string;
+  }[];
+  architecture_blueprint: {
+    frontend: string;
+    backend: string;
+    database: string;
+    offline_sync_strategy: string;
+  };
+  mvp_validation_metrics: {
+    metric_name: string;
+    target_threshold: string;
+    verification_method: string;
+  }[];
+  markdown_document: string;
+}

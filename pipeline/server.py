@@ -230,6 +230,10 @@ class CommitDecisionRequest(BaseModel):
     decision_rationale: str
     supporting_evidence_ids: List[str] = []
 
+class GenerateSRSRequest(BaseModel):
+    session_id: str
+    mode: Optional[str] = "CAPSTONE"
+
 class PivotLoopRequest(BaseModel):
     session_id: str
     current_problem_id: str
@@ -678,6 +682,18 @@ async def auto_research_problem_endpoint(problem_id: str):
         "problem_id": problem_id,
         "results": research_data,
     }
+
+@app.post("/api/deliverables/generate-srs")
+async def generate_srs_endpoint(req: GenerateSRSRequest):
+    """Generate an engineering-grade Software Requirements Specification (SRS)."""
+    from srs_generator import generate_project_srs
+    storage = get_storage()
+    session = storage.get_session(req.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found")
+
+    res = await generate_project_srs(session, mode=req.mode or "CAPSTONE")
+    return {"status": "success", "srs": res}
 
 @app.post("/api/decisions/synthesize")
 async def synthesize_decision_room_endpoint(req: SynthesizeDecisionRoomRequest):
