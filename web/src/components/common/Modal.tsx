@@ -48,24 +48,25 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 overflow-y-auto">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-6 overflow-y-auto">
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
+        className="fixed inset-0 bg-slate-950/85 backdrop-blur-md transition-opacity animate-in fade-in duration-200"
         onClick={onClose}
       />
 
       {/* Dialog container */}
       <div
-        className={`relative w-full ${maxWidths[maxWidth]} max-h-[90vh] flex flex-col bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl shadow-black/90 z-10 overflow-hidden transform transition-all animate-in zoom-in-95 duration-200`}
+        className={`relative w-full ${maxWidths[maxWidth]} max-h-[92vh] flex flex-col bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/90 z-10 overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 my-auto`}
       >
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80 bg-slate-900/90 shrink-0">
-            <h3 className="text-base font-bold text-white tracking-tight">{title}</h3>
+          <div className="flex items-center justify-between px-3.5 sm:px-6 py-3 sm:py-4 border-b border-slate-800/80 bg-slate-900/90 shrink-0">
+            <h3 className="text-sm sm:text-base font-bold text-white tracking-tight truncate pr-2">{title}</h3>
             <button
               onClick={onClose}
-              className="text-slate-400 hover:text-white p-1.5 rounded-xl hover:bg-slate-800 transition-colors"
+              className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800 transition-colors shrink-0"
+              aria-label="Close dialog"
             >
               <X className="w-5 h-5" />
             </button>
@@ -73,7 +74,7 @@ export const Modal: React.FC<ModalProps> = ({
         )}
 
         {/* Scrollable Content */}
-        <div className="p-6 overflow-y-auto flex-1">{children}</div>
+        <div className="p-3.5 sm:p-6 overflow-y-auto flex-1">{children}</div>
       </div>
     </div>
   );

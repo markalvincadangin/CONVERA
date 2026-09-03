@@ -194,38 +194,41 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
     <Modal isOpen={isOpen} onClose={onClose} title="Venture Workspace & Team Hub" maxWidth="2xl">
       <div className="space-y-6">
         {/* Sub-navigation Tabs */}
-        <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-950 border border-slate-800">
+        <div className="grid grid-cols-3 gap-1 p-1 rounded-2xl bg-slate-950 border border-slate-800 text-[11px] sm:text-xs">
           <button
             onClick={() => setActiveTab("SESSIONS")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2 px-1.5 sm:px-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 truncate ${
               activeTab === "SESSIONS"
                 ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm font-bold"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Folder className="w-3.5 h-3.5" /> All Workspaces ({safeSessions.length})
+            <Folder className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Workspaces ({safeSessions.length})</span>
           </button>
 
           <button
             onClick={() => setActiveTab("JOIN")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2 px-1.5 sm:px-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 truncate ${
               activeTab === "JOIN"
                 ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm font-bold"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Key className="w-3.5 h-3.5" /> Join Room Code
+            <Key className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Join Code</span>
           </button>
 
           <button
             onClick={() => setActiveTab("SNAPSHOTS")}
-            className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+            className={`py-2 px-1.5 sm:px-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-1.5 truncate ${
               activeTab === "SNAPSHOTS"
                 ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm font-bold"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <History className="w-3.5 h-3.5" /> Snapshots ({snapshots.length})
+            <History className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">Snapshots ({snapshots.length})</span>
           </button>
         </div>
 
@@ -237,7 +240,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
               <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
                 <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Start New Venture Workspace
               </h4>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   placeholder="e.g. Iloilo Bulb Onion Cold-Chain Validator"
@@ -246,9 +249,9 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") handleCreate();
                   }}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors shadow-inner"
+                  className="w-full sm:flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-xs sm:text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors shadow-inner"
                 />
-                <Button variant="primary" size="sm" onClick={handleCreate} isLoading={isCreating} leftIcon={<Plus className="w-4 h-4" />}>
+                <Button variant="primary" size="sm" className="w-full sm:w-auto justify-center shrink-0" onClick={handleCreate} isLoading={isCreating} leftIcon={<Plus className="w-4 h-4" />}>
                   Create Workspace
                 </Button>
               </div>
@@ -280,7 +283,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                     return (
                       <div
                         key={s.session_id}
-                        className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
+                        className={`p-3 sm:p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 ${
                           isCurrent
                             ? "bg-slate-900/90 border-cyan-500/40 ring-1 ring-cyan-500/30 shadow-md shadow-cyan-500/5"
                             : "bg-slate-950/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40"
@@ -353,7 +356,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                         </div>
 
                         {/* Right: Actions & Metadata */}
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                        <div className="flex items-center gap-1.5 flex-wrap w-full sm:w-auto justify-between sm:justify-end pt-2 sm:pt-0 border-t border-slate-800/60 sm:border-0 shrink-0">
                           {s.share_code && (
                             <button
                               onClick={(e) => {
