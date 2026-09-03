@@ -257,6 +257,60 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
               </div>
             </div>
 
+            {/* Prominent Top Ingestion & Deduplication Summary */}
+            <div className="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-cyan-500/30 shadow-md space-y-2.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-1.5 rounded-xl bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shrink-0">
+                    <FolderOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                        Problem Bank Ingestion & Merge Status
+                      </h4>
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 font-bold">
+                        Auto-Synchronized
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      Extracted problems have been parsed, cross-referenced against existing records, and saved to your Problem Bank.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  onClick={onAdvanceToNextPhase}
+                  className="self-start sm:self-center font-mono text-xs font-bold text-cyan-300 hover:text-white bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/40 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0"
+                >
+                  <span>Advance to Screening</span>
+                  <ArrowRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {session.phase1_ingestion_summary ? (
+                <div className="pt-2 border-t border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono">
+                  {session.phase1_ingestion_summary.new_created_count > 0 && (
+                    <div className="p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 flex items-center justify-between">
+                      <span>🌿 {session.phase1_ingestion_summary.new_created_count} New Problems Added:</span>
+                      <span className="font-bold text-white">{session.phase1_ingestion_summary.created_ids.join(", ")}</span>
+                    </div>
+                  )}
+                  {session.phase1_ingestion_summary.merged_count > 0 && (
+                    <div className="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 flex items-center justify-between">
+                      <span>🔄 {session.phase1_ingestion_summary.merged_count} Overlapping Problems Merged:</span>
+                      <span className="font-bold text-white" title="Citations and workarounds merged into primary records">{session.phase1_ingestion_summary.merged_ids.join(", ")}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="pt-2 border-t border-slate-800/80 text-[11px] text-slate-400 font-mono flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                  <span>All extracted landscape problems are automatically pooled, deduplicated, and scored in your Problem Bank.</span>
+                </div>
+              )}
+            </div>
+
             <div className="prose prose-invert max-w-none prose-sm prose-cyan overflow-x-auto text-slate-200">
               <MarkdownRenderer content={session.phase1_response} />
             </div>
