@@ -257,6 +257,50 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_problems_updated ON problems(updated_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_problem_sources_pid ON problem_sources(problem_id);
                 CREATE INDEX IF NOT EXISTS idx_problem_phase_history_pid ON problem_phase_history(problem_id);
+
+                -- Phase 6: Epistemic Links, Assumption Tests & Impact Invalidation
+                CREATE TABLE IF NOT EXISTS claim_evidence_links (
+                    id TEXT PRIMARY KEY,
+                    claim_id TEXT NOT NULL,
+                    source_id INTEGER NOT NULL,
+                    relation_type TEXT NOT NULL DEFAULT 'SUPPORTS',
+                    evidence_strength TEXT NOT NULL DEFAULT 'STRONG',
+                    rationale TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (claim_id) REFERENCES problem_claims(id) ON DELETE CASCADE,
+                    FOREIGN KEY (source_id) REFERENCES problem_sources(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS assumption_validation_tests (
+                    id TEXT PRIMARY KEY,
+                    assumption_id TEXT NOT NULL,
+                    test_type TEXT NOT NULL DEFAULT 'FIELD_INTERVIEW',
+                    target_metric TEXT NOT NULL,
+                    actual_result TEXT,
+                    test_status TEXT NOT NULL DEFAULT 'PLANNED',
+                    conducted_by TEXT,
+                    completed_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (assumption_id) REFERENCES problem_assumptions(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS impact_invalidation_events (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT,
+                    session_id TEXT,
+                    trigger_entity_type TEXT NOT NULL,
+                    trigger_entity_id TEXT NOT NULL,
+                    trigger_action TEXT NOT NULL,
+                    severity TEXT NOT NULL DEFAULT 'WARNING',
+                    affected_entities TEXT NOT NULL DEFAULT '[]',
+                    resolution_status TEXT NOT NULL DEFAULT 'ACTIVE_ALERT',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_claim_evidence_claim ON claim_evidence_links(claim_id);
+                CREATE INDEX IF NOT EXISTS idx_claim_evidence_source ON claim_evidence_links(source_id);
+                CREATE INDEX IF NOT EXISTS idx_assumption_tests ON assumption_validation_tests(assumption_id);
+                CREATE INDEX IF NOT EXISTS idx_impact_events_status ON impact_invalidation_events(resolution_status, created_at DESC);
             """)
 
             # Migration safe check for newly added columns if table already existed
@@ -677,6 +721,30 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     p["source_detail"], p["source_detail"],
                     now, target_id
                 ))
+                claims = p.get("claims") or []
+                for c in claims:
+                    cid = c.get("id") or f"clm_{uuid.uuid4().hex[:8]}"
+                    conn.execute("""
+                        INSERT INTO problem_claims (id, problem_id, claim_type, claim_text, status, confidence_score, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(id) DO UPDATE SET
+                            claim_type = excluded.claim_type,
+                            claim_text = excluded.claim_text,
+                            status = excluded.status
+                    """, (cid, target_id, c.get("claim_type") or "FRICTION_REALITY", c.get("claim_text") or "", c.get("status") or "HYPOTHESIS", c.get("confidence_score") or 50.0, now))
+
+                assumptions = p.get("assumptions") or []
+                for a in assumptions:
+                    aid = a.get("id") or f"asm_{uuid.uuid4().hex[:8]}"
+                    conn.execute("""
+                        INSERT INTO problem_assumptions (id, problem_id, assumption_text, risk_level, status, origin, testable_question, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(id) DO UPDATE SET
+                            assumption_text = excluded.assumption_text,
+                            risk_level = excluded.risk_level,
+                            status = excluded.status
+                    """, (aid, target_id, a.get("assumption_text") or "", a.get("risk_level") or "HIGH", a.get("status") or "UNTESTED", a.get("origin") or "FOUNDER_INPUT", a.get("testable_question"), now))
+
             return self.get_problem(target_id) or matching_problem
 
         # 3. Determine ID: use sanitized explicit ID if given, else assign sequential canonical ID
@@ -766,6 +834,53 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         if sources:
             self.add_problem_sources(problem_id, sources)
 
+        # Persist explicit claims if provided
+        claims = p.get("claims") or []
+        if claims:
+            with self._get_connection() as conn:
+                for c in claims:
+                    cid = c.get("id") or f"clm_{uuid.uuid4().hex[:8]}"
+                    conn.execute("""
+                        INSERT INTO problem_claims (id, problem_id, claim_type, claim_text, status, confidence_score, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(id) DO UPDATE SET
+                            claim_type = excluded.claim_type,
+                            claim_text = excluded.claim_text,
+                            status = excluded.status
+                    """, (
+                        cid,
+                        problem_id,
+                        c.get("claim_type") or "FRICTION_REALITY",
+                        c.get("claim_text") or "",
+                        c.get("status") or "HYPOTHESIS",
+                        c.get("confidence_score") or 50.0,
+                        now
+                    ))
+
+        # Persist explicit assumptions if provided
+        assumptions = p.get("assumptions") or []
+        if assumptions:
+            with self._get_connection() as conn:
+                for a in assumptions:
+                    aid = a.get("id") or f"asm_{uuid.uuid4().hex[:8]}"
+                    conn.execute("""
+                        INSERT INTO problem_assumptions (id, problem_id, assumption_text, risk_level, status, origin, testable_question, created_at)
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                        ON CONFLICT(id) DO UPDATE SET
+                            assumption_text = excluded.assumption_text,
+                            risk_level = excluded.risk_level,
+                            status = excluded.status
+                    """, (
+                        aid,
+                        problem_id,
+                        a.get("assumption_text") or "",
+                        a.get("risk_level") or "HIGH",
+                        a.get("status") or "UNTESTED",
+                        a.get("origin") or "FOUNDER_INPUT",
+                        a.get("testable_question"),
+                        now
+                    ))
+
         return self.get_problem(problem_id) or p
 
     def add_problem_sources(self, problem_id: str, sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -824,6 +939,19 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 (problem_id,)
             ).fetchall()
             p["comments"] = [dict(c) for c in comment_rows]
+
+            claim_rows = conn.execute(
+                "SELECT * FROM problem_claims WHERE problem_id = ? ORDER BY created_at ASC",
+                (problem_id,)
+            ).fetchall()
+            p["claims"] = [dict(c) for c in claim_rows]
+
+            assumption_rows = conn.execute(
+                "SELECT * FROM problem_assumptions WHERE problem_id = ? ORDER BY created_at ASC",
+                (problem_id,)
+            ).fetchall()
+            p["assumptions"] = [dict(a) for a in assumption_rows]
+
             return p
 
     def list_problems(
@@ -1385,3 +1513,229 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             return None
         session_data["framework_id"] = framework_id.upper()
         return self.save_session(session_id, session_data)
+
+    # Phase 6: Knowledge Intelligence & Epistemic Link Storage Methods
+    # ------------------------------------------------------------------
+
+    def link_claim_evidence(
+        self,
+        claim_id: str,
+        source_id: int,
+        relation_type: str = "SUPPORTS",
+        evidence_strength: str = "STRONG",
+        rationale: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Link a source to a claim as supporting, contradicting, or contextualizing."""
+        link_id = f"link_{uuid.uuid4().hex[:12]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO claim_evidence_links (id, claim_id, source_id, relation_type, evidence_strength, rationale, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                """,
+                (link_id, claim_id, source_id, relation_type.upper(), evidence_strength.upper(), rationale, now),
+            )
+        return {
+            "id": link_id,
+            "claim_id": claim_id,
+            "source_id": source_id,
+            "relation_type": relation_type.upper(),
+            "evidence_strength": evidence_strength.upper(),
+            "rationale": rationale,
+            "created_at": now,
+        }
+
+    def list_claim_evidence_links(
+        self, claim_id: Optional[str] = None, problem_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """List all epistemic links for a claim or across all claims of a problem."""
+        with self._get_connection() as conn:
+            if claim_id:
+                rows = conn.execute(
+                    """
+                    SELECT l.*, s.source_name, s.source_url, s.source_tier, s.quote_or_summary
+                    FROM claim_evidence_links l
+                    LEFT JOIN problem_sources s ON l.source_id = s.id
+                    WHERE l.claim_id = ?
+                    ORDER BY l.created_at DESC
+                    """,
+                    (claim_id,),
+                ).fetchall()
+            elif problem_id:
+                rows = conn.execute(
+                    """
+                    SELECT l.*, s.source_name, s.source_url, s.source_tier, s.quote_or_summary, c.claim_text, c.claim_type
+                    FROM claim_evidence_links l
+                    JOIN problem_claims c ON l.claim_id = c.id
+                    LEFT JOIN problem_sources s ON l.source_id = s.id
+                    WHERE c.problem_id = ?
+                    ORDER BY l.created_at DESC
+                    """,
+                    (problem_id,),
+                ).fetchall()
+            else:
+                rows = conn.execute("""
+                    SELECT l.*, s.source_name, s.source_url, s.source_tier
+                    FROM claim_evidence_links l
+                    LEFT JOIN problem_sources s ON l.source_id = s.id
+                    ORDER BY l.created_at DESC
+                """).fetchall()
+            return [dict(r) for r in rows]
+
+    def delete_claim_evidence_link(self, link_id: str) -> bool:
+        """Delete an epistemic link."""
+        with self._get_connection() as conn:
+            cur = conn.execute("DELETE FROM claim_evidence_links WHERE id = ?", (link_id,))
+            return cur.rowcount > 0
+
+    def record_assumption_test(
+        self,
+        assumption_id: str,
+        test_type: str,
+        target_metric: str,
+        actual_result: Optional[str] = None,
+        test_status: str = "PLANNED",
+        conducted_by: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Record an empirical test experiment on an assumption."""
+        test_id = f"test_{uuid.uuid4().hex[:12]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO assumption_validation_tests (
+                    id, assumption_id, test_type, target_metric, actual_result, test_status, conducted_by, completed_at, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    test_id,
+                    assumption_id,
+                    test_type.upper(),
+                    target_metric,
+                    actual_result,
+                    test_status.upper(),
+                    conducted_by,
+                    now if test_status.upper() in ["PASSED", "FAILED"] else None,
+                    now,
+                ),
+            )
+            # If test is PASSED or FAILED, update the assumption status directly
+            if test_status.upper() == "PASSED":
+                conn.execute(
+                    "UPDATE problem_assumptions SET status = 'VALIDATED' WHERE id = ?",
+                    (assumption_id,),
+                )
+            elif test_status.upper() == "FAILED":
+                conn.execute(
+                    "UPDATE problem_assumptions SET status = 'FALSIFIED', risk_level = 'CRITICAL' WHERE id = ?",
+                    (assumption_id,),
+                )
+            elif test_status.upper() == "IN_PROGRESS":
+                conn.execute(
+                    "UPDATE problem_assumptions SET status = 'IN_TESTING' WHERE id = ?",
+                    (assumption_id,),
+                )
+
+        return {
+            "id": test_id,
+            "assumption_id": assumption_id,
+            "test_type": test_type.upper(),
+            "target_metric": target_metric,
+            "actual_result": actual_result,
+            "test_status": test_status.upper(),
+            "conducted_by": conducted_by,
+            "created_at": now,
+        }
+
+    def list_assumption_tests(self, assumption_id: str) -> List[Dict[str, Any]]:
+        """List validation experiments for an assumption."""
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM assumption_validation_tests WHERE assumption_id = ? ORDER BY created_at DESC",
+                (assumption_id,),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def record_impact_event(
+        self,
+        trigger_entity_type: str,
+        trigger_entity_id: str,
+        trigger_action: str,
+        affected_entities: List[Dict[str, Any]],
+        project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+        severity: str = "WARNING",
+    ) -> Dict[str, Any]:
+        """Log an impact propagation invalidation event."""
+        event_id = f"evt_{uuid.uuid4().hex[:12]}"
+        now = datetime.now(timezone.utc).isoformat()
+        affected_json = json.dumps(affected_entities, ensure_ascii=False)
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO impact_invalidation_events (
+                    id, project_id, session_id, trigger_entity_type, trigger_entity_id, trigger_action, severity, affected_entities, resolution_status, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'ACTIVE_ALERT', ?)
+                """,
+                (
+                    event_id,
+                    project_id,
+                    session_id,
+                    trigger_entity_type.upper(),
+                    trigger_entity_id,
+                    trigger_action.upper(),
+                    severity.upper(),
+                    affected_json,
+                    now,
+                ),
+            )
+        return {
+            "id": event_id,
+            "project_id": project_id,
+            "session_id": session_id,
+            "trigger_entity_type": trigger_entity_type.upper(),
+            "trigger_entity_id": trigger_entity_id,
+            "trigger_action": trigger_action.upper(),
+            "severity": severity.upper(),
+            "affected_entities": affected_entities,
+            "resolution_status": "ACTIVE_ALERT",
+            "created_at": now,
+        }
+
+    def list_active_impact_alerts(
+        self, project_id: Optional[str] = None, session_id: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """List active invalidation alerts for a session or project."""
+        with self._get_connection() as conn:
+            query = "SELECT * FROM impact_invalidation_events WHERE resolution_status = 'ACTIVE_ALERT'"
+            params = []
+            if project_id:
+                query += " AND (project_id = ? OR project_id IS NULL)"
+                params.append(project_id)
+            if session_id:
+                query += " AND (session_id = ? OR session_id IS NULL)"
+                params.append(session_id)
+            query += " ORDER BY created_at DESC"
+            rows = conn.execute(query, params).fetchall()
+            results = []
+            for r in rows:
+                item = dict(r)
+                if isinstance(item.get("affected_entities"), str):
+                    try:
+                        item["affected_entities"] = json.loads(item["affected_entities"])
+                    except Exception:
+                        pass
+                results.append(item)
+            return results
+
+    def resolve_impact_event(
+        self, event_id: str, resolution_status: str = "RESOLVED_BY_PIVOT"
+    ) -> bool:
+        """Acknowledge or resolve an impact invalidation alert."""
+        with self._get_connection() as conn:
+            cur = conn.execute(
+                "UPDATE impact_invalidation_events SET resolution_status = ? WHERE id = ?",
+                (resolution_status.upper(), event_id),
+            )
+            return cur.rowcount > 0

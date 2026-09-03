@@ -11,6 +11,7 @@ from .frameworks import router as frameworks_router
 from .problems import router as problems_router
 from .sessions import router as sessions_router
 from .pipeline import router as pipeline_router
+from .knowledge import router as knowledge_router
 
 __all__ = [
     "connectors_router",
@@ -20,4 +21,5 @@ __all__ = [
     "problems_router",
     "sessions_router",
     "pipeline_router",
+    "knowledge_router",
 ]

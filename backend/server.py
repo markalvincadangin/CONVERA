@@ -33,6 +33,7 @@ storage = get_storage()
 
 # Import Modular Routers
 from routers import (
+    knowledge_router,
     connectors_router,
     inbox_router,
     agents_router,
@@ -65,6 +66,7 @@ app.include_router(frameworks_router)
 app.include_router(problems_router)
 app.include_router(sessions_router)
 app.include_router(pipeline_router)
+app.include_router(knowledge_router)
 
 
 # ---------------------------------------------------------------------------

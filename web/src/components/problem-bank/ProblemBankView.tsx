@@ -13,6 +13,7 @@ import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { BlindSpotModal } from "./BlindSpotModal";
 import { RawBrainstormIngestModal } from "./RawBrainstormIngestModal";
 import { ResearchInboxDrawer } from "@/components/common/ResearchInboxDrawer";
+import { ImpactAlertBanner } from "./ImpactAlertBanner";
 import { Inbox } from "lucide-react";
 import { Archive, RotateCcw } from "lucide-react";
 import {
@@ -312,6 +313,12 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Reactive Epistemic Invalidation & Impact Alerts */}
+      <ImpactAlertBanner
+        sessionId={session?.session_id}
+        onRefreshNeeded={fetchProblems}
+      />
+
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 rounded-3xl border border-slate-800 shadow-xl">
         <div className="space-y-1">
