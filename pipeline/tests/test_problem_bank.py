@@ -2,7 +2,8 @@ import pytest
 import os
 import gc
 import tempfile
-from storage.sqlite_adapter import SQLiteStorageAdapter, calculate_evidence_score
+from storage.sqlite_adapter import SQLiteStorageAdapter
+from evidence_scorer import calculate_score_breakdown
 
 @pytest.fixture
 def temp_storage():
@@ -23,92 +24,100 @@ def test_add_and_get_problem(temp_storage):
         "sector": "Health & Wellness",
         "sufferer_occupation": "Pregnant women in rural areas",
         "sufferer_location": "Miagao, Iloilo",
-        "problem_statement": "Delayed emergency obstetric referral transport causes high maternal risk",
+        "problem_statement": "Delayed emergency obstetric transport causes fatal maternal complications",
         "evidence_tier": "STRONGLY_DOCUMENTED",
-        "workaround": "Hiring private tricycles at ₱1,500 emergency fee",
+        "workaround": "Hiring private tricycles at ₱1,500 emergency fare to travel 25km",
         "quantified_impact": "₱15,000 yearly emergency expenses and 3-hour transfer delays",
         "evidence_types": ["Official", "News"],
         "sources": [
             {
-                "source_name": "PSA",
+                "source_name": "PSA Southern Iloilo Report",
                 "source_url": "https://psa.gov.ph",
                 "source_tier": "A",
                 "evidence_type": "Official Statistic",
-                "quote_or_summary": "High home birth rate in southern Iloilo"
-            },
-            {
-                "source_name": "Panay News",
-                "source_url": "https://www.panaynews.net",
-                "source_tier": "B",
-                "evidence_type": "News Report",
-                "quote_or_summary": "Ambulance shortage in rural Panay"
+                "quote_or_summary": "Rural maternal transfer times average 2.8 hours"
             }
         ],
-        "tags": ["maternal", "emergency"]
+        "tags": ["maternal", "emergency"],
+        "notes": "Verified with Miagao health workers"
     }
 
-    saved = temp_storage.add_problem(prob_data)
-    assert saved["id"] == "HW-001"
-    assert saved["score"] > 50.0
-    assert len(saved["sources"]) == 2
+    added = temp_storage.add_problem(prob_data)
+    assert added["id"] == "HW-001"
+    assert added["score"] > 60.0
+    assert len(added["sources"]) == 1
 
     fetched = temp_storage.get_problem("HW-001")
     assert fetched is not None
-    assert fetched["sector"] == "Health & Wellness"
-    assert "maternal" in fetched["tags"]
-    assert len(fetched["sources"]) == 2
-    assert fetched["sources"][0]["source_name"] == "PSA"
+    assert fetched["problem_statement"] == prob_data["problem_statement"]
+    assert fetched["tags"] == ["maternal", "emergency"]
+    assert "score_breakdown" in fetched
 
 def test_list_and_filter_problems(temp_storage):
-    temp_storage.add_problem({
-        "id": "AGR-001",
+    p1 = {
+        "id": "AG-001",
         "sector": "Agriculture & Fisheries",
-        "problem_statement": "Bulb onion spoilage in Bayuyan",
-        "evidence_tier": "DOCUMENTED"
-    })
-    temp_storage.add_problem({
+        "sufferer_occupation": "Smallholder onion farmers",
+        "sufferer_location": "Miagao, Iloilo",
+        "problem_statement": "Storage rot destroys 30% of harvested red onions",
+        "evidence_tier": "STRONGLY_DOCUMENTED",
+        "workaround": "Selling immediately at depressed prices",
+        "quantified_impact": "₱40,000 lost profit per season",
+        "sources": []
+    }
+    p2 = {
         "id": "HW-002",
         "sector": "Health & Wellness",
-        "problem_statement": "Insulin cold storage loss",
-        "evidence_tier": "SIGNAL"
-    })
+        "sufferer_occupation": "Barangay health workers",
+        "sufferer_location": "Pototan, Iloilo",
+        "problem_statement": "Stockouts of essential hypertension meds",
+        "evidence_tier": "DOCUMENTED",
+        "workaround": "Patients skipping doses",
+        "quantified_impact": "₱3,000 out-of-pocket per month",
+        "sources": []
+    }
 
-    # Filter by sector
-    agri = temp_storage.list_problems(sector="Agriculture & Fisheries")
-    assert len(agri) == 1
-    assert agri[0]["id"] == "AGR-001"
+    temp_storage.add_problem(p1)
+    temp_storage.add_problem(p2)
 
-    # Filter by search
-    searched = temp_storage.list_problems(search="Insulin")
+    all_probs = temp_storage.list_problems()
+    assert len(all_probs) == 2
+
+    ag_probs = temp_storage.list_problems(sector="Agriculture & Fisheries")
+    assert len(ag_probs) == 1
+    assert ag_probs[0]["id"] == "AG-001"
+
+    searched = temp_storage.list_problems(search="hypertension")
     assert len(searched) == 1
     assert searched[0]["id"] == "HW-002"
 
 def test_update_and_history(temp_storage):
-    temp_storage.add_problem({
-        "id": "ED-001",
-        "sector": "Education & Youth",
-        "problem_statement": "Lack of offline STEM materials",
-        "status": "discovered"
-    })
+    p = {
+        "id": "MSME-001",
+        "sector": "MSMEs & Retail",
+        "sufferer_occupation": "Sari-sari store owners",
+        "sufferer_location": "Jaro, Iloilo City",
+        "problem_statement": "Micro-merchants pay 20% interest to loan sharks due to lack of working capital",
+        "evidence_tier": "DOCUMENTED",
+        "workaround": "Borrowing from 5-6 lenders",
+        "quantified_impact": "₱12,000 annual interest bleed",
+        "sources": []
+    }
+    temp_storage.add_problem(p)
 
-    updated = temp_storage.update_problem("ED-001", {
-        "status": "shortlisted",
-        "phase2_verdict": "ADVANCE",
-        "notes": "Strong market plausibility"
-    })
-    assert updated["status"] == "shortlisted"
-    assert updated["phase2_verdict"] == "ADVANCE"
+    updated = temp_storage.update_problem("MSME-001", {"status": "validating", "notes": "Interviewing 5 owners in Jaro"})
+    assert updated["status"] == "validating"
+    assert "Interviewing" in updated["notes"]
 
-    # Record history
     h = temp_storage.record_problem_history(
-        problem_id="ED-001",
+        problem_id="MSME-001",
         phase_number=2,
-        action="screened_advance",
+        action="screened",
         verdict="ADVANCE",
-        model_used="Google Gemini 3.5 Flash-Lite"
+        model_used="gemini-3.8-flash"
     )
-    assert h["id"] is not None
+    assert h["verdict"] == "ADVANCE"
 
-    full = temp_storage.get_problem("ED-001")
-    assert len(full["phase_history"]) == 1
-    assert full["phase_history"][0]["verdict"] == "ADVANCE"
+    fetched = temp_storage.get_problem("MSME-001")
+    assert len(fetched["phase_history"]) == 1
+    assert fetched["phase_history"][0]["action"] == "screened"

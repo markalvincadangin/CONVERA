@@ -43,17 +43,27 @@ async def test_problem_bank_api_crud(client: AsyncClient):
     assert len(fetched["sources"]) == 1
 
     # 3. List & Filter
-    list_res = await client.get("/api/problems?sector=Agriculture & Fisheries")
+    list_res = await client.get("/api/problems", params={"sector": "Agriculture & Fisheries"})
     assert list_res.status_code == 200
     items = list_res.json()
     assert any(p["id"] == "API-TEST-001" for p in items)
 
-    # 4. Update problem
+    # 4. Vote
+    vote_res = await client.post("/api/problems/API-TEST-001/vote", json={"vote_type": "up"})
+    assert vote_res.status_code == 200
+    assert vote_res.json()["problem"]["votes"] >= 1
+
+    # 5. Score breakdown
+    score_res = await client.get("/api/problems/API-TEST-001/score-breakdown")
+    assert score_res.status_code == 200
+    assert "dimensions" in score_res.json()
+
+    # 6. Update problem
     update_res = await client.put("/api/problems/API-TEST-001", json={"status": "shortlisted", "notes": "High priority"})
     assert update_res.status_code == 200
     updated = update_res.json()["problem"]
     assert updated["status"] == "shortlisted"
 
-    # 5. Delete problem
+    # 7. Delete problem
     del_res = await client.delete("/api/problems/API-TEST-001")
     assert del_res.status_code == 200

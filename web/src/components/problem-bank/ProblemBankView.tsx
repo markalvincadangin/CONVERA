@@ -10,6 +10,8 @@ import { problemService } from "@/services/problemService";
 import { ALL_SECTORS } from "@/lib/constants";
 import { ManualProblemModal } from "./ManualProblemModal";
 import { ProblemDetailModal } from "./ProblemDetailModal";
+import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
+import { BlindSpotModal } from "./BlindSpotModal";
 import {
   Search,
   Filter,
@@ -27,6 +29,9 @@ import {
   FolderPlus,
   ArrowRight,
   SlidersHorizontal,
+  Flame,
+  ThumbsUp,
+  Radar,
 } from "lucide-react";
 
 interface ProblemBankViewProps {
@@ -47,7 +52,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [selectedSector, setSelectedSector] = useState("All");
   const [selectedTier, setSelectedTier] = useState("All");
   const [selectedStatus, setSelectedStatus] = useState("All");
-  const [viewMode, setViewMode] = useState<"table" | "cards">("cards");
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   // Selection
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -56,6 +61,9 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [selectedProblem, setSelectedProblem] = useState<ProblemRecord | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+  const [isBlindSpotModalOpen, setIsBlindSpotModalOpen] = useState(false);
+  const [challengeTargetProblem, setChallengeTargetProblem] = useState<ProblemRecord | null>(null);
+  const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
 
   const fetchProblems = async () => {
     setIsLoading(true);
@@ -120,7 +128,9 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
   const handleProblemUpdated = (updated: ProblemRecord) => {
     setProblems((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    setSelectedProblem(updated);
+    if (selectedProblem?.id === updated.id) {
+      setSelectedProblem(updated);
+    }
   };
 
   const handleProblemDeleted = (deletedId: string) => {
@@ -130,6 +140,22 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       next.delete(deletedId);
       return next;
     });
+  };
+
+  const handleVote = async (e: React.MouseEvent, problemId: string) => {
+    e.stopPropagation();
+    try {
+      const res = await problemService.voteProblem(problemId, "up");
+      handleProblemUpdated(res.problem);
+    } catch (err) {
+      console.error("Voting error:", err);
+    }
+  };
+
+  const handleOpenChallenge = (e: React.MouseEvent, problem: ProblemRecord) => {
+    e.stopPropagation();
+    setChallengeTargetProblem(problem);
+    setIsDevilsAdvocateOpen(true);
   };
 
   const handleExportCSV = () => {
@@ -142,6 +168,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       "Problem Statement",
       "Evidence Tier",
       "Score",
+      "Votes",
       "Workaround",
       "Quantified Impact",
       "Status",
@@ -155,6 +182,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       `"${p.problem_statement.replace(/"/g, '""')}"`,
       `"${p.evidence_tier}"`,
       p.score || 0,
+      p.votes || 0,
       `"${(p.workaround || "").replace(/"/g, '""')}"`,
       `"${(p.quantified_impact || "").replace(/"/g, '""')}"`,
       `"${p.status || "discovered"}"`,
@@ -206,11 +234,20 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             </span>
           </div>
           <p className="text-xs text-slate-400 max-w-2xl">
-            Single source of truth for your venture team. Ingest discoveries from Phase 1, enrich raw field observations with AI, and cherry-pick problems to triage in Phase 2.
+            Single source of truth for your venture team. Ingest discoveries from Phase 1, enrich raw field observations with AI, and stress-test assumptions with the Devil's Advocate agent.
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => setIsBlindSpotModalOpen(true)}
+            leftIcon={<Radar className="w-3.5 h-3.5 text-purple-400" />}
+          >
+            Blind Spot Radar
+          </Button>
+
           <Button
             variant="secondary"
             size="sm"
@@ -379,6 +416,8 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filteredProblems.map((p) => {
             const isSelected = selectedIds.has(p.id);
+            const hasCritique = Boolean(p.devils_advocate_data);
+
             return (
               <div
                 key={p.id}
@@ -408,6 +447,17 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                     </div>
 
                     <div className="flex items-center gap-1.5">
+                      {/* Upvote Button */}
+                      <button
+                        onClick={(e) => handleVote(e, p.id)}
+                        className="flex items-center gap-1 bg-slate-800/80 hover:bg-slate-700 px-2 py-0.5 rounded-full border border-slate-700 text-[10px] font-mono font-bold text-slate-300 hover:text-white transition-colors"
+                        title="Upvote problem"
+                      >
+                        <ThumbsUp className="w-2.5 h-2.5 text-cyan-400" />
+                        <span>{p.votes || 0}</span>
+                      </button>
+
+                      {/* Evidence Score */}
                       <span className="text-[11px] font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
                         {p.score || 0}%
                       </span>
@@ -419,6 +469,11 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                       {p.sector}
                     </span>
                     {tierBadge(p.evidence_tier)}
+                    {hasCritique && (
+                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-0.5">
+                        <Flame className="w-2.5 h-2.5" /> Challenged
+                      </span>
+                    )}
                   </div>
 
                   {/* Problem Statement */}
@@ -432,10 +487,10 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                   </p>
                 </div>
 
-                {/* Card Bottom: Sources & Workaround */}
-                <div className="pt-2 border-t border-slate-800/80 space-y-1.5 text-[11px]">
+                {/* Card Bottom: Sources, Workaround, and Devil's Advocate trigger */}
+                <div className="pt-2 border-t border-slate-800/80 space-y-2 text-[11px]">
                   {p.quantified_impact && (
-                    <div className="text-emerald-400 font-medium truncate">
+                    <div className="text-emerald-400 font-medium truncate text-[11px]">
                       💰 {p.quantified_impact}
                     </div>
                   )}
@@ -444,9 +499,20 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                     <span>
                       {p.sources?.length || 0} {p.sources?.length === 1 ? "source" : "sources"}
                     </span>
-                    <span className="text-cyan-400 font-semibold hover:underline flex items-center gap-0.5">
-                      View Dossier <ArrowRight className="w-2.5 h-2.5" />
-                    </span>
+
+                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                      <button
+                        onClick={(e) => handleOpenChallenge(e, p)}
+                        className="text-red-400 hover:text-red-300 font-bold flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20"
+                        title="Devil's Advocate Challenge"
+                      >
+                        <Flame className="w-2.5 h-2.5" /> Stress Test
+                      </button>
+
+                      <span className="text-cyan-400 font-semibold hover:underline flex items-center gap-0.5">
+                        Dossier <ArrowRight className="w-2.5 h-2.5" />
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -473,6 +539,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                   <th className="p-3">Target Sufferer & Location</th>
                   <th className="p-3">Problem Statement</th>
                   <th className="p-3">Evidence Tier</th>
+                  <th className="p-3">Votes</th>
                   <th className="p-3">Score</th>
                   <th className="p-3">Sources</th>
                   <th className="p-3 text-right">Actions</th>
@@ -510,20 +577,37 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                         <p className="line-clamp-2 text-white font-medium leading-snug">{p.problem_statement}</p>
                       </td>
                       <td className="p-3 whitespace-nowrap">{tierBadge(p.evidence_tier)}</td>
+                      <td className="p-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={(e) => handleVote(e, p.id)}
+                          className="flex items-center gap-1 text-slate-300 hover:text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-800 font-mono text-[11px]"
+                        >
+                          <ThumbsUp className="w-2.5 h-2.5 text-cyan-400" />
+                          <span>{p.votes || 0}</span>
+                        </button>
+                      </td>
                       <td className="p-3 font-mono font-bold text-cyan-400">{p.score || 0}%</td>
                       <td className="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">
                         {p.sources?.length || 0} cited
                       </td>
                       <td className="p-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => {
-                            setSelectedProblem(p);
-                            setIsDetailModalOpen(true);
-                          }}
-                          className="text-cyan-400 hover:text-cyan-300 font-bold text-xs"
-                        >
-                          View
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={(e) => handleOpenChallenge(e, p)}
+                            className="text-red-400 hover:text-red-300 font-bold text-xs flex items-center gap-0.5"
+                          >
+                            <Flame className="w-3 h-3" /> Stress Test
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSelectedProblem(p);
+                              setIsDetailModalOpen(true);
+                            }}
+                            className="text-cyan-400 hover:text-cyan-300 font-bold text-xs"
+                          >
+                            View
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -550,6 +634,28 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         onProblemUpdated={handleProblemUpdated}
         onProblemDeleted={handleProblemDeleted}
         onAdvanceToPhase2={(pid) => onSendToPhase2([pid])}
+      />
+
+      <BlindSpotModal
+        isOpen={isBlindSpotModalOpen}
+        onClose={() => setIsBlindSpotModalOpen(false)}
+        projectId={session?.project_id || undefined}
+        problemsCount={problems.length}
+      />
+
+      <DevilsAdvocateModal
+        problem={challengeTargetProblem}
+        isOpen={isDevilsAdvocateOpen}
+        onClose={() => setIsDevilsAdvocateOpen(false)}
+        onApplyReframing={(newStmt) => {
+          if (challengeTargetProblem) {
+            problemService.updateProblem(challengeTargetProblem.id, {
+              problem_statement: newStmt,
+            }).then((res) => {
+              handleProblemUpdated(res.problem);
+            });
+          }
+        }}
       />
     </div>
   );

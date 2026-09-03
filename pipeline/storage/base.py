@@ -104,3 +104,8 @@ class BaseStorageAdapter(ABC):
     def bulk_upsert_problems(self, problems: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         """Batch insert or update multiple problem records."""
         pass
+
+    @abstractmethod
+    def vote_problem(self, problem_id: str, vote_type: str = "up") -> Dict[str, Any]:
+        """Record an upvote, downvote, or priority dot on a problem."""
+        pass

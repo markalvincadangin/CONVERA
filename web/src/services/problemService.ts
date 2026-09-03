@@ -1,5 +1,10 @@
 import { fetchApi } from "@/lib/api-client";
-import { ProblemRecord } from "@/lib/types";
+import {
+  ProblemRecord,
+  DevilsAdvocateReport,
+  ScoreBreakdown,
+  BlindSpotAnalysis,
+} from "@/lib/types";
 
 export interface ListProblemsParams {
   project_id?: string;
@@ -48,6 +53,37 @@ export const problemService = {
   async deleteProblem(id: string): Promise<{ status: string; deleted: boolean }> {
     return fetchApi<{ status: string; deleted: boolean }>(`/api/problems/${id}`, {
       method: "DELETE",
+    });
+  },
+
+  async voteProblem(id: string, voteType: "up" | "down" = "up"): Promise<{ status: string; problem: ProblemRecord }> {
+    return fetchApi<{ status: string; problem: ProblemRecord }>(`/api/problems/${id}/vote`, {
+      method: "POST",
+      body: JSON.stringify({ vote_type: voteType }),
+    });
+  },
+
+  async getScoreBreakdown(id: string): Promise<ScoreBreakdown> {
+    return fetchApi<ScoreBreakdown>(`/api/problems/${id}/score-breakdown`);
+  },
+
+  async challengeProblem(id: string): Promise<{ status: string; critique: DevilsAdvocateReport }> {
+    return fetchApi<{ status: string; critique: DevilsAdvocateReport }>(`/api/problems/${id}/challenge`, {
+      method: "POST",
+    });
+  },
+
+  async challengeCustomProblem(payload: Partial<ProblemRecord>): Promise<{ status: string; critique: DevilsAdvocateReport }> {
+    return fetchApi<{ status: string; critique: DevilsAdvocateReport }>("/api/problems/challenge-custom", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    });
+  },
+
+  async detectBlindSpots(projectId?: string): Promise<{ status: string; analysis: BlindSpotAnalysis }> {
+    const qs = projectId ? `?project_id=${projectId}` : "";
+    return fetchApi<{ status: string; analysis: BlindSpotAnalysis }>(`/api/problems/blind-spots${qs}`, {
+      method: "POST",
     });
   },
 

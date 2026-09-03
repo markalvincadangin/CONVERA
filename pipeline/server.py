@@ -4,7 +4,8 @@ from __future__ import annotations
 RatchetAI FastAPI Backend Server
 Evidence-Ratcheted Problem-to-Solution Multi-Agent Pipeline v3.0
 Powered by Universal Multi-Provider LLM Gateway (Gemini, Groq, OpenRouter, Ollama)
-Integrated with High-Concurrency SQLite WAL / PostgreSQL Database Engine & Structured Problem Bank
+Integrated with High-Concurrency SQLite WAL / PostgreSQL Database Engine,
+Structured Problem Bank, Devil's Advocate Adversarial Agent & Blind Spot Portfolio Auditor
 """
 
 import os
@@ -45,6 +46,10 @@ from gates import (
 from llm_gateway import generate_response_with_fallback, generate_with_meta
 from problem_parser import parse_phase1_markdown
 from problem_enricher import enrich_manual_problem_input
+from devils_advocate import challenge_problem_with_agent
+from blind_spot_detector import detect_portfolio_blind_spots
+from evidence_scorer import calculate_score_breakdown
+
 from prompts.phase1_system import PHASE1_SYSTEM
 from prompts.phase2_system import PHASE2_SYSTEM
 from prompts.phase3_system import PHASE3_SYSTEM
@@ -53,7 +58,7 @@ from prompts.phase5_system import PHASE5_SYSTEM
 
 app = FastAPI(
     title="RatchetAI Venture Engine API",
-    description="Backend API with Universal Multi-Provider LLM Gateway, Structured Problem Bank & Persistent Database Storage",
+    description="Backend API with Universal Multi-Provider LLM Gateway, Structured Problem Bank, Devil's Advocate Agent & Persistent Database Storage",
     version="3.0.0",
 )
 
@@ -130,8 +135,8 @@ class Phase5AuditRequest(BaseModel):
     cohort: str
     sample_size: int
     actions_count: int
-    pass_threshold: Any
-    fail_threshold: Any
+    pass_threshold: Any = "30%"
+    fail_threshold: Any = "15%"
     evidence_desc: str
 
 # Problem Bank Models
@@ -168,6 +173,7 @@ class UpdateProblemRequest(BaseModel):
     phase2_verdict: Optional[str] = None
     phase3_verdict: Optional[str] = None
     notes: Optional[str] = None
+    votes: Optional[int] = None
     sources: Optional[List[Dict[str, Any]]] = None
 
 class EnrichProblemRequest(BaseModel):
@@ -179,6 +185,19 @@ class ParsePhase1Request(BaseModel):
     markdown: str
     session_id: Optional[str] = None
     project_id: Optional[str] = None
+
+class VoteProblemRequest(BaseModel):
+    vote_type: str = "up"  # "up" | "down"
+
+class ChallengeCustomRequest(BaseModel):
+    id: Optional[str] = "CUSTOM"
+    sector: Optional[str] = "General"
+    sufferer_occupation: Optional[str] = "Target Actor"
+    sufferer_location: Optional[str] = "Iloilo"
+    problem_statement: str
+    workaround: Optional[str] = ""
+    quantified_impact: Optional[str] = ""
+    evidence_tier: Optional[str] = "SIGNAL"
 
 
 # ----------------------------------------------------------------------
@@ -364,6 +383,63 @@ async def delete_problem_item(problem_id: str):
     return {"status": "success", "deleted": True}
 
 
+@app.post("/api/problems/{problem_id}/vote")
+async def vote_problem_item(problem_id: str, req: VoteProblemRequest):
+    storage = get_storage()
+    updated = storage.vote_problem(problem_id, req.vote_type)
+    return {"status": "success", "problem": updated}
+
+
+@app.get("/api/problems/{problem_id}/score-breakdown")
+async def get_problem_score_breakdown(problem_id: str):
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail=f"Problem '{problem_id}' not found.")
+    breakdown = calculate_score_breakdown(problem, problem.get("sources", []))
+    return breakdown
+
+
+@app.post("/api/problems/{problem_id}/challenge")
+async def challenge_problem_endpoint(problem_id: str):
+    """Devil's Advocate Adversarial Challenge: attacks assumptions, identifies gaps and kill questions."""
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail=f"Problem '{problem_id}' not found.")
+
+    try:
+        critique = await challenge_problem_with_agent(problem)
+        # Store critique in the problem record
+        storage.update_problem(problem_id, {"devils_advocate_data": critique})
+        storage.record_problem_history(problem_id, 1, "devils_advocate_challenged", verdict=critique.get("verdict"))
+        return {"status": "success", "critique": critique}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Devil's Advocate challenge failed: {str(e)}")
+
+
+@app.post("/api/problems/challenge-custom")
+async def challenge_custom_problem(req: ChallengeCustomRequest):
+    """Devil's Advocate on ad-hoc or unpersisted problem statements."""
+    try:
+        critique = await challenge_problem_with_agent(req.model_dump())
+        return {"status": "success", "critique": critique}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Devil's Advocate challenge failed: {str(e)}")
+
+
+@app.post("/api/problems/blind-spots")
+async def detect_blind_spots_endpoint(project_id: Optional[str] = None):
+    """Analyze entire portfolio in Problem Bank for sector gaps and cognitive biases."""
+    storage = get_storage()
+    problems = storage.list_problems(project_id=project_id, limit=300)
+    try:
+        analysis = await detect_portfolio_blind_spots(problems)
+        return {"status": "success", "analysis": analysis}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Blind Spot detection failed: {str(e)}")
+
+
 @app.post("/api/problems/enrich")
 async def enrich_manual_note(req: EnrichProblemRequest):
     """Takes free-form field notes and returns a structured, rubric-validated problem record."""
@@ -536,7 +612,6 @@ async def phase2_screen(req: Phase2ScreenRequest):
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"LLM generation failed: {str(e)}")
 
-    # Update phase2 verdicts in Problem Bank if IDs are present
     for pid in (req.selected_problem_ids or []):
         if f"{pid}" in response:
             verdict = "ADVANCE" if "ADVANCE" in response else "SECOND_LOOK"

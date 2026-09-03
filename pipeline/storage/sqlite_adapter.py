@@ -7,52 +7,12 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from .base import BaseStorageAdapter
+from evidence_scorer import calculate_score_breakdown
 
 def generate_share_code(prefix: str = "RATCH") -> str:
     """Generate a clean 6-character room share code like RATCH-7K9."""
     chars = "".join(random.choices(string.ascii_uppercase + "23456789", k=4))
     return f"{prefix}-{chars}"
-
-def calculate_evidence_score(problem: Dict[str, Any], sources: List[Dict[str, Any]]) -> float:
-    """Calculate an objective 0-100 evidence confidence score."""
-    score = 0.0
-
-    # 1. Base Evidence Tier (up to 40 pts)
-    tier = str(problem.get("evidence_tier", "")).upper()
-    if "STRONGLY" in tier:
-        score += 40.0
-    elif "DOCUMENTED" in tier:
-        score += 25.0
-    elif "SIGNAL" in tier:
-        score += 10.0
-
-    # 2. Source Diversity & Tier Quality (up to 30 pts)
-    if sources:
-        # Number of sources
-        score += min(len(sources) * 5.0, 15.0)
-        # Source tiers
-        has_tier_a = any(s.get("source_tier") == "A" or "psa" in str(s.get("source_url", "")).lower() or "doh" in str(s.get("source_url", "")).lower() or "da." in str(s.get("source_url", "")).lower() for s in sources)
-        has_tier_b = any(s.get("source_tier") == "B" or "news" in str(s.get("source_url", "")).lower() or "star" in str(s.get("source_url", "")).lower() or "guardian" in str(s.get("source_url", "")).lower() for s in sources)
-        if has_tier_a:
-            score += 10.0
-        if has_tier_b:
-            score += 5.0
-
-    # 3. Quantified Impact presence (up to 15 pts)
-    impact = str(problem.get("quantified_impact", "")).strip()
-    if any(char.isdigit() for char in impact) or "%" in impact or "₱" in impact or "PHP" in impact.upper():
-        score += 15.0
-    elif impact:
-        score += 5.0
-
-    # 4. Specific Workaround presence (up to 15 pts)
-    workaround = str(problem.get("workaround", "")).strip()
-    if workaround and len(workaround) > 10:
-        score += 15.0
-    elif workaround:
-        score += 5.0
-
-    return min(max(round(score, 1), 0.0), 100.0)
 
 
 class SQLiteStorageAdapter(BaseStorageAdapter):
@@ -66,7 +26,6 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
     def _get_connection(self) -> sqlite3.Connection:
         conn = sqlite3.connect(self.db_path, timeout=30.0)
         conn.row_factory = sqlite3.Row
-        # Enable Write-Ahead Logging (WAL) for high concurrency and zero locks
         conn.execute("PRAGMA journal_mode=WAL;")
         conn.execute("PRAGMA synchronous=NORMAL;")
         conn.execute("PRAGMA foreign_keys=ON;")
@@ -133,6 +92,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     phase3_verdict TEXT,
                     notes TEXT,
                     score REAL DEFAULT 0.0,
+                    votes INTEGER DEFAULT 0,
+                    devils_advocate_data TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL,
@@ -175,6 +136,16 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_problem_sources_pid ON problem_sources(problem_id);
                 CREATE INDEX IF NOT EXISTS idx_problem_history_pid ON problem_phase_history(problem_id);
             """)
+
+            # Migration safe check for newly added columns if table already existed
+            try:
+                conn.execute("ALTER TABLE problems ADD COLUMN votes INTEGER DEFAULT 0")
+            except Exception:
+                pass
+            try:
+                conn.execute("ALTER TABLE problems ADD COLUMN devils_advocate_data TEXT")
+            except Exception:
+                pass
 
     # ------------------------------------------------------------------
     # Session Management Methods
@@ -341,14 +312,14 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         p["id"] = problem_id
 
         sources = p.get("sources") or []
-        score = p.get("score")
-        if score is None:
-            score = calculate_evidence_score(p, sources)
+        breakdown = calculate_score_breakdown(p, sources)
+        score = p.get("score") if p.get("score") is not None else breakdown["total_score"]
         p["score"] = score
 
         now = datetime.now(timezone.utc).isoformat()
         evidence_types_json = json.dumps(p.get("evidence_types") or p.get("evidence_type_list") or [])
         tags_json = json.dumps(p.get("tags") or [])
+        da_json = json.dumps(p.get("devils_advocate_data")) if p.get("devils_advocate_data") else None
 
         with self._get_connection() as conn:
             conn.execute("""
@@ -357,8 +328,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     sufferer_location, problem_statement, evidence_tier, workaround,
                     quantified_impact, evidence_types, source, source_detail,
                     tags, status, phase2_verdict, phase3_verdict, notes, score,
-                    created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    votes, devils_advocate_data, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT(id) DO UPDATE SET
                     project_id = coalesce(excluded.project_id, problems.project_id),
                     session_id = coalesce(excluded.session_id, problems.session_id),
@@ -378,6 +349,8 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     phase3_verdict = coalesce(excluded.phase3_verdict, problems.phase3_verdict),
                     notes = coalesce(excluded.notes, problems.notes),
                     score = excluded.score,
+                    votes = coalesce(excluded.votes, problems.votes),
+                    devils_advocate_data = coalesce(excluded.devils_advocate_data, problems.devils_advocate_data),
                     updated_at = excluded.updated_at
             """, (
                 problem_id,
@@ -399,11 +372,12 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 p.get("phase3_verdict"),
                 p.get("notes") or "",
                 score,
+                p.get("votes") or 0,
+                da_json,
                 now,
                 now
             ))
 
-            # Insert/replace sources if provided
             if sources:
                 conn.execute("DELETE FROM problem_sources WHERE problem_id = ?", (problem_id,))
                 for s in sources:
@@ -437,6 +411,10 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 p["tags"] = json.loads(p.get("tags") or "[]")
             except Exception:
                 p["tags"] = []
+            try:
+                p["devils_advocate_data"] = json.loads(p.get("devils_advocate_data") or "null")
+            except Exception:
+                p["devils_advocate_data"] = None
 
             # Fetch sources
             source_rows = conn.execute(
@@ -444,6 +422,9 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 (problem_id,)
             ).fetchall()
             p["sources"] = [dict(s) for s in source_rows]
+
+            # Attach multi-dimensional score breakdown
+            p["score_breakdown"] = calculate_score_breakdown(p, p["sources"])
 
             # Fetch phase history
             history_rows = conn.execute(
@@ -484,7 +465,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             query += " AND (problem_statement LIKE ? OR sufferer_occupation LIKE ? OR sufferer_location LIKE ? OR notes LIKE ? OR id LIKE ?)"
             params.extend([like_term, like_term, like_term, like_term, like_term])
 
-        query += " ORDER BY score DESC, updated_at DESC LIMIT ? OFFSET ?"
+        query += " ORDER BY votes DESC, score DESC, updated_at DESC LIMIT ? OFFSET ?"
         params.extend([limit, offset])
 
         with self._get_connection() as conn:
@@ -500,8 +481,11 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     p["tags"] = json.loads(p.get("tags") or "[]")
                 except Exception:
                     p["tags"] = []
+                try:
+                    p["devils_advocate_data"] = json.loads(p.get("devils_advocate_data") or "null")
+                except Exception:
+                    p["devils_advocate_data"] = None
 
-                # Attach sources summary
                 sources = conn.execute(
                     "SELECT id, source_name, source_url, source_tier, evidence_type, quote_or_summary FROM problem_sources WHERE problem_id = ?",
                     (p["id"],)
@@ -519,7 +503,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             "sector", "sufferer_occupation", "sufferer_location", "problem_statement",
             "evidence_tier", "workaround", "quantified_impact", "evidence_types",
             "source", "source_detail", "tags", "status", "phase2_verdict", "phase3_verdict",
-            "notes", "score", "project_id"
+            "notes", "score", "votes", "devils_advocate_data", "project_id"
         ]
 
         set_clauses = []
@@ -528,7 +512,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         for field in allowed_fields:
             if field in updates:
                 val = updates[field]
-                if field in ("evidence_types", "tags") and not isinstance(val, str):
+                if field in ("evidence_types", "tags", "devils_advocate_data") and not isinstance(val, str) and val is not None:
                     val = json.dumps(val)
                 set_clauses.append(f"{field} = ?")
                 params.append(val)
@@ -550,11 +534,10 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                         s.get("evidence_type") or "Reference",
                         s.get("quote_or_summary") or ""
                     ))
-            # Recalculate score
             merged = {**existing, **updates}
-            new_score = calculate_evidence_score(merged, sources)
+            breakdown = calculate_score_breakdown(merged, sources)
             set_clauses.append("score = ?")
-            params.append(new_score)
+            params.append(breakdown["total_score"])
 
         if set_clauses:
             now = datetime.now(timezone.utc).isoformat()
@@ -625,3 +608,10 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             res = self.add_problem(p)
             results.append(res)
         return results
+
+    def vote_problem(self, problem_id: str, vote_type: str = "up") -> Dict[str, Any]:
+        delta = 1 if vote_type == "up" else -1
+        with self._get_connection() as conn:
+            conn.execute("UPDATE problems SET votes = max(0, coalesce(votes, 0) + ?) WHERE id = ?", (delta, problem_id))
+        p = self.get_problem(problem_id)
+        return p or {"id": problem_id, "votes": 0}

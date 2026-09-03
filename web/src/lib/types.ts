@@ -53,6 +53,65 @@ export interface ProblemPhaseHistory {
   created_at?: string;
 }
 
+export interface ScoreDimension {
+  score: number;
+  max: number;
+  label: string;
+}
+
+export interface ScoreBreakdown {
+  total_score: number;
+  confidence: "HIGH" | "MODERATE" | "WEAK";
+  confidence_label: string;
+  dimensions: {
+    source_diversity: ScoreDimension;
+    source_tier_quality: ScoreDimension;
+    quantified_impact: ScoreDimension;
+    workaround_specificity: ScoreDimension;
+    geographic_precision: ScoreDimension;
+  };
+  recommendations: string[];
+}
+
+export interface DevilsAdvocateReport {
+  problem_id: string;
+  plausibility_score: number;
+  verdict: "CHALLENGED" | "VULNERABLE" | "DEFENSIBLE";
+  assumption_attacks: string[];
+  evidence_gaps: string[];
+  fatal_kill_question: string;
+  status_quo_inertia: string;
+  hardened_reframing: string;
+  recommended_field_action: string;
+}
+
+export interface BlindSpotItem {
+  area: string;
+  severity: "HIGH" | "MEDIUM";
+  observation: string;
+  why_it_matters: string;
+}
+
+export interface CognitiveBiasItem {
+  bias_type: string;
+  manifestation: string;
+}
+
+export interface SuggestedExploration {
+  sector: string;
+  target_location: string;
+  starter_friction_question: string;
+}
+
+export interface BlindSpotAnalysis {
+  total_problems_analyzed: number;
+  sector_distribution: Record<string, number>;
+  coverage_rating: "CRITICAL_GAPS" | "BALANCED" | "DIVERSE" | "EMPTY";
+  identified_blind_spots: BlindSpotItem[];
+  cognitive_biases_flagged: CognitiveBiasItem[];
+  suggested_explorations: SuggestedExploration[];
+}
+
 export interface ProblemRecord {
   id: string;
   project_id?: string | null;
@@ -73,6 +132,9 @@ export interface ProblemRecord {
   phase3_verdict?: ProblemValidationVerdict | null;
   notes?: string;
   score?: number;
+  votes?: number;
+  devils_advocate_data?: DevilsAdvocateReport | null;
+  score_breakdown?: ScoreBreakdown;
   sources?: ProblemSource[];
   phase_history?: ProblemPhaseHistory[];
   created_at?: string;
