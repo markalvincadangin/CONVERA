@@ -13,6 +13,7 @@ from .base import (
 from .openalex_connector import OpenAlexConnector
 from .semantic_scholar_connector import SemanticScholarConnector
 from .crossref_connector import CrossrefConnector
+from .pubmed_connector import PubMedConnector
 from .hub import ConnectorHub, connector_hub
 
 __all__ = [
@@ -23,6 +24,7 @@ __all__ = [
     "OpenAlexConnector",
     "SemanticScholarConnector",
     "CrossrefConnector",
+    "PubMedConnector",
     "ConnectorHub",
     "connector_hub",
 ]

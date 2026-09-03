@@ -67,3 +67,17 @@ async def test_problem_bank_api_crud(client: AsyncClient):
     # 7. Delete problem
     del_res = await client.delete("/api/problems/API-TEST-001")
     assert del_res.status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_similarity_check_api(client: AsyncClient):
+    # Test checking a candidate problem statement
+    res = await client.post("/api/similarity/check", json={
+        "problem_statement": "Severe onion spoilage in Miagao farming communities due to lack of cold storage.",
+        "sector": "Agriculture & Fisheries"
+    })
+    assert res.status_code == 200
+    data = res.json()
+    assert "overall_verdict" in data
+    assert "matches" in data
+    assert "is_unique" in data

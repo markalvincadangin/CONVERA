@@ -27,6 +27,7 @@ from .problem_parser import clean_text, clean_problem_id, canonicalize_problem_i
 from .document_parser import parse_and_extract_document, IngestedDocumentResult, chunk_text
 from .research_client import extract_core_topic, extract_keywords, extract_clean_location, FreeResearchClient
 from .srs_generator import generate_project_srs, format_srs_markdown
+from .similarity_engine import calculate_similarity, check_portfolio_similarity
 
 __all__ = [
     "extract_claims_and_assumptions",
@@ -64,4 +65,6 @@ __all__ = [
     "FreeResearchClient",
     "generate_project_srs",
     "format_srs_markdown",
+    "calculate_similarity",
+    "check_portfolio_similarity",
 ]

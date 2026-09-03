@@ -1436,6 +1436,31 @@ class DocumentIngestRequest(BaseModel):
     authority_tier: Optional[str] = "FIELD_INTERVIEW"
 
 
+
+class SimilarityCheckRequest(BaseModel):
+    problem_statement: str
+    sector: Optional[str] = None
+    candidate_id: Optional[str] = "CANDIDATE"
+    session_id: Optional[str] = None
+
+@app.post("/api/similarity/check")
+async def api_check_similarity(req: SimilarityCheckRequest):
+    from engines.similarity_engine import check_portfolio_similarity
+    """Analyze a candidate statement against existing Problem Bank items to detect duplicates/similarities."""
+    if not req.problem_statement.strip():
+        raise HTTPException(status_code=400, detail="Problem statement cannot be empty")
+    storage = get_storage()
+    existing_problems = storage.list_problems()
+    result = check_portfolio_similarity(
+        candidate={
+            "id": req.candidate_id,
+            "problem_statement": req.problem_statement,
+            "sector": req.sector or ""
+        },
+        existing_problems=existing_problems
+    )
+    return result
+
 @app.post("/api/inbox/ingest")
 async def api_inbox_ingest(req: DocumentIngestRequest):
     """Parse unstructured text into grounded problem claims and evidence candidates."""

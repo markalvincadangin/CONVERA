@@ -4,6 +4,7 @@ from connectors.base import BaseConnector, NormalizedScholarlyWork, ProvenanceMe
 from connectors.openalex_connector import OpenAlexConnector
 from connectors.semantic_scholar_connector import SemanticScholarConnector
 from connectors.crossref_connector import CrossrefConnector
+from connectors.pubmed_connector import PubMedConnector
 from connectors.hub import ConnectorHub, connector_hub
 
 
@@ -15,6 +16,7 @@ def test_connector_hub_registry():
     assert "openalex" in ids
     assert "semantic_scholar" in ids
     assert "crossref" in ids
+    assert "pubmed" in ids
 
 
 def test_openalex_normalization():
@@ -137,3 +139,28 @@ def test_federated_search_deduplication():
     assert len(results) == 2
     assert results[0].doi == "10.1109/test.002"  # 80 citations
     assert results[1].doi == "10.1109/test.001"  # 50 citations
+
+
+def test_pubmed_normalization():
+    conn = PubMedConnector()
+    mock_summary = {
+        "uid": "38123456",
+        "title": "Cold Chain Logistics and Post-Harvest Losses in Rural Agriculture.",
+        "pubdate": "2024 Jan 15",
+        "authors": [
+            {"name": "Santos M"},
+            {"name": "Reyes D"}
+        ],
+        "source": "Journal of Agricultural Food Systems",
+        "articleids": [
+            {"idtype": "pubmed", "value": "38123456"},
+            {"idtype": "doi", "value": "10.1016/j.jafs.2024.01.005"}
+        ]
+    }
+    work = conn.normalize(mock_summary)
+    assert work.doi == "10.1016/j.jafs.2024.01.005"
+    assert work.title == "Cold Chain Logistics and Post-Harvest Losses in Rural Agriculture"
+    assert work.authors == ["Santos M", "Reyes D"]
+    assert work.year == 2024
+    assert work.venue == "Journal of Agricultural Food Systems"
+    assert "PubMed" in work.provenance.source_name

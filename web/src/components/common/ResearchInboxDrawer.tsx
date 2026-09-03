@@ -15,12 +15,14 @@ import {
   FileUp,
   Cpu,
   X,
+  CopyCheck,
+  Split,
 } from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { IngestedDocumentResult, EvidenceCandidate } from "@/lib/types";
-import { connectorService } from "@/services/connectorService";
+import { connectorService, SimilarityCheckResult } from "@/services/connectorService";
 
 interface ResearchInboxDrawerProps {
   isOpen: boolean;
@@ -53,6 +55,15 @@ Farmers lose up to 35% of harvested volume due to lack of localized pre-cooling 
 Current workaround is packing with wet burlap sacks, which accelerates fungal rot during humid delays.
 Middlemen exploit this perishability to force 40% price discounts at the gate.`,
   },
+  {
+    label: "PubMed Clinical Abstract",
+    source: "PubMed Indexed Study (PMID: 38123456)",
+    tier: "ACADEMIC_PEER_REVIEWED",
+    content: `Title: Cold Chain Logistics and Post-Harvest Losses in Rural Agriculture.
+Authors: Santos M, Reyes D.
+Venue: Journal of Agricultural Food Systems (2024).
+Findings: In Western Visayas, post-harvest losses among smallholder municipal fishers exceed 32% due to insufficient ice supply and lack of portable solar-powered chilling units during transport to provincial aggregation centers.`,
+  }
 ];
 
 export const ResearchInboxDrawer: React.FC<ResearchInboxDrawerProps> = ({
@@ -65,6 +76,7 @@ export const ResearchInboxDrawer: React.FC<ResearchInboxDrawerProps> = ({
   const [authorityTier, setAuthorityTier] = useState("FIELD_INTERVIEW");
   const [isExtracting, setIsExtracting] = useState(false);
   const [extractionResult, setExtractionResult] = useState<IngestedDocumentResult | null>(null);
+  const [similarityResult, setSimilarityResult] = useState<SimilarityCheckResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleApplyPreset = (preset: typeof SAMPLE_PRESETS[0]) => {
@@ -72,6 +84,7 @@ export const ResearchInboxDrawer: React.FC<ResearchInboxDrawerProps> = ({
     setSourceName(preset.source);
     setAuthorityTier(preset.tier);
     setExtractionResult(null);
+    setSimilarityResult(null);
     setError(null);
   };
 
@@ -83,9 +96,18 @@ export const ResearchInboxDrawer: React.FC<ResearchInboxDrawerProps> = ({
 
     setIsExtracting(true);
     setError(null);
+    setSimilarityResult(null);
     try {
       const res = await connectorService.ingestDocument(rawText, sourceName, authorityTier);
       setExtractionResult(res);
+      
+      // Run portfolio similarity check
+      try {
+        const sim = await connectorService.checkSimilarity(res.problem_statement, res.inferred_sector);
+        setSimilarityResult(sim);
+      } catch (simErr) {
+        console.warn("Similarity check skipped:", simErr);
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to extract claims from document.");
     } finally {
@@ -105,6 +127,7 @@ export const ResearchInboxDrawer: React.FC<ResearchInboxDrawerProps> = ({
 
     // Reset and close
     setExtractionResult(null);
+    setSimilarityResult(null);
     setRawText("");
     onClose();
   };
@@ -142,157 +165,190 @@ export const ResearchInboxDrawer: React.FC<ResearchInboxDrawerProps> = ({
               CCDS Ingestion Pipeline (CIIA v1.0)
             </h4>
             <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-              Paste interview transcripts, survey logs, observation notes, or research summaries. CONVERA parses the raw text into structured <strong className="text-slate-200">Evidence Candidates</strong> and <strong className="text-slate-200">Empirical Claims</strong> with complete provenance.
+              Paste interview transcripts, survey logs, observation notes, or research summaries. CONVERA parses the raw text into structured <strong className="text-slate-200">Evidence Candidates</strong>, extracts <strong className="text-slate-200">Empirical Claims</strong>, and automatically checks for portfolio duplicates.
             </p>
           </div>
         </div>
 
-        {error && (
-          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-300 flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {/* Top presets row */}
-        <div className="flex items-center justify-between gap-2 text-xs">
-          <span className="text-slate-400 font-medium">Try sample material:</span>
-          <div className="flex items-center gap-2">
-            {SAMPLE_PRESETS.map((p, i) => (
+        {/* Preset Quick Fill */}
+        <div>
+          <label className="text-xs font-medium text-slate-400 mb-1.5 block">
+            Load Sample Ingestion Artifacts:
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {SAMPLE_PRESETS.map((preset, idx) => (
               <button
-                key={i}
-                onClick={() => handleApplyPreset(p)}
-                className="px-2.5 py-1 rounded-lg bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 text-[11px] font-medium transition-all"
+                key={idx}
+                type="button"
+                onClick={() => handleApplyPreset(preset)}
+                className="text-xs px-2.5 py-1 rounded-lg border border-slate-700/70 bg-slate-800/60 hover:bg-slate-700/80 text-slate-300 hover:text-white transition-colors"
               >
-                {p.label}
+                + {preset.label}
               </button>
             ))}
           </div>
         </div>
 
-        {/* Input Textarea & Source Meta */}
-        <div className="space-y-3">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Source Description / Name
-              </label>
-              <input
-                type="text"
-                value={sourceName}
-                onChange={(e) => setSourceName(e.target.value)}
-                placeholder="e.g. User Interview with 5 commuters"
-                className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white placeholder-slate-600 focus:border-blue-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Authority Tier
-              </label>
-              <select
-                value={authorityTier}
-                onChange={(e) => setAuthorityTier(e.target.value)}
-                className="w-full px-3 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white focus:border-blue-500 focus:outline-none"
-              >
-                <option value="FIELD_INTERVIEW">Field Interview (Mom Test)</option>
-                <option value="PEER_REVIEWED">Peer-Reviewed Academic Paper</option>
-                <option value="OFFICIAL_DATA">Government / Institutional Dataset</option>
-                <option value="WEB_SIGNAL">Web Signal / Media Report</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-              Raw Text / Transcript / Research Notes
+        {/* Input Form */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="md:col-span-2">
+            <label className="text-xs font-semibold text-slate-300 mb-1 block">
+              Source Name / Document Reference:
             </label>
-            <textarea
-              rows={5}
-              value={rawText}
-              onChange={(e) => setRawText(e.target.value)}
-              placeholder="Paste raw unstructured text, quotes, or notes here..."
-              className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-slate-200 placeholder-slate-600 focus:border-blue-500 focus:outline-none font-mono leading-relaxed resize-none"
+            <input
+              type="text"
+              value={sourceName}
+              onChange={(e) => setSourceName(e.target.value)}
+              className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500"
+              placeholder="e.g. Field Interview with Jaro Tricycle Operators"
             />
           </div>
-
-          <div className="flex justify-end">
-            <Button
-              onClick={handleExtract}
-              disabled={isExtracting || !rawText.trim()}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs px-4 py-2"
+          <div>
+            <label className="text-xs font-semibold text-slate-300 mb-1 block">
+              Authority Tier:
+            </label>
+            <select
+              value={authorityTier}
+              onChange={(e) => setAuthorityTier(e.target.value)}
+              className="w-full bg-slate-900/90 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-slate-100 focus:outline-none focus:border-blue-500"
             >
-              {isExtracting ? (
-                <span className="flex items-center gap-2">
-                  <Spinner size="sm" /> Extracting Claims & Evidence...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Sparkles className="w-3.5 h-3.5" /> Extract Claims & Evidence
-                </span>
-              )}
-            </Button>
+              <option value="FIELD_INTERVIEW">Field Interview (Primary Grounding)</option>
+              <option value="OFFICIAL_GOVERNMENT">Official Government / LGU Data</option>
+              <option value="ACADEMIC_PEER_REVIEWED">Academic Peer-Reviewed Paper</option>
+              <option value="INDUSTRY_REPORT">Industry / Market Benchmark</option>
+              <option value="UNVERIFIED_OBSERVATION">Unverified Discovery Signal</option>
+            </select>
           </div>
         </div>
 
-        {/* Extraction Result Showcase */}
-        {extractionResult && (
-          <div className="mt-4 pt-4 border-t border-slate-800 space-y-4 animate-in fade-in duration-300">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
-                  Extracted Problem & Claims Candidates
-                </h3>
-              </div>
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/40 font-mono">
-                {extractionResult.evidence_candidates.length} Claims Identified
-              </span>
-            </div>
+        <div>
+          <label className="text-xs font-semibold text-slate-300 mb-1 block">
+            Raw Content (Unstructured Text, Transcripts, Observations):
+          </label>
+          <textarea
+            value={rawText}
+            onChange={(e) => setRawText(e.target.value)}
+            rows={6}
+            placeholder="Paste your qualitative notes, quotes, or paper findings here..."
+            className="w-full bg-slate-900/90 border border-slate-700 rounded-lg p-3 text-xs text-slate-100 font-sans focus:outline-none focus:border-blue-500 placeholder:text-slate-600 leading-relaxed resize-none"
+          />
+        </div>
 
-            {/* Inferred Problem Card */}
-            <div className="bg-slate-900/90 border border-slate-700/80 rounded-xl p-3.5 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <h4 className="text-sm font-bold text-white">{extractionResult.inferred_title}</h4>
-                <span className="text-[10px] px-2 py-0.5 rounded-md bg-slate-800 text-slate-300 border border-slate-700 font-mono">
-                  {extractionResult.inferred_sector}
+        {error && (
+          <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{error}</span>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setRawText("");
+              setExtractionResult(null);
+              setSimilarityResult(null);
+              setError(null);
+            }}
+          >
+            Clear
+          </Button>
+
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleExtract}
+            disabled={isExtracting || !rawText.trim()}
+            className="flex items-center gap-1.5"
+          >
+            {isExtracting ? (
+              <>
+                <Spinner size="sm" />
+                <span>Deconstructing Claims...</span>
+              </>
+            ) : (
+              <>
+                <Cpu className="w-3.5 h-3.5" />
+                <span>Parse & Extract Claims</span>
+              </>
+            )}
+          </Button>
+        </div>
+
+        {/* Duplicate / Similarity Warning Banner */}
+        {similarityResult && similarityResult.matches.length > 0 && (
+          <div className={`p-3.5 rounded-xl border flex items-start gap-3 ${
+            similarityResult.overall_verdict === "DUPLICATE"
+              ? "bg-amber-950/40 border-amber-500/50 text-amber-200"
+              : "bg-blue-950/40 border-blue-500/40 text-blue-200"
+          }`}>
+            <CopyCheck className="w-4 h-4 mt-0.5 shrink-0" />
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="font-semibold text-xs uppercase tracking-wider font-mono">
+                  {similarityResult.overall_verdict === "DUPLICATE" ? "Potential Portfolio Duplicate" : "Related Problem Cluster"}
+                </span>
+                <span className="text-[10px] px-1.5 py-0.5 rounded font-mono bg-black/40 border border-current">
+                  {Math.round(similarityResult.top_similarity_score * 100)}% Match
                 </span>
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
-                {extractionResult.problem_statement}
+                {similarityResult.matches[0].explanation} (Matches: <strong className="text-white font-mono">{similarityResult.matches[0].problem_id}</strong>)
+              </p>
+              <p className="text-[11px] text-slate-400 italic">
+                Human Governance: You can still commit this as a distinct item or link it as supporting evidence.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Extracted Structured Entity Preview */}
+        {extractionResult && (
+          <div className="mt-4 p-4 rounded-xl bg-slate-900/90 border border-blue-500/30 space-y-3 animate-in fade-in-50 duration-300">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-800">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                <h4 className="text-xs font-bold text-white tracking-wide uppercase font-mono">
+                  Extracted Problem Candidate
+                </h4>
+              </div>
+              <span className="text-[10px] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 border border-blue-500/40 font-mono">
+                {extractionResult.inferred_sector}
+              </span>
+            </div>
+
+            <div>
+              <div className="text-[11px] font-bold text-slate-300">{extractionResult.inferred_title}</div>
+              <p className="text-xs text-slate-300 mt-1 leading-relaxed bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                "{extractionResult.problem_statement}"
               </p>
             </div>
 
-            {/* Evidence Candidates List */}
-            <div className="space-y-2">
-              <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                Extracted Evidence Candidates (Provenance Grounded)
-              </h4>
-              <div className="grid grid-cols-1 gap-2.5">
-                {extractionResult.evidence_candidates.map((cand) => (
+            {/* Extracted Claims List */}
+            <div>
+              <div className="text-[11px] font-semibold text-slate-400 mb-2 flex items-center justify-between">
+                <span>Extracted Claims & Evidence ({extractionResult.evidence_candidates.length}):</span>
+                <span className="text-[10px] text-slate-500 font-mono">Epistemic Tier: {authorityTier}</span>
+              </div>
+
+              <div className="space-y-2">
+                {extractionResult.evidence_candidates.map((cand, i) => (
                   <div
-                    key={cand.id}
-                    className="p-3 rounded-xl bg-slate-950 border border-slate-800/90 space-y-2 hover:border-slate-700 transition-all"
+                    key={i}
+                    className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/80 space-y-1.5 text-xs"
                   >
-                    <div className="flex items-center justify-between gap-2 flex-wrap">
-                      <div className="flex items-center gap-1.5">
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${getClaimTypeBadge(cand.claim_type)}`}>
-                          {cand.claim_type.replace(/_/g, " ")}
-                        </span>
-                        <span className="text-[10px] font-mono text-slate-400 px-2 py-0.5 rounded bg-slate-900 border border-slate-800">
-                          {cand.evidence_tier}
-                        </span>
-                      </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded border font-mono ${getClaimTypeBadge(cand.claim_type)}`}>
+                        {cand.claim_type}
+                      </span>
                       <span className="text-[10px] font-mono text-slate-400">
-                        AI Conf: <strong className="text-cyan-400">{Math.round(cand.ai_confidence * 100)}%</strong>
+                        Confidence: {(cand.ai_confidence * 100).toFixed(0)}%
                       </span>
                     </div>
-
-                    <p className="text-xs text-slate-200 font-medium leading-relaxed">
-                      {cand.claim_text}
-                    </p>
-
+                    <div className="text-slate-200 font-medium">{cand.claim_text}</div>
                     {cand.supporting_quote && (
-                      <div className="flex items-start gap-1.5 p-2 rounded-lg bg-slate-900/60 border border-slate-800/80 text-[11px] text-slate-400 italic">
+                      <div className="text-[11px] text-slate-400 italic flex items-start gap-1 bg-slate-900/60 p-1.5 rounded border border-slate-800/60">
                         <Quote className="w-3 h-3 text-slate-500 shrink-0 mt-0.5" />
                         <span>"{cand.supporting_quote}"</span>
                       </div>
@@ -302,33 +358,15 @@ export const ResearchInboxDrawer: React.FC<ResearchInboxDrawerProps> = ({
               </div>
             </div>
 
-            {/* Identified Assumptions */}
-            {extractionResult.identified_assumptions.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">
-                  Unverified Assumptions Detected
-                </h4>
-                <div className="space-y-1.5">
-                  {extractionResult.identified_assumptions.map((asm, idx) => (
-                    <div key={idx} className="flex items-center gap-2 text-xs text-slate-300 p-2 rounded-lg bg-slate-900/60 border border-slate-800">
-                      <ShieldAlert className="w-3.5 h-3.5 text-amber-400 shrink-0" />
-                      <span>{asm.assumption}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Commit Action */}
-            <div className="pt-3 flex items-center justify-between border-t border-slate-800">
-              <Button variant="outline" size="sm" onClick={() => setExtractionResult(null)}>
-                Discard Extraction
-              </Button>
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-800">
               <Button
+                variant="primary"
+                size="sm"
                 onClick={handleCommit}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-4 py-2"
+                className="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium"
               >
-                <Plus className="w-3.5 h-3.5 mr-1.5" /> Add to Problem Bank
+                <Plus className="w-3.5 h-3.5" />
+                <span>Ground to Problem Bank</span>
               </Button>
             </div>
           </div>

@@ -10,6 +10,7 @@ from .base import BaseConnector, NormalizedScholarlyWork, EvidenceCandidate
 from .openalex_connector import OpenAlexConnector
 from .semantic_scholar_connector import SemanticScholarConnector
 from .crossref_connector import CrossrefConnector
+from .pubmed_connector import PubMedConnector
 
 
 class ConnectorHub:
@@ -21,6 +22,7 @@ class ConnectorHub:
         self.register(OpenAlexConnector())
         self.register(SemanticScholarConnector())
         self.register(CrossrefConnector())
+        self.register(PubMedConnector())
 
     def register(self, connector: BaseConnector):
         self._connectors[connector.connector_id] = connector
@@ -34,7 +36,7 @@ class ConnectorHub:
             results.append({
                 "connector_id": conn.connector_id,
                 "display_name": conn.display_name,
-                "capabilities": conn.capabilities,
+                "capabilities": [c.value if hasattr(c, "value") else str(c) for c in conn.capabilities],
             })
         return results
 

@@ -2,6 +2,27 @@ import { EvidenceCandidate, NormalizedScholarlyWork, IngestedDocumentResult } fr
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "";
 
+export interface SimilarityMatch {
+  problem_id: string;
+  problem_statement: string;
+  sector?: string;
+  similarity_score: number;
+  verdict: "DUPLICATE" | "POTENTIALLY_SIMILAR" | "UNIQUE";
+  shared_keywords: string[];
+  explanation: string;
+  suggested_action: "MERGE" | "LINK_AS_RELATED" | "KEEP_SEPARATE";
+}
+
+export interface SimilarityCheckResult {
+  candidate_id: string;
+  candidate_statement: string;
+  overall_verdict: "DUPLICATE" | "POTENTIALLY_SIMILAR" | "UNIQUE";
+  is_unique: boolean;
+  top_similarity_score: number;
+  matches: SimilarityMatch[];
+  recommendation: string;
+}
+
 export const connectorService = {
   /**
    * List all registered research and tool connectors.
@@ -18,6 +39,7 @@ export const connectorService = {
         { connector_id: "openalex", display_name: "OpenAlex Scholarly Graph", capabilities: ["SEARCH", "FETCH_BY_ID", "CITATIONS", "TOPICS"] },
         { connector_id: "semantic_scholar", display_name: "Semantic Scholar Academic Graph", capabilities: ["SEARCH", "FETCH_BY_ID", "INFLUENTIAL_CITATIONS"] },
         { connector_id: "crossref", display_name: "Crossref DOI Resolver", capabilities: ["SEARCH", "FETCH_BY_ID", "DOI_RESOLUTION"] },
+        { connector_id: "pubmed", display_name: "PubMed (National Library of Medicine)", capabilities: ["SEARCH", "FETCH_BY_ID", "PROVENANCE"] },
       ];
     }
   },
@@ -66,6 +88,27 @@ export const connectorService = {
       }),
     });
     if (!res.ok) throw new Error("Document ingestion failed");
+    return await res.json();
+  },
+
+  /**
+   * Check a candidate statement against existing Problem Bank items to detect duplicates/similarities.
+   */
+  async checkSimilarity(
+    problemStatement: string,
+    sector?: string,
+    candidateId: string = "CANDIDATE"
+  ): Promise<SimilarityCheckResult> {
+    const res = await fetch(`${API_BASE}/api/similarity/check`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        problem_statement: problemStatement,
+        sector: sector,
+        candidate_id: candidateId,
+      }),
+    });
+    if (!res.ok) throw new Error("Similarity check failed");
     return await res.json();
   },
 };
