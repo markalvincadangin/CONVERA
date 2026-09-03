@@ -51,6 +51,7 @@ from problem_enricher import enrich_manual_problem_input
 from devils_advocate import challenge_problem_with_agent
 from blind_spot_detector import detect_portfolio_blind_spots
 from evidence_scorer import calculate_score_breakdown
+from research_client import FreeResearchClient
 
 from prompts.phase1_system import PHASE1_SYSTEM
 from prompts.phase2_system import PHASE2_SYSTEM
