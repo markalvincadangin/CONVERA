@@ -141,6 +141,77 @@ export interface ProblemRecord {
   updated_at?: string;
 }
 
+// ----------------------------------------------------------------------
+// Deliverables Models (Milestone 3)
+// ----------------------------------------------------------------------
+
+export interface LeanCanvasData {
+  project_name?: string;
+  problem: {
+    top_frictions: string[];
+    existing_alternatives: string[];
+  };
+  customer_segments: {
+    target_customers: string[];
+    early_adopters: string[];
+  };
+  unique_value_proposition: {
+    headline: string;
+    high_level_concept: string;
+  };
+  solution: {
+    core_mechanisms: string[];
+  };
+  channels: {
+    distribution_paths: string[];
+  };
+  revenue_streams: {
+    monetization_model: string;
+    pricing_structure: string;
+  };
+  cost_structure: {
+    fixed_costs: string[];
+    variable_costs: string[];
+  };
+  key_metrics: {
+    primary_metric: string;
+    empirical_phase5_proof: string;
+  };
+  unfair_advantage: {
+    moat_description: string;
+  };
+}
+
+export interface CompetitorGridItem {
+  competitor_name: string;
+  competitor_type: string;
+  their_advantage: string;
+  our_differentiation: string;
+}
+
+export interface SwotData {
+  strengths: string[];
+  weaknesses: string[];
+  opportunities: string[];
+  threats: string[];
+  competitor_grid: CompetitorGridItem[];
+  strategic_recommendations: string[];
+}
+
+export interface PitchDeckSlide {
+  slide_number: number;
+  title: string;
+  headline: string;
+  bullet_points: string[];
+  speaker_notes: string;
+}
+
+export interface PitchDeckData {
+  presentation_title: string;
+  tagline: string;
+  slides: PitchDeckSlide[];
+}
+
 export interface SessionMeta {
   session_id: string;
   project_id?: string;
@@ -181,6 +252,9 @@ export interface SessionState extends SessionMeta {
     conversion_rate: number;
     test_archetype: string;
   };
+  deliverable_lean_canvas?: LeanCanvasData;
+  deliverable_swot?: SwotData;
+  deliverable_pitch_deck?: PitchDeckData;
 }
 
 export interface SolutionConcept {

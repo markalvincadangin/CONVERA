@@ -1,127 +1,123 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Navbar } from "@/components/layout/Navbar";
-import { PipelineStepper } from "@/components/layout/PipelineStepper";
-import { SessionManager } from "@/components/layout/SessionManager";
-import { CheatsheetDrawer } from "@/components/layout/CheatsheetDrawer";
-import { PresentationModal } from "@/components/layout/PresentationModal";
-import { HelpCenterModal } from "@/components/layout/HelpCenterModal";
+import {
+  Navbar,
+  PipelineStepper,
+  SessionManager,
+  CheatsheetDrawer,
+  HelpCenterModal,
+  PresentationModal,
+} from "@/components/layout";
+import {
+  Phase1View,
+  Phase2View,
+  Phase3View,
+  Phase4View,
+  Phase5View,
+} from "@/components/phases";
 import { ProblemBankView } from "@/components/problem-bank/ProblemBankView";
-import { Phase1View } from "@/components/phases/phase1/Phase1View";
-import { Phase2View } from "@/components/phases/phase2/Phase2View";
-import { Phase3View } from "@/components/phases/phase3/Phase3View";
-import { Phase4View } from "@/components/phases/phase4/Phase4View";
-import { Phase5View } from "@/components/phases/phase5/Phase5View";
+import { DeliverablesStudio } from "@/components/deliverables/DeliverablesStudio";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
-import { Card } from "@/components/common/Card";
 import { Spinner } from "@/components/common/Spinner";
-import { sessionService } from "@/services/sessionService";
+import { Card } from "@/components/common/Card";
 import { SessionState } from "@/lib/types";
-import { Download, Copy, Check, ServerCrash, RefreshCw, PlusCircle } from "lucide-react";
+import { sessionService } from "@/services/sessionService";
+import {
+  Download,
+  Copy,
+  Check,
+  ServerCrash,
+  RefreshCw,
+  PlusCircle,
+} from "lucide-react";
 
-export default function DashboardPage() {
+export default function Home() {
   const [session, setSession] = useState<SessionState | null>(null);
-  const [activePhase, setActivePhase] = useState<number>(0);
+  const [activePhase, setActivePhase] = useState<number>(0); // 0 = Problem Bank, 1-5 = Phases, 6 = Studio
   const [isLoadingSession, setIsLoadingSession] = useState(true);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState(false);
 
-  // Modals & Drawers
+  // Modals
   const [isSessionManagerOpen, setIsSessionManagerOpen] = useState(false);
   const [isCheatsheetOpen, setIsCheatsheetOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isPresentationOpen, setIsPresentationOpen] = useState(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportedMarkdown, setExportedMarkdown] = useState("");
-  const [isExporting, setIsExporting] = useState(false);
   const [copiedDossier, setCopiedDossier] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
-  // Initialize session on mount
-  useEffect(() => {
-    initApp();
-  }, []);
-
+  // Initialize or fetch latest session from backend
   const initApp = async () => {
     setIsLoadingSession(true);
-    setConnectionError(null);
+    setConnectionError(false);
     try {
       const sessions = await sessionService.listSessions();
-      if (Array.isArray(sessions) && sessions.length > 0) {
-        const latestSession = await sessionService.getSession(sessions[0].session_id);
-        setSession(latestSession);
-        determineInitialPhase(latestSession);
+      if (sessions && sessions.length > 0) {
+        const latestSessionId = sessions[0].session_id;
+        const fullState = await sessionService.getSession(latestSessionId);
+        setSession(fullState);
       } else {
         const newSession = await sessionService.createSession(
           undefined,
           "Iloilo Technopreneurship Project"
         );
         setSession(newSession.state);
-        setActivePhase(0);
       }
     } catch (err: any) {
-      console.error("Initialization error:", err);
-      setConnectionError(
-        "Unable to connect to the RatchetAI backend. Make sure the FastAPI server is running."
-      );
+      console.warn("Backend unavailable, loading local fallback session:", err);
+      setConnectionError(true);
+      const offlineId = "offline_" + Date.now();
+      setSession({
+        session_id: offlineId,
+        project_name: "Iloilo Venture Project (Local Mode)",
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        phase1_complete: false,
+        phase2_complete: false,
+        phase3_complete: false,
+        phase4_complete: false,
+        phase5_complete: false,
+      });
     } finally {
       setIsLoadingSession(false);
     }
   };
 
-  const determineInitialPhase = (s: SessionState) => {
-    if (s.phase4_complete || s.phase5_response) {
-      setActivePhase(5);
-    } else if (s.phase3_complete || s.phase4_response) {
-      setActivePhase(4);
-    } else if (s.phase2_complete || s.phase3_response || s.phase3_problem) {
-      setActivePhase(3);
-    } else if (s.phase1_complete || s.phase2_response) {
-      setActivePhase(2);
-    } else {
-      setActivePhase(0); // Start at Problem Bank
-    }
-  };
-
-  const handleSelectSession = async (sessionId: string) => {
-    setIsLoadingSession(true);
-    try {
-      const selected = await sessionService.getSession(sessionId);
-      setSession(selected);
-      determineInitialPhase(selected);
-      setIsSessionManagerOpen(false);
-    } catch (err: any) {
-      console.error(err);
-      alert("Failed to load selected session.");
-    } finally {
-      setIsLoadingSession(false);
-    }
-  };
+  useEffect(() => {
+    initApp();
+  }, []);
 
   const handleUpdateSession = (newState: SessionState) => {
     setSession(newState);
   };
 
+  const handleSelectSession = async (selectedSessionId: string) => {
+    setIsLoadingSession(true);
+    try {
+      const fullState = await sessionService.getSession(selectedSessionId);
+      setSession(fullState);
+      setActivePhase(0);
+      setIsSessionManagerOpen(false);
+    } catch (err) {
+      console.error("Failed to load selected session:", err);
+    } finally {
+      setIsLoadingSession(false);
+    }
+  };
+
   const handleCreateOfflineSession = () => {
-    const timestamp = new Date().toISOString().replace(/[-:T.]/g, "").slice(0, 14);
-    const offlineState: SessionState = {
-      session_id: timestamp,
-      project_name: "Iloilo Local Venture Project",
+    const id = "session_" + Date.now();
+    setSession({
+      session_id: id,
+      project_name: "New Technopreneurship Venture",
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
-      completed_levels: [],
-      phase1_complete: false,
-      phase2_complete: false,
-      phase3_complete: false,
-      phase4_complete: false,
-      phase5_complete: false,
-      phase3_history: [],
-      phase4_concepts: [],
-    };
-    setSession(offlineState);
-    setConnectionError(null);
-    setIsLoadingSession(false);
+    });
     setActivePhase(0);
+    setConnectionError(false);
   };
 
   const handleExportDossier = async () => {
@@ -131,8 +127,31 @@ export default function DashboardPage() {
       const res = await sessionService.exportDossier(session.session_id);
       setExportedMarkdown(res.markdown);
       setIsExportModalOpen(true);
-    } catch (err: any) {
-      alert(err.message || "Failed to export dossier");
+    } catch (err) {
+      const md = [
+        `# ${session.project_name || "Iloilo Venture Project"} - Venture Dossier`,
+        `**Session ID:** \`${session.session_id}\``,
+        `**Exported:** ${new Date().toLocaleString()}`,
+        "\n---",
+        "## Phase 1: Problem Landscape Discovery",
+        session.phase1_response || "*Not completed yet.*",
+        "\n---",
+        "## Phase 2: Problem Screening & Shortlisting Matrix",
+        session.phase2_response || "*Not completed yet.*",
+        "\n---",
+        "## Phase 3: Socratic Mom Test Validation Dossier",
+        `**Target Problem:** ${session.phase3_problem || "N/A"}\n`,
+        session.phase3_response || "*Not completed yet.*",
+        "\n---",
+        "## Phase 4: Solution Ideation & SVB Canvas",
+        session.phase4_response || "*Not completed yet.*",
+        "\n---",
+        "## Phase 5: MVP Empirical Validation Audit",
+        session.phase5_response || "*Not completed yet.*",
+      ].join("\n\n");
+
+      setExportedMarkdown(md);
+      setIsExportModalOpen(true);
     } finally {
       setIsExporting(false);
     }
@@ -282,6 +301,13 @@ export default function DashboardPage() {
                 session={session}
                 onUpdateSession={handleUpdateSession}
                 onGoBack={() => setActivePhase(4)}
+                onExportDossier={handleExportDossier}
+              />
+            )}
+
+            {activePhase === 6 && (
+              <DeliverablesStudio
+                session={session}
                 onExportDossier={handleExportDossier}
               />
             )}

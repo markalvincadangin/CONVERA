@@ -815,3 +815,63 @@ async def phase5_audit(req: Phase5AuditRequest):
     state["phase5_complete"] = True
     save_session_state(req.session_id, state)
     return {"state": state, "response": response}
+
+# ----------------------------------------------------------------------
+# Automated Deliverables Endpoints (Lean Canvas, SWOT, Pitch Deck)
+# ----------------------------------------------------------------------
+
+from deliverables_generator import (
+    generate_lean_canvas,
+    generate_swot_analysis,
+    generate_pitch_deck
+)
+
+@app.get("/api/sessions/{session_id}/deliverables")
+async def get_deliverables(session_id: str):
+    """Retrieve all cached deliverables for the session."""
+    state = load_session_state(session_id)
+    return {
+        "session_id": session_id,
+        "lean_canvas": state.get("deliverable_lean_canvas"),
+        "swot": state.get("deliverable_swot"),
+        "pitch_deck": state.get("deliverable_pitch_deck"),
+    }
+
+
+@app.post("/api/sessions/{session_id}/deliverables/lean-canvas")
+async def create_lean_canvas(session_id: str):
+    """Generate a structured 9-box Lean Canvas from the session evidence dossier."""
+    state = load_session_state(session_id)
+    try:
+        canvas = await generate_lean_canvas(state)
+        state["deliverable_lean_canvas"] = canvas
+        save_session_state(session_id, state)
+        return {"status": "success", "lean_canvas": canvas}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Lean Canvas generation failed: {str(e)}")
+
+
+@app.post("/api/sessions/{session_id}/deliverables/swot")
+async def create_swot_matrix(session_id: str):
+    """Generate a 2x2 SWOT and Competitor Differentiation Matrix."""
+    state = load_session_state(session_id)
+    try:
+        swot = await generate_swot_analysis(state)
+        state["deliverable_swot"] = swot
+        save_session_state(session_id, state)
+        return {"status": "success", "swot": swot}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SWOT Matrix generation failed: {str(e)}")
+
+
+@app.post("/api/sessions/{session_id}/deliverables/pitch-deck")
+async def create_pitch_deck(session_id: str):
+    """Generate a 10-Slide Pitch Deck presentation narrative with speaker notes."""
+    state = load_session_state(session_id)
+    try:
+        deck = await generate_pitch_deck(state)
+        state["deliverable_pitch_deck"] = deck
+        save_session_state(session_id, state)
+        return {"status": "success", "pitch_deck": deck}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Pitch Deck generation failed: {str(e)}")
