@@ -443,6 +443,26 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 })
             return results
 
+    def rename_session(self, session_id: str, new_name: str) -> Optional[Dict[str, Any]]:
+        state = self.get_session(session_id)
+        if not state:
+            return None
+        clean_name = new_name.strip()
+        state["project_name"] = clean_name
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                "UPDATE sessions SET project_name = ?, updated_at = ? WHERE session_id = ?",
+                (clean_name, now, session_id)
+            )
+            proj_id = state.get("project_id")
+            if proj_id:
+                conn.execute(
+                    "UPDATE projects SET name = ?, updated_at = ? WHERE id = ?",
+                    (clean_name, now, proj_id)
+                )
+        return self.save_session(session_id, state)
+
     def delete_session(self, session_id: str) -> bool:
         with self._get_connection() as conn:
             cur = conn.execute("DELETE FROM sessions WHERE session_id = ?", (session_id,))
@@ -957,6 +977,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
     def list_problems(
         self,
         project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         sector: Optional[str] = None,
         evidence_tier: Optional[str] = None,
         status: Optional[str] = None,
@@ -970,6 +991,9 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         if project_id:
             query += " AND (project_id = ? OR project_id IS NULL)"
             params.append(project_id)
+        if session_id:
+            query += " AND (session_id = ? OR session_id IS NULL)"
+            params.append(session_id)
         if sector and sector != "All":
             query += " AND sector = ?"
             params.append(sector)

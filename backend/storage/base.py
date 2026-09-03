@@ -20,6 +20,11 @@ class BaseStorageAdapter(ABC):
         pass
 
     @abstractmethod
+    def rename_session(self, session_id: str, new_name: str) -> Optional[Dict[str, Any]]:
+        """Rename a session's project name."""
+        pass
+
+    @abstractmethod
     def delete_session(self, session_id: str) -> bool:
         """Delete a session by its session_id."""
         pass
@@ -62,6 +67,7 @@ class BaseStorageAdapter(ABC):
     def list_problems(
         self,
         project_id: Optional[str] = None,
+        session_id: Optional[str] = None,
         sector: Optional[str] = None,
         evidence_tier: Optional[str] = None,
         status: Optional[str] = None,

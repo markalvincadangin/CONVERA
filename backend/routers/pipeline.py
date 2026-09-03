@@ -82,11 +82,10 @@ async def phase1_discover(req: Phase1DiscoverRequest):
         user_prompt += f"Firsthand Field Observations:\n{req.field_observations}\n"
     user_prompt += "Generate a grounded problem landscape for Western Visayas following the Phase 1 schema."
 
-    raw_response = generate_response_with_fallback(
-        system_prompt=PHASE1_SYSTEM,
-        user_prompt=user_prompt,
-        task_category=TaskCategory.STRUCTURED_EXTRACTION,
-        temperature=0.3,
+    raw_response = await generate_response_with_fallback(
+        system_instruction=PHASE1_SYSTEM,
+        prompt=user_prompt,
+        task_category=TaskCategory.FAST_EXTRACTION,
     )
 
     state["phase1_complete"] = True
@@ -114,11 +113,10 @@ async def phase1_additions(req: Phase1AdditionsRequest):
     prev_text = state.get("phase1_text", "")
     user_prompt = f"Previous Landscape:\n{prev_text}\n\nAdditional Founder Observations:\n{req.additions}\nIntegrate these observations into the problem landscape."
 
-    raw_response = generate_response_with_fallback(
-        system_prompt=PHASE1_SYSTEM,
-        user_prompt=user_prompt,
-        task_category=TaskCategory.STRUCTURED_EXTRACTION,
-        temperature=0.3,
+    raw_response = await generate_response_with_fallback(
+        system_instruction=PHASE1_SYSTEM,
+        prompt=user_prompt,
+        task_category=TaskCategory.FAST_EXTRACTION,
     )
 
     state["phase1_text"] = raw_response
@@ -140,11 +138,10 @@ async def phase2_screen(req: Phase2ScreenRequest):
 
     user_prompt = f"Problem Landscape:\n{landscape}\n\nProblem Candidates from Problem Bank:\n{candidates_text}\n\nScreen and triage these candidates according to Phase 2 criteria."
 
-    raw_response = generate_response_with_fallback(
-        system_prompt=PHASE2_SYSTEM,
-        user_prompt=user_prompt,
+    raw_response = await generate_response_with_fallback(
+        system_instruction=PHASE2_SYSTEM,
+        prompt=user_prompt,
         task_category=TaskCategory.DECISION_JUDGE,
-        temperature=0.2,
     )
 
     state["phase2_complete"] = True
@@ -162,11 +159,10 @@ async def phase3_init(req: Phase3InitRequest):
 
     user_prompt = f"Selected Problem Candidate for Validation:\n{req.problem_statement}\nBegin Level 1 of the Mom Test Socratic Interrogation."
 
-    raw_response = generate_response_with_fallback(
-        system_prompt=PHASE3_SYSTEM,
-        user_prompt=user_prompt,
+    raw_response = await generate_response_with_fallback(
+        system_instruction=PHASE3_SYSTEM,
+        prompt=user_prompt,
         task_category=TaskCategory.SOCRATIC_CLINIC,
-        temperature=0.3,
     )
 
     state["phase3_problem"] = req.problem_statement
@@ -193,11 +189,10 @@ async def phase3_turn(req: Phase3TurnRequest):
     conversation_text = "\n\n".join([f"{h['role'].upper()}: {h['content']}" for h in history])
     user_prompt = f"Conversation History:\n{conversation_text}\n\nEvaluate the founder's response against the Mom Test rules and advance or challenge the level."
 
-    raw_response = generate_response_with_fallback(
-        system_prompt=PHASE3_SYSTEM,
-        user_prompt=user_prompt,
+    raw_response = await generate_response_with_fallback(
+        system_instruction=PHASE3_SYSTEM,
+        prompt=user_prompt,
         task_category=TaskCategory.SOCRATIC_CLINIC,
-        temperature=0.3,
     )
 
     history.append({"role": "assistant", "content": raw_response})
@@ -226,11 +221,10 @@ async def phase4_step(req: Phase4StepRequest):
     validated_problem = state.get("phase3_problem") or "Validated agriculture friction"
     user_prompt = f"Validated Problem:\n{validated_problem}\nStep: {req.step}\nUser Input: {req.user_input or 'None'}\nGenerate mechanism combinations and SVB statements."
 
-    raw_response = generate_response_with_fallback(
-        system_prompt=PHASE4_SYSTEM,
-        user_prompt=user_prompt,
-        task_category=TaskCategory.CRITICAL_REASONING,
-        temperature=0.4,
+    raw_response = await generate_response_with_fallback(
+        system_instruction=PHASE4_SYSTEM,
+        prompt=user_prompt,
+        task_category=TaskCategory.BALANCED_SYNTHESIS,
     )
 
     state["phase4_complete"] = True
@@ -275,11 +269,10 @@ CLINICAL AUDIT REQUIREMENTS:
 4. Assign final Phase 5 verdict: PURSUE, PIVOT, or RETIRE_CONCEPT.
 5. Produce the comprehensive Phase 5 MVP Validation Audit Report."""
 
-    response = generate_response_with_fallback(
-        system_prompt=PHASE5_SYSTEM,
-        user_prompt=prompt,
+    response = await generate_response_with_fallback(
+        system_instruction=PHASE5_SYSTEM,
+        prompt=prompt,
         task_category=TaskCategory.DECISION_JUDGE,
-        temperature=0.2,
     )
 
     state["phase5_response"] = response
@@ -302,10 +295,10 @@ async def run_phase(req: RunPhaseRequest):
     state = storage.get_session(req.session_id) or {"session_id": req.session_id}
 
     phase_prompts = {
-        1: (PHASE1_SYSTEM, "Conduct Phase 1 Startup Problem Discovery for target sectors.", TaskCategory.STRUCTURED_EXTRACTION),
+        1: (PHASE1_SYSTEM, "Conduct Phase 1 Startup Problem Discovery for target sectors.", TaskCategory.FAST_EXTRACTION),
         2: (PHASE2_SYSTEM, "Screen and rank candidate problems.", TaskCategory.DECISION_JUDGE),
         3: (PHASE3_SYSTEM, "Run Mom Test validation interrogation.", TaskCategory.SOCRATIC_CLINIC),
-        4: (PHASE4_SYSTEM, "Generate mechanism combinations and SVB hypothesis.", TaskCategory.CRITICAL_REASONING),
+        4: (PHASE4_SYSTEM, "Generate mechanism combinations and SVB hypothesis.", TaskCategory.BALANCED_SYNTHESIS),
         5: (PHASE5_SYSTEM, "Audit skin-in-the-game MVP commitment.", TaskCategory.DECISION_JUDGE),
     }
 
@@ -315,11 +308,10 @@ async def run_phase(req: RunPhaseRequest):
     sys_prompt, user_tmpl, category = phase_prompts[req.phase_number]
     user_prompt = f"{user_tmpl}\nUser Input:\n{req.user_input or 'Default parameters'}"
 
-    raw_response = generate_response_with_fallback(
-        system_prompt=sys_prompt,
-        user_prompt=user_prompt,
+    raw_response = await generate_response_with_fallback(
+        system_instruction=sys_prompt,
+        prompt=user_prompt,
         task_category=category,
-        temperature=0.3,
     )
 
     state[f"phase{req.phase_number}_complete"] = True
