@@ -12,7 +12,16 @@ import {
   ArrowRight,
   RefreshCw,
   Search,
-  FileText
+  FileText,
+  Plus,
+  Cpu,
+  FolderOpen,
+  MapPin,
+  Lightbulb,
+  Radio,
+  Zap,
+  Activity,
+  ShieldAlert
 } from "lucide-react";
 import { LiteratureMatrixTable, LiteratureRow, ResearchGapItem } from "@/components/research/LiteratureMatrixTable";
 import { UnknownsMap } from "@/components/knowledge/UnknownsMap";
@@ -22,6 +31,9 @@ import { CircumscriptionLoopView } from "@/components/frameworks/research/Circum
 import { IntelligenceScorecardDrawer } from "@/components/knowledge/IntelligenceScorecardDrawer";
 import { researchService } from "@/services/researchService";
 import { SessionState, ProblemRecord } from "@/lib/types";
+import { Badge } from "@/components/common/Badge";
+import { Button } from "@/components/common/Button";
+import { useToast } from "@/components/common/ToastProvider";
 
 interface ResearchWorkspaceViewProps {
   session: SessionState | null;
@@ -39,12 +51,46 @@ const PHASES = [
   { id: "F", name: "Phase F: Relevance & Feasibility Synthesis", desc: "SDGs, DOST-PCIEERD, Data Privacy Act 2012, and Gate 4 Proposal Canvas.", gate: "Gate 4: Proposal Readiness" },
 ];
 
+const RESEARCH_DOMAINS = [
+  "Precision Agriculture & Edge AI",
+  "Marine & Aquaculture IoT",
+  "Biomedical Informatics & Triage",
+  "Disaster Mesh Networks & LoRaWAN",
+  "Smart Energy & Grid Telemetry",
+  "Cybersecurity & Threat Telemetry",
+  "Urban Transit & Fleet Optimization",
+];
+
+const SAMPLE_RESEARCH_BREAKDOWNS = [
+  {
+    label: "Miagao Bulb Onion (Edge AI)",
+    domain: "Precision Agriculture & Edge AI",
+    text: "Miagao, Iloilo onion farmers lose 40% harvest to humidity rot. Offline optical camera sensors fog up in tropical monsoons, causing 42% model false-negative rate on mold detection.",
+  },
+  {
+    label: "Carles Tuna Catch (Marine IoT)",
+    domain: "Marine & Aquaculture IoT",
+    text: "Carles, Iloilo tuna fishers face 15% fish spoilage. LoRaWAN telemetry transceivers drop 38% packets beyond 12km offshore, preventing real-time refrigeration temperature logging.",
+  },
+  {
+    label: "Dumangas Milkfish (Aquaculture)",
+    domain: "Marine & Aquaculture IoT",
+    text: "Dumangas bangus ponds experience 8% mortality. Optical dissolved oxygen probes suffer bio-fouling calibration drift after 72 hours in brackish waters.",
+  },
+  {
+    label: "Western Visayas Triage (Health AI)",
+    domain: "Biomedical Informatics & Triage",
+    text: "Rural district health units experience 45-minute clinical triage latency. Edge tablet classification models fail without continuous internet connectivity.",
+  },
+];
+
 export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   session,
   problems,
   activePhase,
   onUpdateSession,
 }) => {
+  const toast = useToast();
   const [activePhaseId, setActivePhaseId] = useState<string>("A");
   const phaseMap: Record<number, string> = {
     0: "A",
@@ -58,6 +104,18 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
   const currentPhaseId = activePhase !== undefined ? phaseMap[activePhase] || "A" : activePhaseId;
   const activePhaseMeta = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
+  
+  // Stage A Discovery State
+  const [selectedDomains, setSelectedDomains] = useState<string[]>([
+    "Precision Agriculture & Edge AI",
+    "Marine & Aquaculture IoT",
+  ]);
+  const [fieldObservations, setFieldObservations] = useState<string>("");
+  const [isDiscovering, setIsDiscovering] = useState<boolean>(false);
+  const [discoveredProblems, setDiscoveredProblems] = useState<ProblemRecord[]>([]);
+  const [unknownsKey, setUnknownsKey] = useState<number>(0);
+
+  // Stage C Literature Matrix State
   const [searchQuery, setSearchQuery] = useState<string>("agricultural pest detection edge AI");
   const [matrixRows, setMatrixRows] = useState<LiteratureRow[]>([]);
   const [matrixGaps, setMatrixGaps] = useState<ResearchGapItem[]>([]);
@@ -70,6 +128,49 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   useEffect(() => {
     fetchMatrix(searchQuery);
   }, []);
+
+  const toggleDomain = (domain: string) => {
+    setSelectedDomains((prev) =>
+      prev.includes(domain) ? prev.filter((d) => d !== domain) : [...prev, domain]
+    );
+  };
+
+  const handleSelectAllDomains = () => setSelectedDomains(RESEARCH_DOMAINS);
+  const handleClearDomains = () => setSelectedDomains([]);
+
+  const handleRunEmpiricalDiscovery = async () => {
+    if (selectedDomains.length === 0) {
+      toast.warning("Please select at least 1 computing research domain.", "Domain Required");
+      return;
+    }
+    try {
+      setIsDiscovering(true);
+      toast.info("Scouting empirical computing breakdowns across regional domains...", "AI Discovery");
+      
+      const res = await researchService.discoverStageA({
+        domains: selectedDomains,
+        field_observations: fieldObservations,
+        session_id: session?.session_id,
+        project_id: session?.project_id || "default_proj",
+      });
+
+      if (res.discovered_problems && res.discovered_problems.length > 0) {
+        setDiscoveredProblems(res.discovered_problems);
+        setUnknownsKey((k) => k + 1);
+        toast.success(
+          `Discovered ${res.discovered_problems.length} computing research problems! Saved directly to Problem Bank.`,
+          "Stage A Discovery Complete"
+        );
+      } else {
+        toast.info("Stage A scouting completed.", "Discovery Output");
+      }
+    } catch (err: any) {
+      console.error("Stage A Discovery failed:", err);
+      toast.error(err?.message || "Failed to run empirical discovery.", "Discovery Error");
+    } finally {
+      setIsDiscovering(false);
+    }
+  };
 
   const fetchMatrix = async (query: string) => {
     try {
@@ -144,29 +245,181 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         {/* PHASE A */}
         {currentPhaseId === "A" && (
           <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                <Compass className="w-4 h-4" />
-                Phase A: Scouting Mechanism & Empirical Observation (Bordens & Abbott)
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Transform casual observations into a formal computing research problem brief. Differentiate between environmental symptoms, human behavioral workarounds, and underlying computing inefficiencies.
-              </p>
+            {/* 1. AI Scouting & Discovery Controller */}
+            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 space-y-5 shadow-xl relative overflow-hidden">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-2xl bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                    <Compass className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-bold text-white tracking-tight flex items-center gap-2">
+                      AI Empirical Problem Generator &amp; Scouting Scanner
+                      <Badge variant="emerald" size="sm">Bordens &amp; Abbott 2018</Badge>
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Discover authentic computational friction, telemetry drops, and algorithmic scaling breakdowns across regional domains.
+                    </p>
+                  </div>
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
-                  <span className="text-xs font-bold text-slate-200">1. Target Domain & Problem Context</span>
-                  <p className="text-xs text-slate-400">Specify municipality, stakeholder role, and operational workflow where failure occurs.</p>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" onClick={handleSelectAllDomains} className="text-[11px]">
+                    Select All
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={handleClearDomains} className="text-[11px]">
+                    Clear
+                  </Button>
                 </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-2">
-                  <span className="text-xs font-bold text-slate-200">2. Observable Variables & Pain Metric</span>
-                  <p className="text-xs text-slate-400">Quantifiable units of loss (e.g. crop spoilage %, latency ms, human error rate).</p>
+              </div>
+
+              {/* Domain Chips */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono">
+                  Target Research Domains ({selectedDomains.length} Selected)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {RESEARCH_DOMAINS.map((domain) => {
+                    const isSelected = selectedDomains.includes(domain);
+                    return (
+                      <button
+                        key={domain}
+                        onClick={() => toggleDomain(domain)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                          isSelected
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                            : "bg-slate-950/60 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-300"
+                        }`}
+                      >
+                        <Cpu className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-400" : "text-slate-500"}`} />
+                        {domain}
+                      </button>
+                    );
+                  })}
                 </div>
+              </div>
+
+              {/* Sample Field Breakdowns Quick-Fill */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-400" /> Sample Empirical Breakdown Observations (Click to Load)
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+                  {SAMPLE_RESEARCH_BREAKDOWNS.map((item, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setFieldObservations(item.text);
+                        if (!selectedDomains.includes(item.domain)) {
+                          setSelectedDomains((prev) => [...prev, item.domain]);
+                        }
+                        toast.info(`Loaded sample: ${item.label}`, "Observation Loaded");
+                      }}
+                      className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-emerald-500/40 text-left transition-all group"
+                    >
+                      <span className="text-[11px] font-bold text-slate-200 group-hover:text-emerald-300 block truncate font-mono">
+                        {item.label}
+                      </span>
+                      <p className="text-[10px] text-slate-500 line-clamp-2 mt-1 leading-snug">
+                        {item.text}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Raw Field Observation Textarea */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono">
+                  Raw Field Observations / Literature Signals (Optional)
+                </label>
+                <textarea
+                  value={fieldObservations}
+                  onChange={(e) => setFieldObservations(e.target.value)}
+                  placeholder="Paste raw field notes from sensor tests, lab logs, or domain interviews (e.g. 'Optical DO probes drift 18% in brackish water after 48h...')..."
+                  rows={3}
+                  className="w-full rounded-2xl border border-slate-800 bg-slate-950/80 p-3 text-xs text-white placeholder-slate-500 focus:border-emerald-500 focus:outline-none transition"
+                />
+              </div>
+
+              {/* Action Button */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-800/80">
+                <span className="text-xs text-slate-400">
+                  Generated problems automatically persist to the <strong>Problem Bank (Slot 0)</strong>.
+                </span>
+                <Button
+                  variant="primary"
+                  size="md"
+                  onClick={handleRunEmpiricalDiscovery}
+                  disabled={isDiscovering}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold shadow-lg shadow-emerald-950/50 flex items-center gap-2 px-6"
+                >
+                  <RefreshCw className={`w-4 h-4 ${isDiscovering ? "animate-spin" : ""}`} />
+                  {isDiscovering ? "Scouting Computing Breakdowns..." : "Run Empirical Problem Discovery"}
+                </Button>
               </div>
             </div>
 
-            {/* Unknowns Map Embedded in Discovery */}
-            <UnknownsMap projectId={session?.project_id || "default_proj"} sessionId={session?.session_id} />
+            {/* 2. Discovered Problems Grid */}
+            {discoveredProblems.length > 0 && (
+              <div className="space-y-4 animate-in fade-in duration-300">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <FolderOpen className="w-4 h-4 text-emerald-400" />
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                      Discovered Computing Research Problems ({discoveredProblems.length})
+                    </h4>
+                  </div>
+                  <Badge variant="emerald" size="sm">Saved to Problem Bank</Badge>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {discoveredProblems.map((prob, i) => (
+                    <div
+                      key={prob.id || i}
+                      className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-emerald-500/40 transition-all space-y-3 shadow-lg relative group"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono font-bold text-xs text-emerald-400 bg-emerald-950/60 border border-emerald-800/60 px-2 py-0.5 rounded-lg">
+                          {prob.id || `RES-00${i + 1}`}
+                        </span>
+                        <span className="text-[11px] text-slate-400 font-mono">
+                          {prob.sector || "Computing & Informatics"}
+                        </span>
+                      </div>
+
+                      <h5 className="text-xs font-bold text-slate-100 leading-snug">
+                        {prob.problem_statement}
+                      </h5>
+
+                      <div className="p-3 rounded-xl bg-slate-950/70 border border-slate-800/80 space-y-1 text-[11px]">
+                        <div className="flex items-center gap-1.5 text-slate-400">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                          <span><strong>Setting / Sufferer:</strong> {prob.sufferer_location || prob.sufferer_occupation || "Regional Operational Setting"}</span>
+                        </div>
+                        {prob.quantified_impact && (
+                          <div className="flex items-center gap-1.5 text-rose-400 pt-1">
+                            <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                            <span><strong>Consequence:</strong> {prob.quantified_impact}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {prob.workaround && (
+                        <p className="text-[11px] text-slate-400 leading-relaxed">
+                          <strong>Makeshift Baseline:</strong> {prob.workaround}
+                        </p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 3. Unknowns Map Embedded in Discovery */}
+            <div className="pt-2">
+              <UnknownsMap key={unknownsKey} projectId={session?.project_id || "default_proj"} sessionId={session?.session_id} />
+            </div>
           </div>
         )}
 
@@ -177,7 +430,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
                   <FlaskConical className="w-4 h-4" />
-                  Phase B: Dual-Literature Grounding & Feasibility Matrix
+                  Phase B: Dual-Literature Grounding &amp; Feasibility Matrix
                 </div>
                 <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800">
                   Gate 1: Problem Significance
@@ -230,7 +483,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
             <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
               <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
                 <Layers className="w-4 h-4" />
-                Phase D: Solution Formulation & 4 DSR Artifact Types (March & Smith)
+                Phase D: Solution Formulation &amp; 4 DSR Artifact Types (March &amp; Smith)
               </div>
               <p className="text-xs text-slate-300 leading-relaxed">
                 Design Science Research (DSR) creates artifacts in the Sciences of the Artificial. Classify your proposed contribution into one of the four foundational DSR artifact classes:
