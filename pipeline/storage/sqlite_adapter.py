@@ -15,7 +15,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from .base import BaseStorageAdapter
-from evidence_scorer import calculate_score_breakdown
+from engines.evidence_scorer import calculate_score_breakdown
 import re
 
 def clean_text(val: Optional[str]) -> str:

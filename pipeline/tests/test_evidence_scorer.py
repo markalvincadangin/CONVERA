@@ -1,4 +1,4 @@
-from evidence_scorer import calculate_score_breakdown
+from engines.evidence_scorer import calculate_score_breakdown
 
 def test_evidence_scorer_high_confidence():
     problem = {

@@ -46,12 +46,25 @@ from gates import (
     format_concept_shortfall
 )
 from llm_gateway import generate_response_with_fallback, generate_with_meta
-from problem_parser import parse_phase1_markdown
-from problem_enricher import enrich_manual_problem_input
-from devils_advocate import challenge_problem_with_agent
-from blind_spot_detector import detect_portfolio_blind_spots
-from evidence_scorer import calculate_score_breakdown
-from research_client import FreeResearchClient
+from engines import (
+    parse_phase1_markdown,
+    enrich_manual_problem_input,
+    challenge_problem_with_agent,
+    detect_portfolio_blind_spots,
+    calculate_score_breakdown,
+    FreeResearchClient,
+    list_frameworks,
+    get_framework,
+    synthesize_decision_room,
+    execute_pivot_loop,
+    generate_project_srs,
+    format_srs_markdown,
+    generate_lean_canvas,
+    generate_swot_analysis,
+    generate_pitch_deck,
+    parse_and_extract_document,
+    IngestedDocumentResult,
+)
 
 from prompts.phase1_system import PHASE1_SYSTEM
 from prompts.phase2_system import PHASE2_SYSTEM
@@ -686,7 +699,7 @@ async def auto_research_problem_endpoint(problem_id: str):
 @app.post("/api/deliverables/generate-srs")
 async def generate_srs_endpoint(req: GenerateSRSRequest):
     """Generate an engineering-grade Software Requirements Specification (SRS)."""
-    from srs_generator import generate_project_srs
+    from engines.srs_generator import generate_project_srs
     storage = get_storage()
     session = storage.get_session(req.session_id)
     if not session:
@@ -698,7 +711,7 @@ async def generate_srs_endpoint(req: GenerateSRSRequest):
 @app.post("/api/decisions/synthesize")
 async def synthesize_decision_room_endpoint(req: SynthesizeDecisionRoomRequest):
     """Synthesize multi-candidate decision comparison."""
-    from decision_engine import synthesize_decision_room
+    from engines.decision_engine import synthesize_decision_room
     storage = get_storage()
     candidates = []
     for pid in req.candidate_ids:
@@ -729,7 +742,7 @@ async def commit_decision_endpoint(req: CommitDecisionRequest):
 @app.post("/api/decisions/pivot")
 async def execute_pivot_endpoint(req: PivotLoopRequest):
     """Execute a structured Pivot Loop back to Phase 2 with recorded history."""
-    from decision_engine import execute_pivot_loop
+    from engines.decision_engine import execute_pivot_loop
     res = execute_pivot_loop(
         session_id=req.session_id,
         current_problem_id=req.current_problem_id,
@@ -758,7 +771,7 @@ async def get_knowledge_graph_endpoint(problem_id: str):
 @app.post("/api/problems/{problem_id}/generate-assumptions")
 async def generate_assumptions_endpoint(problem_id: str, req: GenerateAssumptionsRequest):
     """Generate and persist structured claims, prioritized assumptions, and alternatives."""
-    from assumption_engine import extract_claims_and_assumptions
+    from engines.assumption_engine import extract_claims_and_assumptions
     storage = get_storage()
     problem = storage.get_problem(problem_id)
     if not problem:
@@ -1231,7 +1244,7 @@ async def phase5_audit(req: Phase5AuditRequest):
 # Automated Deliverables Endpoints (Lean Canvas, SWOT, Pitch Deck)
 # ----------------------------------------------------------------------
 
-from deliverables_generator import (
+from engines.deliverables_generator import (
     generate_lean_canvas,
     generate_swot_analysis,
     generate_pitch_deck

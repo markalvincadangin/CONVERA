@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import patch, AsyncMock
-from deliverables_generator import generate_lean_canvas, generate_swot_analysis, generate_pitch_deck
+from engines.deliverables_generator import generate_lean_canvas, generate_swot_analysis, generate_pitch_deck
 
 @pytest.mark.asyncio
 async def test_generate_lean_canvas():
@@ -18,7 +18,7 @@ async def test_generate_lean_canvas():
       "unfair_advantage": {"moat_description": "First-mover municipal docking contract"}
     }
     """
-    with patch("deliverables_generator.generate_response_with_fallback", new=AsyncMock(return_value=mock_canvas)):
+    with patch("engines.deliverables_generator.generate_response_with_fallback", new=AsyncMock(return_value=mock_canvas)):
         canvas = await generate_lean_canvas({"project_name": "Panay Cold Chain"})
         assert canvas["project_name"] == "Panay Cold Chain"
         assert "problem" in canvas
@@ -43,7 +43,7 @@ async def test_generate_swot_analysis():
       "strategic_recommendations": ["Lock 1-year co-op supply agreement"]
     }
     """
-    with patch("deliverables_generator.generate_response_with_fallback", new=AsyncMock(return_value=mock_swot)):
+    with patch("engines.deliverables_generator.generate_response_with_fallback", new=AsyncMock(return_value=mock_swot)):
         swot = await generate_swot_analysis({"project_name": "Panay Cold Chain"})
         assert len(swot["strengths"]) == 1
         assert len(swot["competitor_grid"]) == 1
@@ -65,7 +65,7 @@ async def test_generate_pitch_deck():
       ]
     }
     """
-    with patch("deliverables_generator.generate_response_with_fallback", new=AsyncMock(return_value=mock_deck)):
+    with patch("engines.deliverables_generator.generate_response_with_fallback", new=AsyncMock(return_value=mock_deck)):
         deck = await generate_pitch_deck({"project_name": "Panay Cold Chain"})
         assert len(deck["slides"]) == 1
         assert deck["slides"][0]["title"] == "Title Slide"

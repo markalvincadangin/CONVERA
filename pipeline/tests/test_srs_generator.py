@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from srs_generator import generate_project_srs, format_srs_markdown
+from engines.srs_generator import generate_project_srs, format_srs_markdown
 
 @pytest.mark.asyncio
 async def test_srs_generator_flow():

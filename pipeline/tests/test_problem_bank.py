@@ -3,7 +3,7 @@ import os
 import gc
 import tempfile
 from storage.sqlite_adapter import SQLiteStorageAdapter
-from evidence_scorer import calculate_score_breakdown
+from engines.evidence_scorer import calculate_score_breakdown
 
 @pytest.fixture
 def temp_storage():

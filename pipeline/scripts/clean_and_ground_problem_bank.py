@@ -15,8 +15,8 @@ if sys.platform == "win32":
 sys.path.insert(0, ".")
 
 from storage import get_storage
-from research_client import FreeResearchClient
-from evidence_scorer import calculate_score_breakdown
+from engines.research_client import FreeResearchClient
+from engines.evidence_scorer import calculate_score_breakdown
 
 SECTOR_MAP = {
     "AGR": "Agriculture & Fisheries",

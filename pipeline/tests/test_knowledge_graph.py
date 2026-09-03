@@ -1,7 +1,7 @@
 import pytest
 import pytest_asyncio
 from storage import get_storage
-from assumption_engine import extract_claims_and_assumptions
+from engines.assumption_engine import extract_claims_and_assumptions
 
 def test_knowledge_graph_storage():
     storage = get_storage()

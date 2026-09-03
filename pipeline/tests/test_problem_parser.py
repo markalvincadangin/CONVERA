@@ -1,4 +1,4 @@
-from problem_parser import parse_phase1_markdown
+from engines.problem_parser import parse_phase1_markdown
 
 SAMPLE_MD = """# Phase 1 Startup Problem Discovery: Health & Wellness (Iloilo, Philippines)
 

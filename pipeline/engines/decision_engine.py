@@ -9,7 +9,6 @@ Provides:
 import re
 import json
 from typing import Any, Dict, List, Optional
-from storage import get_storage
 from llm_gateway import generate_response_with_fallback
 
 
@@ -107,6 +106,7 @@ def execute_pivot_loop(
     2. Marks invalidated assumption as INVALIDATED if specified.
     3. Resets session state safely to Phase 2 while preserving notes.
     """
+    from storage import get_storage
     storage = get_storage()
     
     # 1. Update assumption if provided

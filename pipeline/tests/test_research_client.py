@@ -1,6 +1,6 @@
 import pytest
 import pytest_asyncio
-from research_client import FreeResearchClient, extract_keywords
+from engines.research_client import FreeResearchClient, extract_keywords
 from storage import get_storage
 
 def test_extract_keywords():
