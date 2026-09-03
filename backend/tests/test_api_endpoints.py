@@ -81,3 +81,32 @@ async def test_similarity_check_api(client: AsyncClient):
     assert "overall_verdict" in data
     assert "matches" in data
     assert "is_unique" in data
+
+
+@pytest.mark.asyncio
+async def test_agent_api_endpoints(client: AsyncClient):
+    from unittest.mock import patch, AsyncMock
+    from connectors.base import NormalizedScholarlyWork, ProvenanceMetadata
+    
+    # 1. Critic Agent API
+    mock_critic_json = '{"plausibility_score": 70, "verdict": "ROBUST", "fatal_kill_question": "What is the cost?", "status_quo_inertia": "Manual habits", "assumption_attacks": ["Cost assumption"], "cognitive_biases_flagged": [], "evidence_gaps": [], "hardened_reframing": "Better problem", "recommended_field_action": "Run test"}'
+    with patch("agents.critic_agent.generate_response_with_fallback", new=AsyncMock(return_value=mock_critic_json)):
+        critic_res = await client.post("/api/agents/critic", json={
+            "problem_statement": "Post-harvest fish loss in Panay due to ice deficit",
+            "sector": "Agriculture & Fisheries"
+        })
+        assert critic_res.status_code == 200
+        data = critic_res.json()
+        assert data["verdict"] == "ROBUST"
+        assert data["plausibility_score"] == 70
+
+    # 2. Verifier Agent API
+    mock_verif_json = '{"verification_verdict": "VERIFIED_EMPIRICAL", "evidence_strength": "STRONG", "confidence_score": 0.95, "methodology_audit": "Peer-reviewed", "contradictions": []}'
+    with patch("agents.verifier_agent.generate_response_with_fallback", new=AsyncMock(return_value=mock_verif_json)):
+        verif_res = await client.post("/api/agents/verifier", json={
+            "claim_text": "35% fish spoilage during transport",
+            "source_name": "BFAR Region 6 Report"
+        })
+        assert verif_res.status_code == 200
+        data = verif_res.json()
+        assert data["verification_verdict"] == "VERIFIED_EMPIRICAL"

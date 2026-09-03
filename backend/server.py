@@ -1476,6 +1476,77 @@ async def api_inbox_ingest(req: DocumentIngestRequest):
     )
     return result.model_dump()
 
+
+# ---------------------------------------------------------------------------
+# Phase 5: Specialized Intelligence Agents (CIIA v1.0)
+# ---------------------------------------------------------------------------
+
+class ResearchAgentRequest(BaseModel):
+    query: str
+    sector: Optional[str] = None
+    location: Optional[str] = None
+    limit_per_source: Optional[int] = 3
+    connector_ids: Optional[List[str]] = None
+
+class CriticAgentRequest(BaseModel):
+    problem_statement: str
+    sector: Optional[str] = None
+    target_user: Optional[str] = None
+    current_workaround: Optional[str] = None
+    quantified_impact: Optional[str] = None
+
+class VerifierAgentRequest(BaseModel):
+    claim_text: str
+    doi: Optional[str] = None
+    source_name: Optional[str] = None
+    supporting_quote: Optional[str] = None
+    context_text: Optional[str] = None
+
+@app.post("/api/agents/research")
+async def api_agent_research(req: ResearchAgentRequest):
+    """Execute autonomous Research Intelligence Agent across scholarly connectors."""
+    from agents import execute_research_agent
+    if not req.query.strip():
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
+    report = await execute_research_agent(
+        query=req.query.strip(),
+        sector=req.sector,
+        location=req.location,
+        limit_per_source=req.limit_per_source or 3,
+        connector_ids=req.connector_ids
+    )
+    return report.model_dump()
+
+@app.post("/api/agents/critic")
+async def api_agent_critic(req: CriticAgentRequest):
+    """Execute Socratic Interrogator & Mom Test Devil's Advocate on problem statements."""
+    from agents import execute_critic_agent
+    if not req.problem_statement.strip():
+        raise HTTPException(status_code=400, detail="Problem statement cannot be empty")
+    report = await execute_critic_agent(
+        problem_statement=req.problem_statement.strip(),
+        sector=req.sector,
+        target_user=req.target_user,
+        current_workaround=req.current_workaround,
+        quantified_impact=req.quantified_impact
+    )
+    return report.model_dump()
+
+@app.post("/api/agents/verifier")
+async def api_agent_verifier(req: VerifierAgentRequest):
+    """Execute Citation Verifier & Contradiction Audit Agent on specific claims."""
+    from agents import execute_verifier_agent
+    if not req.claim_text.strip():
+        raise HTTPException(status_code=400, detail="Claim text cannot be empty")
+    report = await execute_verifier_agent(
+        claim_text=req.claim_text.strip(),
+        doi=req.doi,
+        source_name=req.source_name,
+        supporting_quote=req.supporting_quote,
+        context_text=req.context_text
+    )
+    return report.model_dump()
+
 @app.get("/api/frameworks")
 async def api_list_frameworks():
     """List all registered CONVERA frameworks (Innovation, Research, Capstone, Product)."""
