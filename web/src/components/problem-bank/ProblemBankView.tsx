@@ -11,6 +11,8 @@ import { ManualProblemModal } from "./ManualProblemModal";
 import { ProblemDetailModal } from "./ProblemDetailModal";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { BlindSpotModal } from "./BlindSpotModal";
+import { RawBrainstormIngestModal } from "./RawBrainstormIngestModal";
+import { Archive, RotateCcw } from "lucide-react";
 import {
   Search,
   Plus,
@@ -54,7 +56,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [selectedSector, setSelectedSector] = useState("All");
   const [selectedTier, setSelectedTier] = useState("All");
   const [sortBy, setSortBy] = useState<"SCORE_DESC" | "VOTES_DESC" | "TIER_DESC" | "ID_ASC" | "SECTOR_ASC">("SCORE_DESC");
-  const [quickFilter, setQuickFilter] = useState<"ALL" | "CHALLENGED" | "STRONG" | "VOTED">("ALL");
+  const [quickFilter, setQuickFilter] = useState<"ALL" | "CHALLENGED" | "STRONG" | "VOTED" | "ARCHIVED">("ALL");
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
 
   // Selection
@@ -69,6 +71,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [isBlindSpotModalOpen, setIsBlindSpotModalOpen] = useState(false);
   const [challengeTargetProblem, setChallengeTargetProblem] = useState<ProblemRecord | null>(null);
   const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
+  const [isRawIngestOpen, setIsRawIngestOpen] = useState(false);
 
   const fetchProblems = async () => {
     setIsLoading(true);
@@ -97,10 +100,15 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         if (selectedSector !== "All" && p.sector !== selectedSector) return false;
         if (selectedTier !== "All" && p.evidence_tier !== selectedTier) return false;
         
-        // Quick Filters
-        if (quickFilter === "CHALLENGED" && !p.devils_advocate_data) return false;
-        if (quickFilter === "STRONG" && p.evidence_tier !== "STRONGLY_DOCUMENTED") return false;
-        if (quickFilter === "VOTED" && (!p.votes || p.votes <= 0)) return false;
+        // Quick Filters & Archive Status
+        if (quickFilter === "ARCHIVED") {
+          if (p.status !== "archived") return false;
+        } else {
+          if (p.status === "archived") return false;
+          if (quickFilter === "CHALLENGED" && !p.devils_advocate_data) return false;
+          if (quickFilter === "STRONG" && p.evidence_tier !== "STRONGLY_DOCUMENTED") return false;
+          if (quickFilter === "VOTED" && (!p.votes || p.votes <= 0)) return false;
+        }
 
         // Search Query
         if (searchQuery.trim()) {
@@ -206,6 +214,18 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       alert(`Merge failed: ${err.message}`);
     } finally {
       setIsProcessingBatch(false);
+    }
+  };
+
+  const handleRestore = async (e: React.MouseEvent, problemId: string) => {
+    e.stopPropagation();
+    try {
+      const res = await problemService.restoreProblem(problemId);
+      setProblems((prev) => prev.map((p) => (p.id === problemId ? res.problem : p)));
+      setFeedbackMessage(`Restored ${problemId} back to active Problem Bank!`);
+      setTimeout(() => setFeedbackMessage(null), 4000);
+    } catch (err: any) {
+      alert("Restore failed: " + err.message);
     }
   };
 
@@ -332,6 +352,16 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             leftIcon={<Download className="w-3.5 h-3.5" />}
           >
             Export CSV
+          </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            className="w-full sm:w-auto justify-center text-xs bg-slate-900 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
+            onClick={() => setIsRawIngestOpen(true)}
+            leftIcon={<Sparkles className="w-3.5 h-3.5 text-cyan-400" />}
+          >
+            Ingest AI / GC Notes
           </Button>
 
           <Button

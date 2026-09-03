@@ -219,6 +219,10 @@ class ResearchQueryRequest(BaseModel):
     engine: Optional[str] = "ALL"  # OPENALEX, EUROPE_PMC, REGIONAL_NEWS, ALL
     limit: Optional[int] = 5
 
+class ArchiveProblemRequest(BaseModel):
+    reason: str
+    author: Optional[str] = "Team Member"
+
 class AttachSourcesRequest(BaseModel):
     sources: List[Dict[str, Any]]
 
@@ -644,6 +648,51 @@ async def auto_research_problem_endpoint(problem_id: str):
         "status": "success",
         "problem_id": problem_id,
         "results": research_data,
+    }
+
+@app.post("/api/problems/{problem_id}/archive")
+async def archive_problem_endpoint(problem_id: str, req: ArchiveProblemRequest):
+    """Archive a problem into the Decision Graveyard with a recorded rejection rationale."""
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    rejection_note = f"[ARCHIVED by {req.author} on {datetime.now().strftime('%Y-%m-%d %H:%M')}]: {req.reason.strip()}"
+    existing_notes = problem.get("notes") or ""
+    updated_notes = f"{rejection_note}
+
+{existing_notes}".strip()
+
+    updated = storage.update_problem(problem_id, {
+        "status": "archived",
+        "notes": updated_notes,
+    })
+
+    return {
+        "status": "success",
+        "problem_id": problem_id,
+        "message": "Problem moved to Decision Graveyard.",
+        "problem": updated,
+    }
+
+@app.post("/api/problems/{problem_id}/restore")
+async def restore_problem_endpoint(problem_id: str):
+    """Restore an archived problem back to active status in the Problem Bank."""
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    updated = storage.update_problem(problem_id, {
+        "status": "discovered",
+    })
+
+    return {
+        "status": "success",
+        "problem_id": problem_id,
+        "message": "Problem restored to active bank.",
+        "problem": updated,
     }
 
 @app.post("/api/problems/{problem_id}/attach-sources")

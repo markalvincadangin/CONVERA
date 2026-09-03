@@ -132,6 +132,30 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
     }
   };
 
+  const handleArchive = async () => {
+    const reason = window.prompt("Enter the reason for archiving / rejecting this idea (e.g. 'Failed Mom Test validation / High Capex'):");
+    if (!reason || !reason.trim()) return;
+
+    try {
+      const author = authService.getCurrentUser()?.name || "Team Member";
+      const res = await problemService.archiveProblem(problem.id, reason.trim(), author);
+      onProblemUpdated(res.problem);
+      onClose();
+    } catch (err: any) {
+      alert("Failed to archive: " + err.message);
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      const res = await problemService.restoreProblem(problem.id);
+      onProblemUpdated(res.problem);
+      onClose();
+    } catch (err: any) {
+      alert("Failed to restore: " + err.message);
+    }
+  };
+
   const handleDelete = async () => {
     if (!confirm(`Are you sure you want to remove problem ${problem.id} from the bank?`)) return;
     setIsDeleting(true);
@@ -598,15 +622,37 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
 
           {/* Footer Actions */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-800">
-            <Button
-              variant="danger"
-              size="sm"
-              onClick={handleDelete}
-              isLoading={isDeleting}
-              leftIcon={<Trash2 className="w-3.5 h-3.5" />}
-            >
-              Delete
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="danger"
+                size="sm"
+                onClick={handleDelete}
+                isLoading={isDeleting}
+                leftIcon={<Trash2 className="w-3.5 h-3.5" />}
+              >
+                Delete
+              </Button>
+
+              {problem.status === "archived" ? (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleRestore}
+                  className="bg-emerald-500/10 text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20"
+                >
+                  Restore to Bank
+                </Button>
+              ) : (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleArchive}
+                  className="bg-rose-500/10 text-rose-300 border-rose-500/30 hover:bg-rose-500/20"
+                >
+                  Archive / Kill Idea
+                </Button>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               {isEditing ? (

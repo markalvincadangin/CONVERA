@@ -10,6 +10,7 @@ import { LoadingStatusCard } from "@/components/common/LoadingStatusCard";
 import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { ScreeningScorecardGrid } from "./ScreeningScorecardGrid";
+import { ProblemComparisonMatrix } from "./ProblemComparisonMatrix";
 import { phaseService } from "@/services/phaseService";
 import { problemService } from "@/services/problemService";
 import { SessionState, ProblemRecord } from "@/lib/types";
@@ -34,6 +35,7 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
   const [selectedProblem, setSelectedProblem] = useState(session.phase3_problem || "");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [bankCount, setBankCount] = useState<number>(0);
+  const [candidateRecords, setCandidateRecords] = useState<ProblemRecord[]>([]);
   const [screenSource, setScreenSource] = useState<"BANK" | "TEXT">(
     selectedProblemIds.length > 0 ? "BANK" : "BANK"
   );
@@ -43,9 +45,15 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
       .listProblems({ project_id: session?.project_id || undefined })
       .then((probs) => {
         setBankCount(probs.length);
+        if (selectedProblemIds && selectedProblemIds.length > 0) {
+          const matched = probs.filter((p) => selectedProblemIds.includes(p.id));
+          setCandidateRecords(matched);
+        } else {
+          setCandidateRecords(probs.slice(0, 3));
+        }
       })
       .catch(() => {});
-  }, [session?.project_id]);
+  }, [session?.project_id, selectedProblemIds]);
 
   const handleRunScreening = async () => {
     setIsScreening(true);
@@ -200,6 +208,17 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
           </div>
         )}
       </Card>
+
+      {/* Interactive Multi-Candidate Decision Matrix */}
+      {candidateRecords.length > 0 && !session.phase2_response && !isScreening && (
+        <ProblemComparisonMatrix
+          candidates={candidateRecords}
+          onSelectWinningProblem={(winningProb) => {
+            setSelectedProblem(winningProb.problem_statement);
+            onAdvanceToNextPhase(winningProb.problem_statement);
+          }}
+        />
+      )}
 
       {/* Error Banner */}
       {errorMessage && (

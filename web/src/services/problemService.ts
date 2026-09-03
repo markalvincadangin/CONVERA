@@ -50,6 +50,19 @@ export const problemService = {
     });
   },
 
+  async archiveProblem(id: string, reason: string, author?: string): Promise<{ status: string; problem: ProblemRecord }> {
+    return fetchApi<{ status: string; problem: ProblemRecord }>(`/api/problems/${id}/archive`, {
+      method: "POST",
+      body: JSON.stringify({ reason, author }),
+    });
+  },
+
+  async restoreProblem(id: string): Promise<{ status: string; problem: ProblemRecord }> {
+    return fetchApi<{ status: string; problem: ProblemRecord }>(`/api/problems/${id}/restore`, {
+      method: "POST",
+    });
+  },
+
   async deleteProblem(id: string): Promise<{ status: string; deleted: boolean }> {
     return fetchApi<{ status: string; deleted: boolean }>(`/api/problems/${id}`, {
       method: "DELETE",
