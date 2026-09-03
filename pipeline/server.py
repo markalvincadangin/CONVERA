@@ -117,6 +117,9 @@ class CreateSessionRequest(BaseModel):
     session_id: Optional[str] = None
     project_name: Optional[str] = None
 
+class RenameSessionRequest(BaseModel):
+    project_name: str
+
 class CreateSnapshotRequest(BaseModel):
     label: str
     phase_number: int = 1
@@ -283,6 +286,35 @@ async def update_session(session_id: str, payload: dict):
     state.update(payload)
     save_session_state(session_id, state)
     return {"session_id": session_id, "state": state}
+
+
+@app.put("/api/sessions/{session_id}/rename")
+async def rename_session(session_id: str, req: RenameSessionRequest):
+    storage = get_storage()
+    clean_name = req.project_name.strip()
+    if not clean_name:
+        raise HTTPException(status_code=400, detail="Project name cannot be empty.")
+    
+    state = load_session_state(session_id)
+    state["project_name"] = clean_name
+    save_session_state(session_id, state)
+    
+    # Update SQLite database rows
+    proj_id = state.get("project_id") or f"proj_{session_id}"
+    with storage._get_connection() as conn:
+        conn.execute("UPDATE projects SET name = ? WHERE id = ?", (clean_name, proj_id))
+        conn.execute("UPDATE sessions SET project_name = ? WHERE session_id = ?", (clean_name, session_id))
+
+    return {"session_id": session_id, "project_name": clean_name, "status": "success"}
+
+
+@app.delete("/api/sessions/{session_id}")
+async def delete_session_endpoint(session_id: str):
+    storage = get_storage()
+    success = storage.delete_session(session_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found.")
+    return {"session_id": session_id, "status": "deleted"}
 
 
 @app.get("/api/sessions/{session_id}/snapshots")

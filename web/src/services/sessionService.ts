@@ -75,6 +75,20 @@ export const sessionService = {
     return await fetchApi<any>(`/api/projects/by-code/${encodeURIComponent(shareCode)}`);
   },
 
+  async renameSession(sessionId: string, projectName: string): Promise<{ session_id: string; project_name: string }> {
+    return await fetchApi<{ session_id: string; project_name: string }>(`/api/sessions/${sessionId}/rename`, {
+      method: "PUT",
+      body: JSON.stringify({ project_name: projectName }),
+    });
+  },
+
+  async deleteSession(sessionId: string): Promise<boolean> {
+    const res = await fetchApi<{ status: string }>(`/api/sessions/${sessionId}`, {
+      method: "DELETE",
+    });
+    return res.status === "deleted";
+  },
+
   async exportDossier(sessionId: string): Promise<{ session_id: string; markdown: string }> {
     return await fetchApi<{ session_id: string; markdown: string }>(`/api/sessions/${sessionId}/export`);
   },

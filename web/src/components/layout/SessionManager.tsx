@@ -1,7 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Check, Folder, Clock, Sparkles, Key, History, RotateCcw, Copy, Share2, Camera, ShieldAlert } from "lucide-react";
+import {
+  Plus,
+  Check,
+  Folder,
+  Sparkles,
+  Key,
+  History,
+  Share2,
+  Edit2,
+  Trash2,
+  X,
+  Lock,
+} from "lucide-react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
@@ -33,6 +45,11 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
   const [isJoining, setIsJoining] = useState(false);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
+  // Inline Rename State
+  const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
+  const [editingName, setEditingName] = useState("");
+  const [isRenaming, setIsRenaming] = useState(false);
+
   const fetchSessionsAndSnapshots = async () => {
     setIsLoading(true);
     try {
@@ -54,6 +71,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
   useEffect(() => {
     if (isOpen) {
       fetchSessionsAndSnapshots();
+      setEditingSessionId(null);
     }
   }, [isOpen, currentSessionId]);
 
@@ -71,6 +89,51 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
       console.error(err);
     } finally {
       setIsCreating(false);
+    }
+  };
+
+  const handleStartRename = (s: SessionMeta, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingSessionId(s.session_id);
+    setEditingName(s.project_name || "Venture Project");
+  };
+
+  const handleSaveRename = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!editingName.trim() || isRenaming) return;
+    setIsRenaming(true);
+    try {
+      await sessionService.renameSession(sessionId, editingName.trim());
+      setEditingSessionId(null);
+      await fetchSessionsAndSnapshots();
+    } catch (err: any) {
+      alert("Failed to rename session: " + err.message);
+    } finally {
+      setIsRenaming(false);
+    }
+  };
+
+  const handleCancelRename = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingSessionId(null);
+  };
+
+  const handleDeleteSession = async (sessionId: string, name: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm(`Are you sure you want to permanently delete workspace '${name}'? This cannot be undone.`)) {
+      return;
+    }
+    try {
+      await sessionService.deleteSession(sessionId);
+      await fetchSessionsAndSnapshots();
+      if (sessionId === currentSessionId && sessions.length > 1) {
+        const remaining = sessions.filter((s) => s.session_id !== sessionId);
+        if (remaining.length > 0) {
+          onSelectSession(remaining[0].session_id);
+        }
+      }
+    } catch (err: any) {
+      alert("Failed to delete session: " + err.message);
     }
   };
 
@@ -109,7 +172,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
   };
 
   const handleRestoreSnapshot = async (snapId: number) => {
-    if (!confirm("Restore this prior milestone checkpoint? Your active session state will be updated.")) return;
+    if (!confirm("Restore this milestone checkpoint? Your active session state will be safely replaced with this snapshot.")) return;
     try {
       await sessionService.restoreSnapshot(currentSessionId, snapId);
       onSelectSession(currentSessionId);
@@ -136,18 +199,18 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
             onClick={() => setActiveTab("SESSIONS")}
             className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
               activeTab === "SESSIONS"
-                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm"
+                ? "bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-sm font-bold"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
-            <Folder className="w-3.5 h-3.5" /> All Sessions ({safeSessions.length})
+            <Folder className="w-3.5 h-3.5" /> All Workspaces ({safeSessions.length})
           </button>
 
           <button
             onClick={() => setActiveTab("JOIN")}
             className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
               activeTab === "JOIN"
-                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm font-bold"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -158,7 +221,7 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
             onClick={() => setActiveTab("SNAPSHOTS")}
             className={`flex-1 py-2 px-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
               activeTab === "SNAPSHOTS"
-                ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm"
+                ? "bg-purple-500/20 text-purple-300 border border-purple-500/40 shadow-sm font-bold"
                 : "text-slate-400 hover:text-slate-200"
             }`}
           >
@@ -170,38 +233,42 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
         {activeTab === "SESSIONS" && (
           <div className="space-y-5">
             {/* Create new session */}
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Start New Venture Project
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" /> Start New Venture Workspace
               </h4>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="e.g. Iloilo Cold-Chain MSME Validator"
+                  placeholder="e.g. Iloilo Bulb Onion Cold-Chain Validator"
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreate();
+                  }}
+                  className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors shadow-inner"
                 />
                 <Button variant="primary" size="sm" onClick={handleCreate} isLoading={isCreating} leftIcon={<Plus className="w-4 h-4" />}>
-                  Create
+                  Create Workspace
                 </Button>
               </div>
             </div>
 
             {/* Existing list */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-                Persistent Database Sessions
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">
+                Persistent Database Workspaces
               </h4>
 
               {isLoading ? (
-                <div className="py-8 text-center text-sm text-slate-500">Loading database sessions...</div>
+                <div className="py-8 text-center text-sm text-slate-500">Loading workspaces...</div>
               ) : safeSessions.length === 0 ? (
-                <div className="py-8 text-center text-sm text-slate-500">No sessions found. Create one above to begin!</div>
+                <div className="py-8 text-center text-sm text-slate-500">No workspaces found. Create one above to begin!</div>
               ) : (
-                <div className="max-h-72 overflow-y-auto space-y-2.5 pr-1">
+                <div className="max-h-80 overflow-y-auto space-y-2.5 pr-1">
                   {safeSessions.map((s) => {
                     const isCurrent = s.session_id === currentSessionId;
+                    const isEditing = editingSessionId === s.session_id;
                     const completedCount = [
                       s.phase1_complete,
                       s.phase2_complete,
@@ -213,30 +280,71 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                     return (
                       <div
                         key={s.session_id}
-                        className={`p-3.5 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                        className={`p-3.5 rounded-2xl border transition-all flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 ${
                           isCurrent
-                            ? "bg-cyan-500/10 border-cyan-500/40 ring-1 ring-cyan-500/30"
-                            : "bg-slate-950/60 border-slate-800 hover:border-slate-700 hover:bg-slate-800/40"
+                            ? "bg-slate-900/90 border-cyan-500/40 ring-1 ring-cyan-500/30 shadow-md shadow-cyan-500/5"
+                            : "bg-slate-950/60 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40"
                         }`}
                       >
+                        {/* Left: Folder Icon & Name / Input */}
                         <div
                           onClick={() => {
-                            onSelectSession(s.session_id);
-                            onClose();
+                            if (!isEditing) {
+                              onSelectSession(s.session_id);
+                              onClose();
+                            }
                           }}
-                          className="flex items-center gap-3 cursor-pointer flex-1"
+                          className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
                         >
-                          <div className={`p-2.5 rounded-xl ${isCurrent ? "bg-cyan-500/20 text-cyan-400" : "bg-slate-800 text-slate-400"}`}>
+                          <div
+                            className={`p-2.5 rounded-xl shrink-0 ${
+                              isCurrent ? "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30" : "bg-slate-900 text-slate-400 border border-slate-800"
+                            }`}
+                          >
                             <Folder className="w-4 h-4" />
                           </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-semibold text-white">
-                                {s.project_name || "Venture Project"}
-                              </span>
-                              {isCurrent && <Badge variant="cyan" size="sm">Active</Badge>}
-                            </div>
-                            <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5 font-mono">
+
+                          <div className="min-w-0 flex-1 space-y-0.5">
+                            {isEditing ? (
+                              <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                                <input
+                                  type="text"
+                                  value={editingName}
+                                  onChange={(e) => setEditingName(e.target.value)}
+                                  onKeyDown={(e) => {
+                                    if (e.key === "Enter") handleSaveRename(s.session_id, e as any);
+                                    if (e.key === "Escape") handleCancelRename(e as any);
+                                  }}
+                                  autoFocus
+                                  className="px-2.5 py-1 rounded-lg bg-slate-900 border border-cyan-500 text-xs text-white focus:outline-none w-full max-w-xs font-semibold"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={(e) => handleSaveRename(s.session_id, e)}
+                                  className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30"
+                                  title="Save Rename"
+                                >
+                                  <Check className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleCancelRename}
+                                  className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white"
+                                  title="Cancel"
+                                >
+                                  <X className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="text-sm font-bold text-white truncate max-w-xs">
+                                  {s.project_name || "Venture Project"}
+                                </span>
+                                {isCurrent && <Badge variant="cyan" size="sm">Active</Badge>}
+                              </div>
+                            )}
+
+                            <div className="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
                               <span>ID: {s.session_id}</span>
                               <span>•</span>
                               <span>{s.updated_at ? new Date(s.updated_at).toLocaleDateString() : "Recent"}</span>
@@ -244,20 +352,47 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        {/* Right: Actions & Metadata */}
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                           {s.share_code && (
                             <button
-                              onClick={() => handleCopyCode(s.share_code!)}
-                              className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[11px] font-mono text-cyan-300 hover:border-cyan-400 flex items-center gap-1.5"
-                              title="Copy room share code for groupmates"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCopyCode(s.share_code!);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[11px] font-mono text-cyan-300 hover:border-cyan-400/50 flex items-center gap-1.5 shadow-sm"
+                              title="Copy room code to share with groupmates"
                             >
                               <Share2 className="w-3 h-3 text-cyan-400" />
                               <span>{copiedCode === s.share_code ? "Copied!" : s.share_code}</span>
                             </button>
                           )}
+
                           <Badge variant={completedCount > 0 ? "emerald" : "slate"} size="sm">
-                            {completedCount}/5 Phases
+                            {completedCount}/5 Gates
                           </Badge>
+
+                          {/* Rename Button */}
+                          {!isEditing && (
+                            <button
+                              onClick={(e) => handleStartRename(s, e)}
+                              className="p-1.5 rounded-lg text-slate-400 hover:text-cyan-400 hover:bg-slate-900 border border-transparent hover:border-slate-800 transition-colors"
+                              title="Rename Workspace"
+                            >
+                              <Edit2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {/* Delete Button (disabled for currently active if single session) */}
+                          {safeSessions.length > 1 && (
+                            <button
+                              onClick={(e) => handleDeleteSession(s.session_id, s.project_name || s.session_id, e)}
+                              className="p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-colors"
+                              title="Delete Workspace"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
                         </div>
                       </div>
                     );
@@ -272,101 +407,94 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
         {activeTab === "JOIN" && (
           <div className="p-6 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-4">
             <div className="space-y-1">
-              <h4 className="text-sm font-bold text-white flex items-center gap-2">
+              <h4 className="text-sm font-bold text-white flex items-center gap-2 font-mono">
                 <Key className="w-4 h-4 text-emerald-400" /> Join Groupmate Workspace
               </h4>
               <p className="text-xs text-slate-300">
-                Enter the 6-character room code (e.g. <code className="text-cyan-300 font-mono">RATCH-AGRI</code>) provided by your project teammate.
+                Enter the 6-character room code (e.g. <code className="text-cyan-300 font-mono">RATCH-GPPZ</code>) provided by your project team lead.
               </p>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2">
               <input
                 type="text"
-                placeholder="e.g. RATCH-XXXX"
+                placeholder="RATCH-XXXX"
                 value={roomCodeInput}
                 onChange={(e) => setRoomCodeInput(e.target.value.toUpperCase())}
-                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm font-mono text-white placeholder-slate-500 uppercase tracking-widest focus:outline-none focus:border-emerald-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleJoinByCode();
+                }}
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white font-mono uppercase tracking-widest placeholder-slate-500 focus:outline-none focus:border-emerald-500 shadow-inner"
               />
-              <Button
-                variant="emerald"
-                size="md"
-                onClick={handleJoinByCode}
-                isLoading={isJoining}
-                disabled={!roomCodeInput.trim()}
-              >
-                Join Project
+              <Button variant="emerald" size="sm" onClick={handleJoinByCode} isLoading={isJoining}>
+                Join Room
               </Button>
             </div>
           </div>
         )}
 
-        {/* Tab 3: Milestone Snapshots */}
+        {/* Tab 3: Milestones & Snapshots */}
         {activeTab === "SNAPSHOTS" && (
           <div className="space-y-5">
-            {/* Save new checkpoint */}
-            <div className="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                <Camera className="w-3.5 h-3.5 text-purple-400" /> Capture New Milestone Checkpoint
+            <div className="p-4 rounded-2xl bg-slate-950/80 border border-slate-800 space-y-3">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider flex items-center gap-2 font-mono">
+                <History className="w-3.5 h-3.5 text-purple-400" /> Save Milestone Checkpoint
               </h4>
               <div className="flex gap-2">
                 <input
                   type="text"
-                  placeholder="e.g. Before Market Field Validation / Post-Interviews"
+                  placeholder="e.g. Post-Phase 2 Screening Approved"
                   value={newSnapshotLabel}
                   onChange={(e) => setNewSnapshotLabel(e.target.value)}
-                  className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreateSnapshot();
+                  }}
+                  className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-purple-500 shadow-inner"
                 />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleCreateSnapshot}
-                  isLoading={isCreatingSnapshot}
-                  disabled={!newSnapshotLabel.trim()}
-                  leftIcon={<Camera className="w-4 h-4 text-purple-400" />}
-                >
+                <Button variant="primary" size="sm" onClick={handleCreateSnapshot} isLoading={isCreatingSnapshot}>
                   Save Checkpoint
                 </Button>
               </div>
             </div>
 
-            <div className="p-3.5 rounded-xl bg-purple-950/20 border border-purple-500/30 text-xs text-purple-200">
-              <strong>Milestone Snapshots:</strong> Frozen checkpoint copies of this venture before major phase advances or pivots. You can restore any milestone with 1 click if customer evidence disproves an assumption.
-            </div>
+            <div className="space-y-2.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 font-mono">
+                Historical Checkpoints for Active Session
+              </h4>
 
-            {snapshots.length === 0 ? (
-              <div className="py-8 text-center text-sm text-slate-500">
-                No snapshots saved for this session yet. Save one above to create a milestone backup!
-              </div>
-            ) : (
-              <div className="max-h-64 overflow-y-auto space-y-2.5 pr-1">
-                {snapshots.map((snap) => (
-                  <div
-                    key={snap.id}
-                    className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-between gap-3 hover:border-slate-700 transition-all"
-                  >
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-bold text-white">{snap.label}</span>
-                        <Badge variant="purple" size="sm">Phase {snap.phase_number}</Badge>
-                      </div>
-                      <span className="text-[11px] text-slate-400 font-mono">
-                        {new Date(snap.created_at).toLocaleString()}
-                      </span>
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRestoreSnapshot(snap.id)}
-                      leftIcon={<RotateCcw className="w-3.5 h-3.5 text-cyan-400" />}
+              {snapshots.length === 0 ? (
+                <div className="py-8 text-center text-sm text-slate-500">
+                  No snapshots saved yet for this workspace. Save a checkpoint before major pivots or trial interviews!
+                </div>
+              ) : (
+                <div className="max-h-64 overflow-y-auto space-y-2 pr-1">
+                  {snapshots.map((snap) => (
+                    <div
+                      key={snap.id}
+                      className="p-3.5 rounded-2xl bg-slate-950/60 border border-slate-800 hover:border-purple-500/40 flex items-center justify-between gap-3 transition-all"
                     >
-                      Restore State
-                    </Button>
-                  </div>
-                ))}
-              </div>
-            )}
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white">{snap.label}</span>
+                          <Badge variant="purple" size="sm">Phase {snap.phase_number}</Badge>
+                        </div>
+                        <p className="text-[11px] text-slate-400 font-mono">
+                          Saved: {new Date(snap.created_at).toLocaleString()}
+                        </p>
+                      </div>
+
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleRestoreSnapshot(snap.id)}
+                      >
+                        Rollback
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
