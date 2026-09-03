@@ -7,6 +7,7 @@ import { useToast } from "@/components/common/ToastProvider";
 import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { ProblemRecord, EvidenceTier, SessionState } from "@/lib/types";
 import { problemService } from "@/services/problemService";
+import { researchService } from "@/services/researchService";
 import { ALL_SECTORS } from "@/lib/constants";
 import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { ManualProblemModal } from "./ManualProblemModal";

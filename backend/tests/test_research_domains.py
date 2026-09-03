@@ -48,3 +48,22 @@ def test_create_update_delete_custom_domain(client):
     res_del = client.delete(f"/api/research/domains/{domain_id}")
     assert res_del.status_code == 200
     assert res_del.json()["deleted"] is True
+
+
+def test_seed_research_problem_bank(client):
+    import uuid
+    test_pid = f"test_proj_{uuid.uuid4().hex[:6]}"
+    res = client.post("/api/research/problems/seed", json={"project_id": test_pid})
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert data["seeded_count"] == 34
+    
+    # Verify in Problem Bank listing
+    res_list = client.get(f"/api/problems?project_id={test_pid}")
+    assert res_list.status_code == 200
+    problems = res_list.json()
+    assert len(problems) >= 34
+    c_ids = [p["id"] for p in problems]
+    assert any("C01" in cid for cid in c_ids)
+    assert any("C34" in cid for cid in c_ids)

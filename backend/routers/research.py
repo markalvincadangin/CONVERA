@@ -266,3 +266,15 @@ async def delete_research_domain(domain_id: str):
     if not success:
         raise HTTPException(status_code=404, detail=f"Research domain '{domain_id}' not found")
     return {"status": "success", "deleted": True, "domain_id": domain_id}
+
+
+class SeedResearchProblemsRequest(BaseModel):
+    project_id: str = "default_proj"
+
+
+@router.post("/problems/seed")
+async def seed_research_problems_endpoint(req: SeedResearchProblemsRequest):
+    """Seed the 34 Master Research Concept Problems (C01–C34) into the project's Problem Bank."""
+    storage = get_storage()
+    seeded = storage.seed_research_problem_bank(req.project_id)
+    return {"status": "success", "seeded_count": len(seeded), "problems": seeded}

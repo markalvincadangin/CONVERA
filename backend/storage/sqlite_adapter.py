@@ -2805,3 +2805,889 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             cursor = conn.execute("DELETE FROM research_domains WHERE id = ?", (domain_id,))
             conn.commit()
             return cursor.rowcount > 0
+
+    def seed_research_problem_bank(self, project_id: str = "default_proj") -> List[Dict[str, Any]]:
+        """Seed the 34 Master Research Concept Problems (C01–C34) into the project's Problem Bank."""
+        MASTER_RESEARCH_PROBLEMS = [
+        {
+                "id": "C01",
+                "sector": "Teaching, Learning, and Academic Administration",
+                "sufferer_occupation": "Students and university staff",
+                "sufferer_location": "One selected university academic-service transaction",
+                "problem_statement": "Students completing one selected academic transaction currently rely on separate official and informal sources, but requirements and process steps may be difficult to locate consistently, potentially causing repeated inquiries, incomplete submissions, and delays.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Students consult separate pages, ask peers, or visit offices to learn requirements and process steps",
+                "quantified_impact": "Repeated inquiries, unnecessary visits, incomplete submissions, and delayed completion",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D02: Teaching, Learning, and Academic Administration (Domain Explorer + group brainstorming)",
+                "tags": [
+                        "D02",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Passes scope, access, and measurability gates; impact must be established from one transaction's repeated inquiries, incomplete submissions, and completion time. | Next Action: Local evidence required before shortlisting: map the official workflow and quantify recurrence over one defined period. | Concerns: Select exactly one transaction; compare only approved official requirements with actual inquiry and completion records. | Notes: Local evidence required before shortlisting: map the official workflow and quantify recurrence over one defined period.",
+                "score": 75.0
+        },
+        {
+                "id": "C02",
+                "sector": "Solid Waste Management Operations",
+                "sufferer_occupation": "Facility managers, maintenance staff, and building users",
+                "sufferer_location": "Selected university buildings or common areas",
+                "problem_statement": "Facility staff in selected university buildings currently inspect waste conditions through routine checks or informal reports, but location- and time-based records may be incomplete, potentially limiting prioritization of recurring problem areas.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Waste conditions are handled through routine inspection or informal reports",
+                "quantified_impact": "Recurring problem areas may be missed or prioritized inefficiently",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D07: Solid Waste Management Operations (Domain Explorer + group brainstorming)",
+                "tags": [
+                        "D07",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Passes observability and computing-relevance gates; remains conditional until the operational consequence and recurrence are demonstrated. | Next Action: Use non-identifying observations in selected areas and avoid interpreting individual behavior from waste conditions. | Concerns: Define limited waste categories, safe observation rules, and an operational consequence such as collection frequency, overflow duration, or contamination rate. | Notes: Use non-identifying observations in selected areas and avoid interpreting individual behavior from waste conditions.",
+                "score": 75.0
+        },
+        {
+                "id": "C03",
+                "sector": "Employment, Skills, and School-to-Work Transition",
+                "sufferer_occupation": "Students and recent graduates",
+                "sufferer_location": "University-to-employment transition for one entry-level role family",
+                "problem_statement": "Students preparing for one entry-level role family currently review vacancies individually, but required skills across comparable postings may be difficult to compare systematically, potentially causing unfocused preparation and unclear skill gaps.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Students review vacancies individually and estimate whether their current skills match employer requirements",
+                "quantified_impact": "Preparation and applications may be unfocused while relevant skill gaps remain unclear",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D16: Employment, Skills, and School-to-Work Transition (Domain Explorer + PSA workforce evidence)",
+                "tags": [
+                        "D16",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Strong public-data route, bounded comparison, and meaningful school-to-work consequence; local interpretation still needs stakeholder validation. | Next Action: Official context: https://psa.gov.ph/content/psa-clears-jobs-and-skills-survey-encourages-participation-data-driven-evaluation-workforce | Concerns: Use one role family, a defined posting period, transparent sampling, and employer or career-office triangulation; postings may not equal actual hiring priorities. | Notes: Official context: https://psa.gov.ph/content/psa-clears-jobs-and-skills-survey-encourages-participation-data-driven-evaluation-workforce",
+                "score": 75.0
+        },
+        {
+                "id": "C04",
+                "sector": "Employment, Skills, and School-to-Work Transition",
+                "sufferer_occupation": "Students, coordinators, and partner employers",
+                "sufferer_location": "One university internship or placement cycle",
+                "problem_statement": "Students and coordinators in one internship cycle currently manage requirements and status updates through several channels, but records and handoffs may be fragmented, potentially causing repeated follow-ups and processing delays.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Applications, requirements, endorsements, and updates are coordinated through email, messages, forms, and spreadsheets",
+                "quantified_impact": "Repeated follow-ups, incomplete handoffs, and avoidable processing delays may occur",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D16: Employment, Skills, and School-to-Work Transition (Domain Explorer + group brainstorming)",
+                "tags": [
+                        "D16",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Strong multi-actor workflow with measurable status gaps and delays; shortlisting requires an approved cycle and complete enough records. | Next Action: Map one cycle and count incomplete, duplicated, or delayed handoffs without evaluating individual performance. | Concerns: Confirm access to one complete cycle, define status and delay measures, and protect personal and employer information. | Notes: Map one cycle and count incomplete, duplicated, or delayed handoffs without evaluating individual performance.",
+                "score": 75.0
+        },
+        {
+                "id": "C05",
+                "sector": "Passenger Mobility and Local Transport Operations",
+                "sufferer_occupation": "Student commuters",
+                "sufferer_location": "One approved pickup point on one route during defined peak periods",
+                "problem_statement": "Student commuters using one selected route currently estimate departure and waiting time from experience or informal updates, but arrival intervals may vary substantially, potentially causing late arrival or excessive waiting.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Students estimate departure and waiting time using routine experience or informal updates",
+                "quantified_impact": "Students may arrive late or allocate excessive buffer time",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D04: Passenger Mobility and Local Transport Operations (Domain Explorer + group brainstorming)",
+                "tags": [
+                        "D04",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Passes local observability and outcome-measurement gates; must prove recurrence and variability before any prediction concept is considered. | Next Action: Record arrival intervals and waiting time across comparable periods and establish a simple schedule or historical-average baseline. | Concerns: Use one safe approved observation point; control for weather, traffic, day type, and observation period; do not identify drivers or passengers. | Notes: Record arrival intervals and waiting time across comparable periods and establish a simple schedule or historical-average baseline.",
+                "score": 75.0
+        },
+        {
+                "id": "C06",
+                "sector": "Passenger Mobility and Local Transport Operations",
+                "sufferer_occupation": "Campus users and security personnel",
+                "sufferer_location": "One university entrance or loading/drop-off point during peak arrival",
+                "problem_statement": "Drivers and campus users at one selected loading or drop-off point currently coordinate through available space and informal practices, but peak-period flows may become uncoordinated, potentially causing recurring queueing, obstruction, and delay.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Drivers stop, load, unload, and queue according to available space and informal coordination",
+                "quantified_impact": "Localized queueing, obstruction, delay, and pedestrian conflict may recur",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D04: Passenger Mobility and Local Transport Operations (Domain Explorer + group brainstorming)",
+                "tags": [
+                        "D04",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Bounded operational problem with measurable recurrence and safety-related consequences; requires site permission and a defensible observation protocol. | Next Action: Measure recurrence, duration, and peak conditions without identifying individuals or making enforcement judgments. | Concerns: Use an approved safe observation position and operational definitions for queue length, obstruction, delay, and pedestrian conflict. | Notes: Measure recurrence, duration, and peak conditions without identifying individuals or making enforcement judgments.",
+                "score": 75.0
+        },
+        {
+                "id": "C07",
+                "sector": "Student Support Services and Academic Well-being",
+                "sufferer_occupation": "Students",
+                "sufferer_location": "One program or year level during a defined assessment period",
+                "problem_statement": "Students taking a defined set of courses currently combine independently scheduled assessments, but major requirements may cluster within short periods, potentially compressing preparation time and complicating prioritization.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Teachers schedule assessments within individual courses while students combine requirements across subjects",
+                "quantified_impact": "Preparation time may be compressed and prioritization made more difficult",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D15: Student Support Services and Academic Well-being (Domain Explorer + group brainstorming)",
+                "tags": [
+                        "D15",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Feasible, non-sensitive scheduling analysis with a clear baseline; impact remains moderate and must be shown without overclaiming wellbeing or learning effects. | Next Action: Calculate clustering frequency and workload proxies during one period before considering coordination or decision-support concepts. | Concerns: Measure schedule clustering separately from study habits; use published schedules first and collect only limited voluntary feedback. | Notes: Calculate clustering frequency and workload proxies during one period before considering coordination or decision-support concepts.",
+                "score": 75.0
+        },
+        {
+                "id": "C08",
+                "sector": "Agricultural Production and Farm Operations",
+                "sufferer_occupation": "Small-scale irrigating farmers",
+                "sufferer_location": "One crop and one accessible irrigated field setting during a dry period",
+                "problem_statement": "Farmers in one selected crop setting currently determine irrigation timing and amount mainly through visual judgment, but decisions may not consistently match reference moisture needs, potentially causing water waste or crop stress.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Irrigation timing and amount are determined mainly through visual judgment and routine practice",
+                "quantified_impact": "Over- or under-irrigation may waste water and reduce crop quality or yield",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D01: Agricultural Production and Farm Operations (Group-provided screened problem list)",
+                "tags": [
+                        "D01",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Narrow decision bottleneck with quantifiable resource and crop indicators; shortlisting depends on field access and a credible reference measurement. | Next Action: Document the current decision rule and compare it with reference measurements before proposing sensing, prediction, or automation. | Concerns: Requires a farm partner, reference soil-moisture measurements, one crop, and separation of decision error from water-supply and weather constraints. | Notes: Document the current decision rule and compare it with reference measurements before proposing sensing, prediction, or automation.",
+                "score": 75.0
+        },
+        {
+                "id": "C09",
+                "sector": "Agricultural Production and Farm Operations",
+                "sufferer_occupation": "Small-scale farmers",
+                "sufferer_location": "One locally relevant perishable crop during one harvest period",
+                "problem_statement": "Farmers producing one selected perishable crop currently judge harvest timing from experience and visible cues, but maturity decisions may not consistently match an accepted reference window, potentially reducing quality and market value.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Harvest timing is judged from experience and visible maturity cues",
+                "quantified_impact": "Harvesting outside the target maturity window may reduce quality and market value",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D01: Agricultural Production and Farm Operations (Group-provided screened problem list)",
+                "tags": [
+                        "D01",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Bounded timing decision with measurable quality and economic consequences; requires local crop access and qualified ground truth. | Next Action: Compare current judgments with accepted maturity and quality measures rather than treating image classification accuracy as the outcome. | Concerns: Define one crop, an accepted maturity reference, the harvest window, postharvest quality measures, and reliable ground truth. | Notes: Compare current judgments with accepted maturity and quality measures rather than treating image classification accuracy as the outcome.",
+                "score": 75.0
+        },
+        {
+                "id": "C10",
+                "sector": "Agricultural Production and Farm Operations",
+                "sufferer_occupation": "Farmers and grain handlers",
+                "sufferer_location": "One grain, drying method, and storage setting in tropical conditions",
+                "problem_statement": "Farmers or dryer operators using one selected drying and storage process may lack consistent moisture-based decision records, potentially allowing incomplete or uneven drying and avoidable grain-quality loss.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Drying and storage decisions may rely on elapsed time, weather, touch, or occasional measurements",
+                "quantified_impact": "Incomplete, delayed, or uneven drying can reduce grain quality and increase spoilage risk",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D01: Agricultural Production and Farm Operations (Group-provided screened problem list + PHilMech evidence)",
+                "tags": [
+                        "D01",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Strong measurable postharvest-control problem with authoritative evidence and a defensible baseline; local partner and process data are still required. | Next Action: Official evidence: https://rcef.philmech.gov.ph/?action=grainDrying&page=knowledgeBank | Concerns: Use one grain, a calibrated reference moisture instrument, safe sampling, and a measurable quality outcome; do not make food-safety claims without qualified testing. | Notes: Official evidence: https://rcef.philmech.gov.ph/?action=grainDrying&page=knowledgeBank",
+                "score": 75.0
+        },
+        {
+                "id": "C11",
+                "sector": "Digital Safety and Data Privacy Practices",
+                "sufferer_occupation": "Students and institutional support personnel",
+                "sufferer_location": "Authorized phishing-awareness and reporting exercises in one university unit",
+                "problem_statement": "Students in one university unit may recognize some suspicious-message cues but remain inconsistent in classifying selected scenarios and following the approved reporting process, potentially delaying safe escalation.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Users judge suspicious messages individually and may be unsure how to report or escalate them",
+                "quantified_impact": "Risky responses, delayed reporting, and incomplete incident information may reduce the effectiveness of early response",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D24: Digital Safety and Data Privacy Practices (Official privacy advisories + benchmark gap scan)",
+                "tags": [
+                        "D24",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: High relevance and feasible controlled evaluation with clear behavioral and process measures; requires formal authorization and a non-deceptive debrief protocol. | Next Action: Official context: https://privacy.gov.ph/npc-phe-bulletin-no-21-preventive-data-privacy-practices-against-smishing/ | Concerns: Use only authorized simulated messages; never collect passwords or real credentials; coordinate with IT or the data-protection office and measure reporting behavior safely. | Notes: Official context: https://privacy.gov.ph/npc-phe-bulletin-no-21-preventive-data-privacy-practices-against-smishing/",
+                "score": 75.0
+        },
+        {
+                "id": "C12",
+                "sector": "MSME Operations and Digital Commerce",
+                "sufferer_occupation": "Micro-business owners, staff, and customers",
+                "sufferer_location": "One small business handling orders and stock across two or more sales channels",
+                "problem_statement": "A local micro-retailer using multiple sales channels may maintain order and inventory status in separate records, potentially causing inconsistent stock counts, repeated reconciliation, and fulfillment errors.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Orders, stock changes, and fulfillment status may be tracked separately in messages, platform dashboards, notebooks, or spreadsheets",
+                "quantified_impact": "Overselling, missed updates, duplicate work, stockouts, or delayed fulfillment may occur",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D23: MSME Operations and Digital Commerce (DTI digitalization priorities + benchmark gap scan)",
+                "tags": [
+                        "D23",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Meaningful MSME operational problem with measurable error, reconciliation-time, and fulfillment outcomes; shortlisting depends on partner access and proof of recurrence. | Next Action: Official context: https://supplychainlogistics.dti.gov.ph/strategic-play/digitalization | Concerns: Requires one willing business partner, a defined product set and period, and protection of customer, sales, and financial data. | Notes: Official context: https://supplychainlogistics.dti.gov.ph/strategic-play/digitalization",
+                "score": 75.0
+        },
+        {
+                "id": "C13",
+                "sector": "Energy Use and Facility Energy Management",
+                "sufferer_occupation": "Facility managers and the institution",
+                "sufferer_location": "Selected classrooms or offices in one building",
+                "problem_statement": "Selected rooms in one building may rely on manual switching and routine checks, but equipment use during unoccupied periods may not be recorded consistently, potentially causing avoidable electricity consumption.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Lights, cooling, and plug loads are switched manually according to room use and routine checks",
+                "quantified_impact": "Avoidable electricity use and operating cost may accumulate",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D08: Energy Use and Facility Energy Management (DOE energy-efficiency policy + benchmark gap scan)",
+                "tags": [
+                        "D08",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: High feasibility, objective outcome measures, and direct institutional impact; must confirm that unoccupied consumption is recurrent and material. | Next Action: Official context: https://doe.gov.ph/site/eppb/articles/895904--energy-efficiency-and-conservation-roadmap-2017-2040 | Concerns: Obtain facility permission, measure only approved circuits or equipment, control for room schedule and weather, and use a simple manual or schedule-based baseline. | Notes: Official context: https://doe.gov.ph/site/eppb/articles/895904--energy-efficiency-and-conservation-roadmap-2017-2040",
+                "score": 75.0
+        },
+        {
+                "id": "C14",
+                "sector": "Accessibility and Inclusive Participation",
+                "sufferer_occupation": "Students with disabilities and other users with access needs",
+                "sufferer_location": "One high-use university digital service or online form",
+                "problem_statement": "Users of one selected university digital service may encounter WCAG-related and task-level accessibility barriers, potentially preventing independent completion or increasing time and assistance required.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Users complete the service through an existing webpage or digital form with varying assistive-technology support",
+                "quantified_impact": "Users may encounter failed steps, longer completion time, or reliance on assistance",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D14: Accessibility and Inclusive Participation (DICT accessibility standard + benchmark gap scan)",
+                "tags": [
+                        "D14",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Strong standards-based evaluation path, bounded service task, and inclusion impact; requires careful co-validation with representative users or accessibility experts. | Next Action: Official context: https://ictstatistics.dict.gov.ph/resources/ | Concerns: Start with standards-based audit; involve representative users only with accessible consent, reasonable accommodations, and no unnecessary disability disclosure. | Notes: Official context: https://ictstatistics.dict.gov.ph/resources/",
+                "score": 75.0
+        },
+        {
+                "id": "C15",
+                "sector": "Water Service and Resource Management",
+                "sufferer_occupation": "Households and water-provider personnel",
+                "sufferer_location": "One small water system or selected distribution zone with intermittent or variable service",
+                "problem_statement": "A selected local water system currently relies on complaints and periodic checks, but pressure, flow, and interruption events may not be recorded consistently by zone and time, potentially delaying detection and diagnosis of recurring service failures.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Operators rely on service complaints, pump or valve checks, and periodic or manual operating logs",
+                "quantified_impact": "Service failures may be detected or diagnosed late, causing unstable service hours, repeated complaints, avoidable water loss, or inefficient maintenance",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D06: Water Service and Resource Management (PIDS water-sector evidence + peer-reviewed intermittent-network and IoT monitoring studies)",
+                "tags": [
+                        "D06",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Passes significance, computing-necessity, and evaluation gates using event-detection delay, service-hour reliability, record completeness, and comparison with manual logs; local recurrence and provider access remain unverified. | Next Action: Evidence: https://www.pids.gov.ph/details/news/press-releases/water-districts-fall-behind-as-demand-exceeds-supply-pids-study | https://doi.org/10.3390/W12082143 | https://doi.org/10.3390/S20154247 | Concerns: Requires provider permission, calibrated pressure or flow references, safe installation, a defined service zone, and controls for demand, power outages, and seasonal conditions; pressure change alone must not be labeled a leak. | Notes: Evidence: https://www.pids.gov.ph/details/news/press-releases/water-districts-fall-behind-as-demand-exceeds-supply-pids-study | https://doi.org/10.3390/W12082143 | https://doi.org/10.3390/S20154247",
+                "score": 75.0
+        },
+        {
+                "id": "C16",
+                "sector": "Environmental Condition Monitoring",
+                "sufferer_occupation": "Students, teachers, and school administrators",
+                "sufferer_location": "Selected naturally ventilated classrooms in one campus during defined warm-weather weeks",
+                "problem_statement": "Selected naturally ventilated classrooms currently use routine ventilation and schedule adjustments, but continuous thermal-condition records linked with occupancy and mitigation may be unavailable, potentially preventing staff from identifying when and where unacceptable conditions recur.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Heat is managed through fans, windows, schedules, or class adjustments, while room conditions are checked only intermittently",
+                "quantified_impact": "Periods outside agreed thermal criteria may remain unidentified, limiting timely mitigation and contributing to discomfort, reduced task performance, or learning disruption",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D18: Environmental Condition Monitoring (Philippine classroom thermal-comfort studies + DepEd extreme-heat guidance)",
+                "tags": [
+                        "D18",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Strong local access, objective measurement, and comparison route using calibrated readings, accepted criteria, surveys or bounded task measures, and mitigation-period baselines; the local magnitude still needs to be established. | Next Action: Evidence: https://bukidnon.deped.gov.ph/2024/04/05/official-statement-on-class-suspensions-and-shifting-to-adm-due-to-high-heat-index-other-calamities/ | https://doi.org/10.1051/e3sconf/202339601116 | https://doi.org/10.5281/zenodo.15531795 | Concerns: Use calibrated instruments and a predeclared thermal reference; control for weather, time, occupancy, and room differences; avoid medical claims; obtain accessible consent for any voluntary comfort or task measures. | Notes: Evidence: https://bukidnon.deped.gov.ph/2024/04/05/official-statement-on-class-suspensions-and-shifting-to-adm-due-to-high-heat-index-other-calamities/ | https://doi.org/10.1051/e3sconf/202339601116 | https://doi.org/10.5281/zenodo.15531795",
+                "score": 75.0
+        },
+        {
+                "id": "C17",
+                "sector": "Mangrove Restoration/Environment and Conservation Operations",
+                "sufferer_occupation": "Restoration managers, community partners, and communities benefiting from the restored ecosystem",
+                "sufferer_location": "One verified Iloilo mangrove-restoration site with a defined set of monitoring plots",
+                "problem_statement": "A selected mangrove-restoration project currently uses periodic field monitoring, but survival and growth records may be incomplete or inconsistent across plots and dates, potentially delaying identification of mortality hotspots and weakening maintenance and replanting decisions.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Survival and growth are checked periodically through field counts, fixed plots, photographs, and separate paper or spreadsheet records",
+                "quantified_impact": "Mortality hotspots, site or species mismatch, and maintenance needs may be detected late, weakening replanting priorities, accountability, and outcome reporting",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D25: Mangrove Restoration/Environment and Conservation Operations (DENR restoration-monitoring guidance + Southeast Asia systematic review + verified Iloilo restoration site)",
+                "tags": [
+                        "D25",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: High ecological and management impact with an evaluable route against fixed-quadrat manual reference for completeness, counting error, time, survival estimates, and spatial consistency; partner authority and obtainable records are not yet confirmed. | Next Action: Evidence: https://faspselib.denr.gov.ph/Materials/Detail/fec8cc55-253a-4788-b26b-3104b6be9a6d | https://www.bmb.gov.ph/the-katunggan-ecopark/ | https://doi.org/10.3389/fmars.2022.987737 | Concerns: Requires formal site permission, an ecological validator, fixed and repeatable plots, safe field schedules, tide and weather controls, reliable ground truth, and a clear boundary between project monitoring and scientific habitat-condition measurement. | Notes: Evidence: https://faspselib.denr.gov.ph/Materials/Detail/fec8cc55-253a-4788-b26b-3104b6be9a6d | https://www.bmb.gov.ph/the-katunggan-ecopark/ | https://doi.org/10.3389/fmars.2022.987737",
+                "score": 75.0
+        },
+        {
+                "id": "C18",
+                "sector": "Disaster Risk Reduction and Preparedness",
+                "sufferer_occupation": "Residents, local planners, responders, and critical-facility users",
+                "sufferer_location": "One hazard-prone municipality or barangay road network under defined flood or rain-induced-landslide scenarios",
+                "problem_statement": "A selected hazard-prone locality may have hazard and facility maps but lack a validated analysis of which road-segment disruptions most reduce access to critical facilities, potentially weakening alternate-route, evacuation, and clearing priorities.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Preparedness maps identify hazards and facilities, but the effect of individual road disruptions on access may be assessed manually or not quantified",
+                "quantified_impact": "Alternate-route, evacuation, clearing, and preparedness priorities may overlook road segments whose disruption produces the greatest loss of access",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D05: Disaster Risk Reduction and Preparedness (MGB geohazard data + DSWD local incident evidence + peer-reviewed flood-accessibility studies)",
+                "tags": [
+                        "D05",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: High societal consequence and genuine GIS or network-analysis need with measurable access-loss, travel-time, coverage, and expert-ranking outcomes; local closure history and DRRMO validation are still required. | Next Action: Evidence: https://experience.arcgis.com/experience/c48f83f81f1548bdb0a76c61638d52d6 | https://reliefweb.int/report/philippines/dswd-dromic-report-1-flashflood-and-landslide-incidents-leon-iloilo-04-december-2022-6pm | https://doi.org/10.1186/s12942-022-00315-2 | https://doi.org/10.1596/1813-9450-9262 | Related current Iloilo City magnitude evidence: 72 flood-risk barangays, 25 storm-surge-risk barangays, and more than 263,000 residents exposed; this strengthens significance but does not by itself validate the road-access gap. https://www.pna.gov.ph/articles/1254925 | https://www.panaynews.net/72-iloilo-city-barangays-tagged-high-risk-flood-threat-looms-over-263k-residents/ | Concerns: Limit the study to one hazard and facility set; use historical or simulated closures and safe non-emergency validation; verify road and facility data with DRR personnel; do not present the output as real-time warning or guaranteed safe routing. | Notes: Evidence: https://experience.arcgis.com/experience/c48f83f81f1548bdb0a76c61638d52d6 | https://reliefweb.int/report/philippines/dswd-dromic-report-1-flashflood-and-landslide-incidents-leon-iloilo-04-december-2022-6pm | https://doi.org/10.1186/s12942-022-00315-2 | https://doi.org/10.1596/1813-9450-9262 | Related current Iloilo City magnitude evidence: 72 flood-risk barangays, 25 storm-surge-risk barangays, and more than 263,000 residents exposed; this strengthens significance but does not by itself validate the road-access gap. https://www.pna.gov.ph/articles/1254925 | https://www.panaynews.net/72-iloilo-city-barangays-tagged-high-risk-flood-threat-looms-over-263k-residents/",
+                "score": 75.0
+        },
+        {
+                "id": "C19",
+                "sector": "Food Logistics and Supply-Chain Operations",
+                "sufferer_occupation": "Growers, traders, transporters, retailers, and consumers",
+                "sufferer_location": "One defined Iloilo-to-Manila mango supply-chain segment across actual commercial shipments",
+                "problem_statement": "Actors in a selected Iloilo mango supply-chain segment may lack a field-validated method that connects observable shipment conditions with independently measured arrival quality, limiting early and evidence-based handling decisions.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Ripeness and quality are commonly judged through manual inspection, while handling and environmental conditions may not be linked to verified arrival quality across the shipment",
+                "quantified_impact": "Reduced marketable volume and income, inconsistent fruit quality, food waste, and decisions made only after deterioration becomes visible",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D09: Food Logistics and Supply-Chain Operations (SEARCA/ADB value-chain evidence + peer-reviewed field-monitoring and quality-prediction studies)",
+                "tags": [
+                        "D09",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: High economic and food-loss significance with measurable prediction and process outcomes; originality and feasibility depend on current field data, partner access, and comparison against the present inspection process. | Next Action: Evidence: https://www.searca.org/press/postharvest-losses-ph-onion-tomato-mango-value-chains-bared | https://doi.org/10.1109/ICACSIS56558.2022.9923476 | Concerns: The 33.89% route estimate requires a current local baseline; secure one chain partner, repeated real shipments, calibrated reference measurements, and seasonal coverage; avoid a generic ripeness classifier or dashboard. | Notes: Evidence: https://www.searca.org/press/postharvest-losses-ph-onion-tomato-mango-value-chains-bared | https://doi.org/10.1109/ICACSIS56558.2022.9923476",
+                "score": 75.0
+        },
+        {
+                "id": "C20",
+                "sector": "Healthcare Service Delivery and Public Health Operations",
+                "sufferer_occupation": "Eligible women, families, frontline health workers, and local health programs",
+                "sufferer_location": "One authorized Iloilo RHU, city or municipal health office, or bounded cervical-cancer screening program",
+                "problem_statement": "A selected Iloilo cervical-cancer screening pathway may have unmeasured losses between screening, result communication, confirmatory assessment, referral, and indicated care, but local program records must first establish where and how often non-completion occurs.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Screening, result notification, confirmatory assessment, referral, and care-linkage records may be split across paper lists, calls, and facilities; follow-up may be coordinated manually.",
+                "quantified_impact": "Unresolved pathway losses can delay clinical assessment and indicated care, reduce the benefit of early detection, and leave program managers unable to identify where continuity breaks down.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D03: Healthcare Service Delivery and Public Health Operations (Official Iloilo SUCCESS-FAP program + GLOBOCAN 2022 + Philippine screening evidence + digital-intervention reviews)",
+                "tags": [
+                        "D03",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Very high and preventable burden with an active Northern Iloilo screening program and measurable pathway outcomes; remains Hold because public sources do not establish local screening-to-care dropout or a defensible gap beyond existing digital interventions. | Next Action: Corrected evidence: GLOBOCAN 2022 estimates 8,549 new cases and 4,380 deaths; cervical cancer ranked third by incidence among Philippine women, not second. Iloilo SUCCESS-FAP operated in Carles, Estancia, and Lemery. Local pathway non-completion is not yet verified. Evidence: https://gco.iarc.who.int/today/ | https://www.pna.gov.ph/articles/1242741 | https://www.pids.gov.ph/details/news/in-the-news/only-1-of-ph-women-screened-for-breast-cervical-cancer | https://iloilo.gov.ph/en/health-news/iloilos-success-fap-blueprint-cervical-cancer-prevention | https://doi.org/10.2196/23350 | https://doi.org/10.1371/journal.pone.0291931 | Concerns: Do not infer local loss to follow-up from national burden or program existence; secure authorized aggregate pathway data and professional supervision; avoid AI diagnosis and a generic reminder or referral app already covered by existing studies; protect sensitive reproductive-health information. | Notes: Corrected evidence: GLOBOCAN 2022 estimates 8,549 new cases and 4,380 deaths; cervical cancer ranked third by incidence among Philippine women, not second. Iloilo SUCCESS-FAP operated in Carles, Estancia, and Lemery. Local pathway non-completion is not yet verified. Evidence: https://gco.iarc.who.int/today/ | https://www.pna.gov.ph/articles/1242741 | https://www.pids.gov.ph/details/news/in-the-news/only-1-of-ph-women-screened-for-breast-cervical-cancer | https://iloilo.gov.ph/en/health-news/iloilos-success-fap-blueprint-cervical-cancer-prevention | https://doi.org/10.2196/23350 | https://doi.org/10.1371/journal.pone.0291931",
+                "score": 75.0
+        },
+        {
+                "id": "C21",
+                "sector": "Healthcare Service Delivery and Public Health Operations",
+                "sufferer_occupation": "Infants, parents or caregivers, clinicians, screening centers, and program administrators",
+                "sufferer_location": "One authorized hospital or accredited newborn-hearing screening center and its referral-to-confirmatory-testing pathway",
+                "problem_statement": "A selected newborn-hearing pathway may lose infants between initial screening, rescreening, comprehensive audiologic evaluation, referral, and intervention, but local records must first establish the affected stage, recurrence, and causes.",
+                "evidence_tier": "Tier 2",
+                "workaround": "After initial screening, rescreening, comprehensive audiologic evaluation, referral, and intervention may involve multiple visits and facilities; follow-up and outcome records may be incomplete or manually reconciled.",
+                "quantified_impact": "Infants may be lost to follow-up, confirmatory assessment may be delayed, and program managers may lack complete information for continuity and quality improvement.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D03: Healthcare Service Delivery and Public Health Operations (Philippine single-center pathway evaluation + existing HeLe eHealth referral model + framework review)",
+                "tags": [
+                        "D03",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: The care-pathway consequence and Philippine dropout evidence are strong, but the exact digital referral and tracking solution already exists in the HeLe model and no Iloilo-specific failure is verified; proceed only if a remaining barrier such as offline access, interoperability, sustainability, or intervention availability is demonstrated. | Next Action: Verified evidence: in a 2019 UST Hospital cohort of 778 newborns, 81 (10.4%) did not pass initial screening, 11 also did not pass rescreening, none of those 11 completed comprehensive audiologic evaluation, and 67 total dropouts occurred. This is single-center Manila evidence. HeLe already implemented Philippine web-based referral and tracking. Evidence: https://pjohns.pso-hns.org/index.php/pjohns/article/view/2137/2177 | https://doi.org/10.47895/amp.v57i9.5332 | Concerns: The 2019 evidence is from one UST Hospital cohort in Manila and is not nationally or locally representative; secure a birthing or audiology partner and de-identified records; protect child health data; do not duplicate HeLe's existing web referral and tracking model. | Notes: Verified evidence: in a 2019 UST Hospital cohort of 778 newborns, 81 (10.4%) did not pass initial screening, 11 also did not pass rescreening, none of those 11 completed comprehensive audiologic evaluation, and 67 total dropouts occurred. This is single-center Manila evidence. HeLe already implemented Philippine web-based referral and tracking. Evidence: https://pjohns.pso-hns.org/index.php/pjohns/article/view/2137/2177 | https://doi.org/10.47895/amp.v57i9.5332",
+                "score": 75.0
+        },
+        {
+                "id": "C22",
+                "sector": "Community Safety and Emergency Response",
+                "sufferer_occupation": "Drivers, passengers, pedestrians, cyclists, responders, and local government",
+                "sufferer_location": "One city or municipality with bounded road-crash records, traffic exposure data, and a defined intervention-planning process",
+                "problem_statement": "A selected locality may lack a validated method for reconciling available crash records and prioritizing road-safety interventions after accounting for traffic exposure, data quality, and local resource constraints.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Agencies may maintain separate or incomplete crash records, while conventional hotspot maps often rank locations using raw crash counts without exposure, data-quality, or intervention constraints",
+                "quantified_impact": "High-risk locations or contributing conditions may be misranked, and limited engineering, enforcement, or education resources may be allocated without transparent evidence",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D13: Community Safety and Emergency Response (Philippine Statistics Authority mortality data + Philippine crash-data quality research + local hotspot-analysis literature)",
+                "tags": [
+                        "D13",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Very high safety significance with measurable ranking, coverage, agreement, and decision-quality outcomes; defensibility depends on moving beyond raw-count hotspot maps and securing usable local records. | Next Action: Evidence: https://psa.gov.ph/statistics/vital-statistics/node/1684076211 | https://doi.org/10.1136/injuryprev-2018-safety.485 | https://doi.org/10.18421/10.18421/SAR82-08 | Concerns: Generic hotspot mapping is already saturated; obtain de-identified multi-source records and traffic exposure measures; address underreporting; avoid invasive driver surveillance; evaluate prioritization against expert or historical decisions. | Notes: Evidence: https://psa.gov.ph/statistics/vital-statistics/node/1684076211 | https://doi.org/10.1136/injuryprev-2018-safety.485 | https://doi.org/10.18421/10.18421/SAR82-08",
+                "score": 75.0
+        },
+        {
+                "id": "C23",
+                "sector": "Solid Waste Management Operations",
+                "sufferer_occupation": "MRF workers, waste generators, barangay or city environment offices, local government, and communities served",
+                "sufferer_location": "One selected barangay or cluster materials recovery facility with existing records and permission for a bounded physical-flow audit",
+                "problem_statement": "A selected materials recovery facility may lack a consistent, audit-ready method for reconciling waste-flow records with independent measurements, preventing reliable verification of diversion performance and identification of operational loss points.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Received, sorted, recovered, residual, and transferred waste may be recorded in paper, spreadsheet, or separate logs; aggregate reports may not be routinely reconciled with independent physical measurements",
+                "quantified_impact": "Inaccurate diversion reporting, undetected contamination or leakage, weak allocation of collection and processing resources, and limited evidence for corrective action",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D07: Solid Waste Management Operations (Domain Explorer + official performance-audit evidence + academic saturation scan)",
+                "tags": [
+                        "D07",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: High public-service relevance and a measurable record-to-physical-flow gap; desk evidence supports the problem shape, but recurrence, usable baseline records, and a committed local partner must be confirmed before shortlisting. | Next Action: Evidence: https://www.coa.gov.ph/reports/performance-audit-reports/2023-2/solid-waste-management-program/ | https://doi.org/10.1109/HNICEM60674.2023.10589249 | https://doi.org/10.5281/zenodo.17018819 | Concerns: Secure one MRF/MENRO partner; define a short audit period and limited waste categories; use calibrated reference measurements and safe handling/PPE; avoid a generic smart-bin or reporting-app concept; evaluate record accuracy and operational decisions, not only usability. | Notes: Evidence: https://www.coa.gov.ph/reports/performance-audit-reports/2023-2/solid-waste-management-program/ | https://doi.org/10.1109/HNICEM60674.2023.10589249 | https://doi.org/10.5281/zenodo.17018819",
+                "score": 75.0
+        },
+        {
+                "id": "C24",
+                "sector": "Digital Safety and Data Privacy Practices",
+                "sufferer_occupation": "University students or other online-scam reporters, and official agencies responsible for receiving and processing reports",
+                "sufferer_location": "Controlled university usable-security study using synthetic online-scam scenarios. Participants may inspect official public reporting guidance and channels but will not submit synthetic reports to live government systems.",
+                "problem_statement": "University students navigating official Philippine online-scam reporting pathways may have difficulty identifying an appropriate reporting channel efficiently and safely when incidents are ambiguous, multiple official channels appear plausible, and available evidence contains sensitive information. The extent and recurrence of this difficulty have not yet been established locally.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Users must determine the incident type, identify an appropriate official reporting pathway, interpret evidence requirements, and decide what sensitive information is necessary by consulting available official reporting guidance and channels.",
+                "quantified_impact": "Incorrect or less appropriate pathway selection, longer navigation time, unnecessary navigation, incomplete evidence preparation, task non-completion, and unnecessary disclosure of sensitive information may occur.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D24: Digital Safety and Data Privacy Practices (Domain Explorer + official complaint/reporting sources + academic underreporting/usability evidence + DSR usable-security framing)",
+                "tags": [
+                        "D24",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Strong usable-security/HCI research direction with measurable behavioral outcomes and a feasible controlled evaluation path. Keep on Hold until local task-performance difficulty is demonstrated and acceptable reporting pathways can be authoritatively defined. | Next Action: Evidence: https://www.pna.gov.ph/articles/1243101 | https://www.pna.gov.ph/articles/1228318 | https://www.doj.gov.ph/reporting_cybercrime.html | https://doi.org/10.1109/ICCCF.2016.7740424 | https://doi.org/10.1109/ECRIME47957.2019.9037577 | https://doi.org/10.54501/jots.v2i4.204 | Problem-bank note: local task-performance evidence is still required before shortlisting. | Concerns: Official reporting jurisdictions may overlap, making ground-truth routing difficult to define; official guidance may change; synthetic scenarios may not fully represent real victim conditions; repeated scenarios may create learning effects. Use only synthetic evidence and never submit fabricated reports. | Notes: Evidence: https://www.pna.gov.ph/articles/1243101 | https://www.pna.gov.ph/articles/1228318 | https://www.doj.gov.ph/reporting_cybercrime.html | https://doi.org/10.1109/ICCCF.2016.7740424 | https://doi.org/10.1109/ECRIME47957.2019.9037577 | https://doi.org/10.54501/jots.v2i4.204 | Problem-bank note: local task-performance evidence is still required before shortlisting.",
+                "score": 75.0
+        },
+        {
+                "id": "C25",
+                "sector": "Healthcare Service Delivery and Public Health Operations",
+                "sufferer_occupation": "Pregnant women and newborns, referring and receiving health workers, facilities, and local health managers",
+                "sufferer_location": "One selected local maternal referral network linking an RHU or birthing facility with a receiving hospital",
+                "problem_statement": "In a selected maternal referral network, records sent by RHUs or birthing facilities to receiving hospitals may be incomplete, inconsistently formatted, or lack acknowledgement and outcome feedback, limiting receiving-facility preparation and making referral completion difficult to verify.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Maternal referrals may use paper or differently formatted records, phone calls, or informal coordination; acknowledgement, receiving-facility feedback, and final referral outcome may not be consistently documented.",
+                "quantified_impact": "Missing or delayed information may require repeated clarification, weaken transfer preparation and continuity of care, and prevent reliable monitoring of unresolved referrals.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D03: Healthcare Service Delivery and Public Health Operations (Domain Explorer + Philippine maternal-referral evidence + framework review)",
+                "tags": [
+                        "D03",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Philippine studies document referral coordination and information-quality problems with measurable process outcomes, but the same bottleneck, data access, and partner support must be confirmed in one Iloilo network before shortlisting. | Next Action: Evidence: an Albay study identified coordination, data-management, and referral-protocol barriers (peer reviewed): https://doi.org/10.47895/AMP.V54I5.664 | A Cagayan de Oro preprint reviewed 3,330 referral forms, sampled 384, found 126 (31.8%) used the standard form, and none met all 14 completeness criteria: https://www.medrxiv.org/content/10.1101/2022.03.31.22273250v1.full-text | Concerns: Requires an authorized MHO, RHU, birthing-facility, or hospital partner; use de-identified records or controlled simulation; require maternal-health professional supervision and ethics or privacy approval; do not automate clinical risk diagnosis or triage. | Notes: Evidence: an Albay study identified coordination, data-management, and referral-protocol barriers (peer reviewed): https://doi.org/10.47895/AMP.V54I5.664 | A Cagayan de Oro preprint reviewed 3,330 referral forms, sampled 384, found 126 (31.8%) used the standard form, and none met all 14 completeness criteria: https://www.medrxiv.org/content/10.1101/2022.03.31.22273250v1.full-text",
+                "score": 75.0
+        },
+        {
+                "id": "C26",
+                "sector": "Healthcare Service Delivery and Public Health Operations",
+                "sufferer_occupation": "People seeking confidential HIV services, their support networks, authorized providers, and the provincial health system",
+                "sufferer_location": "One authorized Iloilo HIV clinic, treatment hub, or bounded provincial testing-and-linkage pathway",
+                "problem_statement": "Within a selected authorized Iloilo HIV-service pathway, low testing uptake or incomplete linkage between diagnosis, treatment, and continuing care may limit timely access to confidential services, but the local workflow causes must be established without exposing or stigmatizing individuals.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Iloilo operates several HIV clinics and free-testing sites, but provincial reporting identifies low testing and diagnosis coverage, limited treatment and viral-suppression coverage, poor health-seeking behavior, and minimal testing uptake among young people.",
+                "quantified_impact": "Delayed diagnosis or incomplete linkage can reduce timely access to prevention and treatment services and weaken progress toward provincial testing, treatment, and viral-suppression targets.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D03: Healthcare Service Delivery and Public Health Operations (D03 Health Landscape + official Iloilo Provincial Local AIDS Council evidence)",
+                "tags": [
+                        "D03",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: The local magnitude and service pathway are publicly documented, giving this direction strong impact potential; it remains Hold because stakeholder authorization, ethical access, and a precise clinic-level failure point are not confirmed. | Next Action: Official Iloilo evidence reported 1,988 diagnosed among an estimated 4,800 PLHIV as of June 2025 (41%); 1,583 of those diagnosed were treated (80%), and 1,065 of those treated had suppressed viral load (67%). The same source identified low youth testing uptake. Evidence: https://www.iloilo.gov.ph/en/health-news/get-tested-now-iloilo-aids-council-toughens-preventive-control-measures-vs-hiv | Concerns: Exceptionally sensitive and stigmatized context; proceed only through an authorized clinic or public-health partner; use de-identified aggregate data; do not create public risk scores, collect unnecessary identity or behavior data, or expose clinic attendance. | Notes: Official Iloilo evidence reported 1,988 diagnosed among an estimated 4,800 PLHIV as of June 2025 (41%); 1,583 of those diagnosed were treated (80%), and 1,065 of those treated had suppressed viral load (67%). The same source identified low youth testing uptake. Evidence: https://www.iloilo.gov.ph/en/health-news/get-tested-now-iloilo-aids-council-toughens-preventive-control-measures-vs-hiv",
+                "score": 75.0
+        },
+        {
+                "id": "C27",
+                "sector": "Healthcare Service Delivery and Public Health Operations",
+                "sufferer_occupation": "Adults with elevated blood pressure, families, barangay health workers, primary-care teams, and program managers",
+                "sufferer_location": "One selected Iloilo Healthy Hearts or primary-care site and one bounded hypertension care pathway",
+                "problem_statement": "A selected Iloilo hypertension-care pathway may have unmeasured losses between community identification, confirmation, enrollment, medicine continuity, follow-up, and control monitoring, but the exact failure point and recurrence must be established from site records.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Iloilo's Healthy Hearts Program has expanded across the province and tracks enrollment and blood-pressure control, but public reporting does not show whether patients consistently complete confirmation, enrollment, follow-up visits, medicine continuity, and repeated control monitoring at each site.",
+                "quantified_impact": "Unrecognized pathway losses may contribute to persistent uncontrolled blood pressure, delayed care, preventable complications, and incomplete evidence for local program improvement.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D03: Healthcare Service Delivery and Public Health Operations (D03 Health Landscape + official Iloilo Healthy Hearts implementation and outcome reports)",
+                "tags": [
+                        "D03",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: The program has substantial local reach, a defined care cascade, and measurable continuity outcomes; it remains Hold because public sources mainly report program success and do not establish a recurring site-level continuity failure. | Next Action: Official sources document province-wide expansion and report 22,395 enrolled patients. The outcome page states that 86.6% (17,182 patients) had controlled blood pressure, but 17,182 divided by 22,395 is about 76.7%, so the reported percentage and count require clarification. Evidence: https://www.iloilo.gov.ph/en/health-news/healthy-hearts-program-expands-16-sites-iloilo-province | https://www.iloilo.gov.ph/index.php/en/health-news/resolve-save-lives-lauds-iloilos-healthy-hearts-program-outcome | Concerns: Limit the study to one condition, site, and pathway stage; require an authorized primary-care partner and de-identified records; do not automate diagnosis or treatment; clarify the arithmetic inconsistency in the public outcome report before using its percentage as a baseline. | Notes: Official sources document province-wide expansion and report 22,395 enrolled patients. The outcome page states that 86.6% (17,182 patients) had controlled blood pressure, but 17,182 divided by 22,395 is about 76.7%, so the reported percentage and count require clarification. Evidence: https://www.iloilo.gov.ph/en/health-news/healthy-hearts-program-expands-16-sites-iloilo-province | https://www.iloilo.gov.ph/index.php/en/health-news/resolve-save-lives-lauds-iloilos-healthy-hearts-program-outcome",
+                "score": 75.0
+        },
+        {
+                "id": "C28",
+                "sector": "Healthcare Service Delivery and Public Health Operations",
+                "sufferer_occupation": "Residents, barangay and municipal health personnel, hospitals, response teams, and local government",
+                "sufferer_location": "One selected Iloilo municipality or barangay cluster and its surveillance-to-local-action workflow",
+                "problem_statement": "A selected Iloilo locality may have an unmeasured delay or documentation gap between dengue surveillance signals and completed barangay-level prevention actions, but the existence, frequency, and consequence of that operational gap must first be verified.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Provincial surveillance data inform task-force, municipal, and barangay prevention activities, including localized vector-control and education measures; public reports document case burden and response outcomes but not the timeliness or verification of each local action.",
+                "quantified_impact": "Delayed or poorly documented action may prolong preventable exposure, make resource prioritization less transparent, and limit evaluation of which local interventions were completed and effective.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D03: Healthcare Service Delivery and Public Health Operations (D03 Health Landscape + official Iloilo dengue surveillance and response reports)",
+                "tags": [
+                        "D03",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Dengue has high local consequence and a defined surveillance-to-action pathway with measurable timing and completion outcomes; it remains Hold because available evidence documents burden and a successful coordinated response rather than a specific operational failure. | Next Action: Official retrospective reporting states that early 2025 projections reached 21,000 cases, while coordinated provincial and local action limited the reported total to about 5,700 and identified 483 dengue-free barangays. This establishes relevance, not a failure. Evidence: https://iloilo.gov.ph/en/health-news/iloilo-provincial-government-grants-5000-incentives-2025-dengue-free-barangays | https://www.pna.gov.ph/articles/1245627 | Concerns: Do not create another generic case dashboard or hotspot map; identify one operational decision and response stage; distinguish reporting delay from action delay; use aggregate geographic data and avoid exposing households or individuals. | Notes: Official retrospective reporting states that early 2025 projections reached 21,000 cases, while coordinated provincial and local action limited the reported total to about 5,700 and identified 483 dengue-free barangays. This establishes relevance, not a failure. Evidence: https://iloilo.gov.ph/en/health-news/iloilo-provincial-government-grants-5000-incentives-2025-dengue-free-barangays | https://www.pna.gov.ph/articles/1245627",
+                "score": 75.0
+        },
+        {
+                "id": "C29",
+                "sector": "Healthcare Service Delivery and Public Health Operations",
+                "sufferer_occupation": "Outreach participants and caregivers, barangay health workers, primary-care and referral teams, and program managers",
+                "sufferer_location": "One selected PHO on Wheels or health-caravan activity and its bounded post-outreach referral pathway",
+                "problem_statement": "A selected Iloilo outreach-service pathway may lack complete evidence that patients referred for additional assessment, testing, or treatment completed the next step, but the occurrence and magnitude of this follow-up problem must first be established.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Iloilo outreach activities provide consultations, dental care, chest X-rays, and other services in communities; public reports describe service delivery but do not show whether patients needing further assessment, referral, or treatment complete the next step.",
+                "quantified_impact": "Temporary service contact without continuity may delay needed follow-up and leave outreach teams unable to determine whether referrals were completed or which barriers require action.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D03: Healthcare Service Delivery and Public Health Operations (D03 Health Landscape + official Iloilo PHO on Wheels and health-caravan reports)",
+                "tags": [
+                        "D03",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: The outreach pathway is concrete, locally active, and potentially measurable without proposing a generic health app; it remains Hold because public sources verify service delivery but do not document post-outreach loss to follow-up. | Next Action: Official Iloilo reports verify PHO on Wheels and community health caravans providing consultations, dental care, chest X-rays, and related services, but they provide no referral-completion figures. Evidence: https://iloilo.gov.ph/en/health-news/bringing-essential-health-services-closer-community | https://iloilo.gov.ph/en/health-news/health-caravan-brings-vital-services-talo-ato-residents | Concerns: Select only one outreach program, service type, locality, and follow-up stage; require an authorized outreach or primary-care partner and de-identified aggregate records; do not assume non-completion from the absence of public reporting. | Notes: Official Iloilo reports verify PHO on Wheels and community health caravans providing consultations, dental care, chest X-rays, and related services, but they provide no referral-completion figures. Evidence: https://iloilo.gov.ph/en/health-news/bringing-essential-health-services-closer-community | https://iloilo.gov.ph/en/health-news/health-caravan-brings-vital-services-talo-ato-residents",
+                "score": 75.0
+        },
+        {
+                "id": "C30",
+                "sector": "Disaster Risk Reduction and Preparedness",
+                "sufferer_occupation": "Residents, road users, businesses, maintenance crews, and local government",
+                "sufferer_location": "One recurrently flooded Iloilo City drainage corridor or catchment during a defined wet-season period",
+                "problem_statement": "A selected Iloilo City drainage corridor may have recurring obstruction points whose contribution to flooding and priority for maintenance are not established from combined maintenance, field, rainfall, and flood observations.",
+                "evidence_tier": "Tier 3",
+                "workaround": "Iloilo City conducts de-clogging and waterway-cleaning operations. Reports cite 421 maintenance operations from July 2025 to June 2026 and more than 700 kg of waste removed from drainage waterways daily, while local reporting also identifies drainage capacity, intense rainfall, and saturated soil as possible flood causes.",
+                "quantified_impact": "Maintenance resources may be repeatedly deployed without clear evidence of which sites and actions reduce flood depth, duration, or recurrence, while avoidable obstructions may persist.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D05: Disaster Risk Reduction and Preparedness (D05 Disaster Risk Reduction landscape + official and local Iloilo flood-maintenance reporting)",
+                "tags": [
+                        "D05",
+                        "Research Master Concept",
+                        "Ready for Problem Brief"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Current local reporting shows a large and recurrent maintenance burden with measurable operational and flood outcomes; the causal contribution of specific obstruction points and the actual prioritization workflow still require local verification. | Next Action: Local reports cite 421 de-clogging or maintenance operations from July 2025 to June 2026 and more than 700 kg of waste removed from waterways daily. Evidence: https://www.panaynews.net/iloilo-eyes-lasting-flood-fix-drainage-master-plan-to-go-beyond-421-declogging-ops/ | https://www.panaynews.net/dirty-burden-iloilo-citys-waterway-trash-surges-past-700-kilos-daily-barangays-along-creeks-to-be-held-accountable/ | https://pia.gov.ph/news/oplan-kontra-baha-seeks-cleaner-waterways-mitigates-flood-in-iloilo-city/ | Multi-cause caution: https://www.imtnews.ph/torrential-rain-clogged-drains-saturated-soil-blamed-for-flooding-in-iloilo-city/ | Concerns: Isolate obstruction effects from rainfall intensity, drainage capacity, tides, and saturated soil; require safe field procedures and agency permission; do not attribute responsibility to households or barangays without evidence. | Notes: Local reports cite 421 de-clogging or maintenance operations from July 2025 to June 2026 and more than 700 kg of waste removed from waterways daily. Evidence: https://www.panaynews.net/iloilo-eyes-lasting-flood-fix-drainage-master-plan-to-go-beyond-421-declogging-ops/ | https://www.panaynews.net/dirty-burden-iloilo-citys-waterway-trash-surges-past-700-kilos-daily-barangays-along-creeks-to-be-held-accountable/ | https://pia.gov.ph/news/oplan-kontra-baha-seeks-cleaner-waterways-mitigates-flood-in-iloilo-city/ | Multi-cause caution: https://www.imtnews.ph/torrential-rain-clogged-drains-saturated-soil-blamed-for-flooding-in-iloilo-city/",
+                "score": 75.0
+        },
+        {
+                "id": "C31",
+                "sector": "Disaster Risk Reduction and Preparedness",
+                "sufferer_occupation": "Residents, especially households in flood-prone areas, evacuees, and local responders",
+                "sufferer_location": "One Iloilo barangay cluster exposed to a tropical cyclone and continuing southwest-monsoon rainfall",
+                "problem_statement": "Residents in a selected Iloilo community may misinterpret a cyclone-exit or all-clear cue as the end of risk while monsoon-enhanced rainfall and flooding persist, potentially leading to premature return or delayed protective action.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Storm and rainfall advisories are issued through official and media channels, but a cyclone can exit the Philippine Area of Responsibility while enhanced southwest-monsoon rainfall and flooding continue. A July 2025 Iloilo report described residents returning home before renewed flooding affected 896 families or 3,116 people.",
+                "quantified_impact": "Premature return, delayed evacuation, or reduced protective action may increase exposure to renewed flooding and complicate response operations.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D05: Disaster Risk Reduction and Preparedness (D05 Disaster Risk Reduction landscape + Iloilo post-event and continuing-hazard reports)",
+                "tags": [
+                        "D05",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: The documented event suggests a consequential compound-hazard interpretation problem with observable timing and behavior, but recurrence, causality, and the responsible communication stage are not yet established. | Next Action: A July 2025 local report described renewed flooding after some residents returned home and recorded 896 affected families or 3,116 people; later reports also show the recurring cyclone-plus-habagat pattern. Evidence: https://www.imtnews.ph/torrential-rain-clogged-drains-saturated-soil-blamed-for-flooding-in-iloilo-city/ | https://pia.gov.ph/news/iloilo-city-sends-disaster-responses-amid-kiyapo-habagat/ | Concerns: Verify recurrence and the exact information pathway; distinguish official message content from media framing, rumor, and individual interpretation; do not label residents as misinformed from a single event report. | Notes: A July 2025 local report described renewed flooding after some residents returned home and recorded 896 affected families or 3,116 people; later reports also show the recurring cyclone-plus-habagat pattern. Evidence: https://www.imtnews.ph/torrential-rain-clogged-drains-saturated-soil-blamed-for-flooding-in-iloilo-city/ | https://pia.gov.ph/news/iloilo-city-sends-disaster-responses-amid-kiyapo-habagat/",
+                "score": 75.0
+        },
+        {
+                "id": "C32",
+                "sector": "Disaster Risk Reduction and Preparedness",
+                "sufferer_occupation": "Heat-exposed residents and workers, students, vulnerable groups, service providers, and local government",
+                "sufferer_location": "One Iloilo City locality or institution during defined high-heat periods and the city's developing heat-action planning process",
+                "problem_statement": "A selected Iloilo City locality or institution may lack sufficiently localized and validated evidence to identify when and where vulnerable groups face actionable extreme-heat risk and whether existing protective measures reach them.",
+                "evidence_tier": "Tier 3",
+                "workaround": "The City Health Office tracks heat-related and heat-associated consultations, and Iloilo City is validating local heat risks and vulnerable groups for an Urban Heat Action Plan. Public reporting counted 924 broadly classified heat-related or heat-associated cases over five weeks and a heat-index peak of 47 degrees Celsius.",
+                "quantified_impact": "Protective measures may be too broad, late, or poorly targeted, while preventable heat exposure, service demand, lost work or school time, and health complications continue.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D05: Disaster Risk Reduction and Preparedness (D05 Disaster Risk Reduction landscape + Iloilo health reporting + Urban Heat Action Plan evidence)",
+                "tags": [
+                        "D05",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: The burden is current, locally documented, climate-relevant, and linked to an active planning pathway; the case definition, spatial or institutional unit, and exact operational decision still need validation. | Next Action: Public reporting counted 924 broadly classified heat-related or heat-associated cases over five weeks and a peak heat index of 47 degrees Celsius; Iloilo City is also validating local risks for an Urban Heat Action Plan. Evidence: https://www.pna.gov.ph/index.php/articles/1275063 | https://www.sunstar.com.ph/iloilo/iloilo-city-health-office-to-public-brace-for-el-ni%C3%B1o | https://www.unescap.org/events/2026/iloilo-city-urban-heat-action-planning-workshop-validating-local-heat-risks | Concerns: Treat the 924 figure as a broad heat-related or heat-associated classification, not 924 confirmed heat illnesses; use de-identified aggregate data, validated exposure definitions, and one bounded decision context; cross-domain relevance to D03. | Notes: Public reporting counted 924 broadly classified heat-related or heat-associated cases over five weeks and a peak heat index of 47 degrees Celsius; Iloilo City is also validating local risks for an Urban Heat Action Plan. Evidence: https://www.pna.gov.ph/index.php/articles/1275063 | https://www.sunstar.com.ph/iloilo/iloilo-city-health-office-to-public-brace-for-el-ni%C3%B1o | https://www.unescap.org/events/2026/iloilo-city-urban-heat-action-planning-workshop-validating-local-heat-risks",
+                "score": 75.0
+        },
+        {
+                "id": "C33",
+                "sector": "Disaster Risk Reduction and Preparedness",
+                "sufferer_occupation": "Residents of flood-prone communities, barangay and municipal responders, and local decision-makers",
+                "sufferer_location": "One Iloilo municipality or barangay cluster using manual rain gauges or other local flood-observation points",
+                "problem_statement": "A selected Iloilo locality may experience incomplete or delayed rainfall and flood observations because of equipment, coverage, reporting, communications, or power-continuity limitations, potentially weakening localized warning and response decisions.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Local personnel inspect, read, communicate, and report rainfall or flood observations. Official provincial inventories documented nonfunctional manual rain gauges in Calinog, insufficient strategic coverage in other areas, and needs involving standardized reporting, communications, and power continuity.",
+                "quantified_impact": "Warning and response decisions may rely on missing, delayed, or unrepresentative observations, reducing lead time and confidence in localized action.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D05: Disaster Risk Reduction and Preparedness (D05 Disaster Risk Reduction landscape + official Iloilo early-warning-system inventories)",
+                "tags": [
+                        "D05",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: Official sources document concrete operational weaknesses with measurable completeness, uptime, timeliness, and coverage outcomes; currency, recurrence, and the affected local decision must be confirmed before prioritization. | Next Action: Official Iloilo sources reported nonfunctional manual rain gauges, insufficient strategic coverage, and needs involving standardized reporting and communication or power continuity. Evidence: https://iloilo.gov.ph/en/environment-news/pdrrmo-conducts-mrg-inventory-enhance-iloilos-flood-monitoring | https://iloilo.gov.ph/en/environment-news/iloilo-drrm-officers-push-enhanced-early-warning-systems | Concerns: The strongest inventory evidence is from 2024 and must be checked for current status; separate device failure, siting or coverage, reporting, communications, and power causes; avoid proposing additional sensors before confirming an operational need. | Notes: Official Iloilo sources reported nonfunctional manual rain gauges, insufficient strategic coverage, and needs involving standardized reporting and communication or power continuity. Evidence: https://iloilo.gov.ph/en/environment-news/pdrrmo-conducts-mrg-inventory-enhance-iloilos-flood-monitoring | https://iloilo.gov.ph/en/environment-news/iloilo-drrm-officers-push-enhanced-early-warning-systems",
+                "score": 75.0
+        },
+        {
+                "id": "C34",
+                "sector": "Disaster Risk Reduction and Preparedness",
+                "sufferer_occupation": "Evacuees, especially children, older adults, persons with disabilities, pregnant people, and the personnel responsible for center operations",
+                "sufferer_location": "One Iloilo municipality or barangay with designated evacuation centers under a defined hazard scenario",
+                "problem_statement": "A selected Iloilo locality may lack current, verifiable evidence that designated evacuation centers are ready and suitable for the expected population and vulnerable groups under a defined hazard scenario.",
+                "evidence_tier": "Tier 2",
+                "workaround": "Local governments designate and assess evacuation centers, while local disaster officials identify sanitation, potable water, ventilation, comfort rooms, and privacy for vulnerable evacuees as readiness requirements. Readiness information may be inspected manually and may change with occupancy, supplies, and facility condition.",
+                "quantified_impact": "Evacuees may be directed to unsuitable or underprepared facilities, while supplies, staffing, or alternate sites are arranged late, increasing health, safety, accessibility, and dignity risks.",
+                "evidence_types": [
+                        "Field Observation",
+                        "Local Workflow Record",
+                        "Preliminary Policy"
+                ],
+                "source": "master_research_concept_sheet",
+                "source_detail": "D05: Disaster Risk Reduction and Preparedness (D05 Disaster Risk Reduction landscape + Iloilo evacuation-center readiness reporting)",
+                "tags": [
+                        "D05",
+                        "Research Master Concept",
+                        "Investigate"
+                ],
+                "status": "PROPOSED",
+                "notes": "Rationale: The preparedness requirements and consequences are locally documented and important, but the operational failure, update need, and computing contribution remain conditional and must be established in one locality. | Next Action: Local disaster officials identified sanitation, potable water, ventilation, comfort rooms, and privacy for vulnerable evacuees as readiness needs; a mobile-shower turnover illustrates ongoing sanitation support. Evidence: https://www.pna.gov.ph/articles/1263022 | https://www.dailyguardian.com.ph/blog/metro-pacific-iloilo-water-turns-over-mobile-shower-to-iloilo-city-government1 | Concerns: Avoid a generic center registry or simple facility count; verify a real readiness decision, update frequency, and consequence; protect sensitive facility vulnerabilities and individual evacuee information; include accessibility and privacy requirements. | Notes: Local disaster officials identified sanitation, potable water, ventilation, comfort rooms, and privacy for vulnerable evacuees as readiness needs; a mobile-shower turnover illustrates ongoing sanitation support. Evidence: https://www.pna.gov.ph/articles/1263022 | https://www.dailyguardian.com.ph/blog/metro-pacific-iloilo-water-turns-over-mobile-shower-to-iloilo-city-government1",
+                "score": 75.0
+        }
+]
+        seeded = []
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            # Ensure project exists
+            conn.execute("""
+                INSERT OR IGNORE INTO projects (id, name, share_code, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?)
+            """, (project_id, f"Project {project_id}", project_id[:8].upper(), now, now))
+            for p in MASTER_RESEARCH_PROBLEMS:
+                prob_id = p['id'] if project_id in ('default_proj', None) else f"{p['id']}-{project_id[-6:]}"
+                # Insert or ignore if problem already exists
+                cur = conn.execute("SELECT id FROM problems WHERE id = ? AND project_id = ?", (prob_id, project_id))
+                if not cur.fetchone():
+                    conn.execute("""
+                        INSERT INTO problems (
+                            id, project_id, session_id, sector, sufferer_occupation,
+                            sufferer_location, problem_statement, evidence_tier, workaround,
+                            quantified_impact, evidence_types, source, source_detail,
+                            tags, status, notes, score, votes, created_at, updated_at
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)
+                    """, (
+                        prob_id, project_id, None, p["sector"],
+                        p["sufferer_occupation"], p["sufferer_location"], p["problem_statement"],
+                        p["evidence_tier"], p["workaround"], p["quantified_impact"],
+                        json.dumps(p["evidence_types"]), p["source"], p["source_detail"],
+                        json.dumps(p["tags"]), p["status"], p["notes"], p["score"],
+                        now, now
+                    ))
+                    seeded.append({**p, "id": prob_id, "project_id": project_id})
+            conn.commit()
+        return seeded
