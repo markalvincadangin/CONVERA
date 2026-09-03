@@ -473,9 +473,7 @@ PRODUCT_FRAMEWORK = Framework(
 # ---------------------------------------------------------------------------
 FRAMEWORK_REGISTRY: Dict[str, Framework] = {
     "INNOVATION": INNOVATION_FRAMEWORK,
-    "RESEARCH": RESEARCH_FRAMEWORK,
-    "CAPSTONE": CAPSTONE_FRAMEWORK,
-    "PRODUCT": PRODUCT_FRAMEWORK
+    "RESEARCH": RESEARCH_FRAMEWORK
 }
 
 

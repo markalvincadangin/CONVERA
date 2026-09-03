@@ -37,28 +37,6 @@ export const frameworkService = {
           gate_count: 4,
           target_audience: "Academic researchers, MS/PhD students, and faculty",
         },
-        {
-          id: "CAPSTONE",
-          name: "Academic Capstone & Technical Specification",
-          version: "1.0.0",
-          category: "CAPSTONE",
-          tagline: "Guide computing students from problem validation to IEEE 830 SRS specs.",
-          description: "CHED CICT & IEEE 830 compliant undergraduate capstone framework.",
-          stage_count: 4,
-          gate_count: 1,
-          target_audience: "Undergraduate IT/CS capstone teams",
-        },
-        {
-          id: "PRODUCT",
-          name: "Product Discovery & UX Specification",
-          version: "1.0.0",
-          category: "PRODUCT",
-          tagline: "Bridge user research, product discovery, and sprint-ready backlog specs.",
-          description: "Agile product discovery focusing on user journeys and MVP scoping.",
-          stage_count: 4,
-          gate_count: 1,
-          target_audience: "Product managers & agile squads",
-        },
       ];
     }
   },
