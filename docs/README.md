@@ -1,58 +1,37 @@
-# CONVERA — Master Documentation Suite
+# 📚 CONVERA Master Documentation Suite
 
-**Product:** CONVERA — Evidence-Driven Project Intelligence and Opportunity Validation System  
-**Parent Brand:** EMAERX (Technology & Innovation Team)  
+**Product:** CONVERA - Evidence-Driven Project Intelligence and Multi-Methodology Validation System (v3.0)  
+**Parent Brand:** EMAERX Project Intelligence Standard  
 **Tagline:** *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*  
-**Founders:** Mark Alvin, Mae Daniella Faith, John Emmanuel  
+**Repository:** [`https://github.com/markalvincadangin/CONVERA`](https://github.com/markalvincadangin/CONVERA)
 
 ---
 
-## 🏛️ Core Specifications & Architectural Standards
+## 🏛️ Governing Methodologies
 
-| Document | Purpose & Standards | Status |
-|---|---|---|
-| **[docs/CONVERA_MASTER_ARCHITECTURE.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/CONVERA_MASTER_ARCHITECTURE.md)** | **CONVERA Master Architecture Specification (v1.0)**<br>The authoritative 49-section product, conceptual, and systems blueprint. Defines the CCDS standard, Knowledge ≠ Workflow separation, 4 Core Engines, Cross-Cutting Mechanisms, and 10-Phase Roadmap. | 🟢 Master Blueprint |
-| **[docs/SRSDS.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/SRSDS.md)** | **Software Requirements & System Design Specification (SRSDS v3.0.0)**<br>Technical implementation standard compliant with IEEE 830, ISO/IEC/IEEE 29148, and CHED CICT Capstone Standards. Covers 3-tier architecture, SQLite WAL persistence, Step 1 Evidence Ledgers, Step 2 Decision Room, Step 3 SRS Generator, and multi-device collaboration. | 🟢 Approved |
-| **[docs/DESIGN_SYSTEM.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/DESIGN_SYSTEM.md)** | **CONVERA 60-30-10 Design System Manual**<br>EMAERX Electric Blue (`#0066FF`), Obsidian Black (`#0B0F14`), Exo 2 & Inter typography, WCAG 2.2 AA/AAA contrast ratios, Glassmorphism, and Nielsen Norman Usability Heuristics. | 🟢 Active |
-| **[docs/CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md)** | **CONVERA Intelligence & Integration Architecture (CIIA v1.0)**<br>Architectural contracts for Task-Routed AI Gateway, Universal Connector Hub (OpenAlex, Semantic Scholar, Crossref, PubMed), Document Intelligence Parser, and Bidirectional MCP (Client & Server). | 🟢 Active Contract |
+CONVERA provides first-class methodology governance across two primary disciplines:
 
-
----
-
-## 🔬 Product & Team Identity
-
-| Document | Description |
-|---|---|
-| **[docs/about/EMAERX.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/about/EMAERX.md)** | **EMAERX Team Profile & Philosophy**<br>Identity, philosophy (EXPLORE · MAKE · ADVANCE), meaning of X, core values, and brand architecture. |
-| **[docs/about/product/CONVERA.md](file:///c:/Users/markc/_Projects/automation/RatchetAI/docs/about/product/CONVERA.md)** | **CONVERA Product & System Profile**<br>Naming etymology (*Convergence + Vera*), target users (3rd-4th year Computing/IT students), problem-to-decision gap, and core positioning. |
+| Framework Document | Track & Scope | Quality Gates |
+| :--- | :--- | :--- |
+| **[`docs/frameworks/Evidence-Ratcheted Problem-to-Solution Pipeline Framework.md`](frameworks/Evidence-Ratcheted%20Problem-to-Solution%20Pipeline%20Framework.md)** | **Technopreneurship & Venture Innovation**<br>5-Phase startup discovery, Mom Test behavioral validation, SVB Canvas, and MVP skin-in-the-game commitment audit. | `Gate 1: Opportunity Worthiness`<br>`Gate 2: Empirical Validation` |
+| **[`docs/frameworks/Computing Research Concept Development Framework.md`](frameworks/Computing%20Research%20Concept%20Development%20Framework.md)** | **Computing Research Concept Development (DSR / CRCDP)**<br>6-Phase thesis/capstone scouting, dual-literature grounding, 4 DSR artifact classes (March & Smith), Kothari trapping, and DOST-PCIEERD / SDG ethics. | `Gate 1: Problem Significance`<br>`Gate 2: Research Gap Quality`<br>`Gate 3: Evaluation Rigor`<br>`Gate 4: Proposal Readiness` |
+| **[`docs/frameworks/UIUX Design Framework.md`](frameworks/UIUX%20Design%20Framework.md)** | **CONVERA UI/UX & Interaction Standards**<br>38-section design standard covering 60-30-10 palette, WCAG 2.2 AA accessibility, card density, Command Deck, and Command Palette (`Ctrl+K`). | Heuristic Review |
 
 ---
 
-## 🧬 Evolutionary 3-Step Framework
+## 📑 Core Specifications & System Blueprints
 
-1. **Step 1: Evidence Foundation & Relational Knowledge Graph**
-   - 4-Claim Evidence Ledger (`Friction`, `Frequency`, `Workaround`, `Adoption/Commitment`)
-   - Commercial (WTP) vs Civic/Academic Institutional feasibility toggle
-   - Prioritized Assumption Radar with Mom Test interview questions
-   - Crossref, OpenAlex, and Europe PMC DOI paper grounding with AI relevance gate
-2. **Step 2: Decision Intelligence & Audit Trail**
-   - Multi-candidate Decision Room workspace
-   - Explainable AI Judge ranking and risk breakdowns
-   - Immutable Decision Audit Log (`decision_records` table)
-   - Phase 3 -> Phase 2 Pivot / Re-evaluate learning loop
-3. **Step 3: Project Translation (Idea-to-Specification)**
-   - IEEE 830 / CHED CICT compliant Software Requirements Specification (SRS) Generator
-   - Dual-track: Academic Capstone Spec & Startup MVP Technical Spec
-   - 6 Core Sections: Vision & Scope, Personas, Functional Requirements (FR-001..FR-008), Non-Functional Constraints, System Architecture, and MVP Validation Rubric
+| Document | Purpose & Architectural Standards |
+| :--- | :--- |
+| **[`docs/CONVERA_MASTER_ARCHITECTURE.md`](CONVERA_MASTER_ARCHITECTURE.md)** | **CONVERA Master Architecture Specification (v1.0)**<br>The authoritative product, conceptual, and systems blueprint. Defines Knowledge vs Workflow separation, 4 Core Engines, Cross-Cutting Mechanisms, and 10-Phase Roadmap. |
+| **[`docs/SRSDS.md`](SRSDS.md)** | **Software Requirements & System Design Specification (SRSDS v3.0.0)**<br>Technical implementation standard compliant with IEEE 830, ISO/IEC/IEEE 29148, and CHED CICT Capstone Standards. |
+| **[`docs/DESIGN_SYSTEM.md`](DESIGN_SYSTEM.md)** | **CONVERA 60-30-10 Design System Manual**<br>EMAERX Electric Blue (`#0066FF`), Obsidian Black (`#0B0F14`), Exo 2 & Inter typography, WCAG 2.2 AA contrast ratios, Glassmorphism, and Nielsen Norman Heuristics. |
+| **[`docs/CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md`](CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md)** | **CONVERA Intelligence & Integration Architecture (CIIA v1.0)**<br>Architectural contracts for Task-Routed AI Gateway, Universal Connector Hub (OpenAlex, Semantic Scholar, Crossref, EuropePMC), and MCP Server/Client. |
 
 ---
 
-## ⚙️ Quickstart Launch Commands
+## 💡 Contributor & Developer Guides
 
-```powershell
-# 1-Click Launch (Host on your PC, Multi-device LAN enabled)
-.\start.bat
-
-# Or Remote Tunnel (Worldwide Sharing via Cloudflare Tunnel)
-.\share-tunnel.ps1
-```
+- **[Developer Contributing Guide](../CONTRIBUTING.md)**: Full setup instructions, GitFlow branch model, testing requirements, and PR process.
+- **[Product Profile](about/product/CONVERA.md)**: Product naming, target user personas, and market positioning.
+- **[EMAERX Team Profile](about/EMAERX.md)**: Organizational mission, philosophy (*EXPLORE • MAKE • ADVANCE*), and standards.
