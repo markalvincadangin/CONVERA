@@ -207,3 +207,17 @@ class BaseStorageAdapter(ABC):
     def get_traceability_lineage(self, requirement_id: Optional[str] = None, problem_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """Retrieve end-to-end traceability lineage chain."""
         pass
+    @abstractmethod
+    def record_gate_review(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Record a formal Gate review evaluation and sign-off."""
+        pass
+
+    @abstractmethod
+    def get_gate_review(self, project_id: str, gate_id: str) -> Optional[Dict[str, Any]]:
+        """Get gate review by project_id and gate_id."""
+        pass
+
+    @abstractmethod
+    def list_gate_reviews(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List all recorded gate reviews for a project."""
+        pass

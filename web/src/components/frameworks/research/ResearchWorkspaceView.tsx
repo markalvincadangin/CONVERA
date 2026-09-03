@@ -17,6 +17,7 @@ import {
 import { LiteratureMatrixTable, LiteratureRow, ResearchGapItem } from "@/components/research/LiteratureMatrixTable";
 import { UnknownsMap } from "@/components/knowledge/UnknownsMap";
 import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
+import { GateReviewModal } from "@/components/frameworks/research/GateReviewModal";
 import { researchService } from "@/services/researchService";
 import { SessionState, ProblemRecord } from "@/lib/types";
 
@@ -46,6 +47,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const [matrixGaps, setMatrixGaps] = useState<ResearchGapItem[]>([]);
   const [isLoadingMatrix, setIsLoadingMatrix] = useState<boolean>(false);
   const [isTraceabilityOpen, setIsTraceabilityOpen] = useState<boolean>(false);
+  const [activeGateModal, setActiveGateModal] = useState<"GATE_1" | "GATE_2" | "GATE_3" | "GATE_4" | null>(null);
 
   // Default demo papers for initial view
   useEffect(() => {
@@ -310,6 +312,16 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         isOpen={isTraceabilityOpen}
         onClose={() => setIsTraceabilityOpen(false)}
       />
+      {activeGateModal && (
+        <GateReviewModal
+          isOpen={!!activeGateModal}
+          gateId={activeGateModal}
+          onClose={() => setActiveGateModal(null)}
+          onGatePassed={() => {
+            console.log(`Gate ${activeGateModal} Passed!`);
+          }}
+        />
+      )}
     </div>
   );
 };

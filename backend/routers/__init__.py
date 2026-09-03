@@ -16,6 +16,7 @@ from .knowledge import router as knowledge_router
 from .decisions import router as decisions_router
 from .traceability import router as traceability_router
 from .evaluation import router as evaluation_router
+from .gates import router as gates_router
 
 __all__ = [
     "connectors_router",
@@ -30,4 +31,5 @@ __all__ = [
     "decisions_router",
     "traceability_router",
     "evaluation_router",
+    "gates_router",
 ]

@@ -347,6 +347,23 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     linked_problem_id TEXT,
                     created_at TEXT NOT NULL
                 );
+                CREATE TABLE IF NOT EXISTS gate_reviews (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL,
+                    session_id TEXT,
+                    gate_id TEXT NOT NULL,
+                    gate_name TEXT NOT NULL,
+                    verdict TEXT NOT NULL, -- PASS, REVISE, HOLD, FAIL
+                    overall_score REAL NOT NULL,
+                    rubric_scores TEXT, -- JSON
+                    reviewer_role TEXT DEFAULT 'RESEARCH_ADVISOR',
+                    reviewer_feedback TEXT,
+                    passed_criteria TEXT, -- JSON
+                    failed_criteria TEXT, -- JSON
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
 
 
                 CREATE INDEX IF NOT EXISTS idx_claim_evidence_claim ON claim_evidence_links(claim_id);
@@ -1993,3 +2010,80 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         with self._get_connection() as conn:
             rows = conn.execute(query, tuple(params)).fetchall()
             return [dict(r) for r in rows]
+
+    def record_gate_review(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        rev_id = data.get("id") or f"gate_rev_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        rubric_json = json.dumps(data.get("rubric_scores") or {})
+        passed_json = json.dumps(data.get("passed_criteria") or [])
+        failed_json = json.dumps(data.get("failed_criteria") or [])
+
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO gate_reviews
+                (id, project_id, session_id, gate_id, gate_name, verdict, overall_score, rubric_scores, reviewer_role, reviewer_feedback, passed_criteria, failed_criteria, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    verdict = excluded.verdict,
+                    overall_score = excluded.overall_score,
+                    rubric_scores = excluded.rubric_scores,
+                    reviewer_feedback = excluded.reviewer_feedback,
+                    passed_criteria = excluded.passed_criteria,
+                    failed_criteria = excluded.failed_criteria,
+                    updated_at = excluded.updated_at
+                """,
+                (
+                    rev_id,
+                    data.get("project_id", "default_proj"),
+                    data.get("session_id"),
+                    data.get("gate_id", "GATE_1"),
+                    data.get("gate_name", "Gate Evaluation"),
+                    data.get("verdict", "PASS"),
+                    data.get("overall_score", 85.0),
+                    rubric_json,
+                    data.get("reviewer_role", "RESEARCH_ADVISOR"),
+                    data.get("reviewer_feedback", ""),
+                    passed_json,
+                    failed_json,
+                    now,
+                    now
+                )
+            )
+        data["id"] = rev_id
+        data["created_at"] = now
+        data["updated_at"] = now
+        return data
+
+    def get_gate_review(self, project_id: str, gate_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM gate_reviews WHERE (project_id = ? OR project_id = 'default_proj') AND gate_id = ? ORDER BY created_at DESC LIMIT 1",
+                (project_id, gate_id)
+            ).fetchone()
+            if not row:
+                return None
+            d = dict(row)
+            d["rubric_scores"] = json.loads(d["rubric_scores"]) if d.get("rubric_scores") else {}
+            d["passed_criteria"] = json.loads(d["passed_criteria"]) if d.get("passed_criteria") else []
+            d["failed_criteria"] = json.loads(d["failed_criteria"]) if d.get("failed_criteria") else []
+            return d
+
+    def list_gate_reviews(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM gate_reviews WHERE 1=1"
+        params: List[Any] = []
+        if project_id:
+            query += " AND (project_id = ? OR project_id = 'default_proj')"
+            params.append(project_id)
+        query += " ORDER BY created_at DESC"
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            results = []
+            for r in rows:
+                d = dict(r)
+                d["rubric_scores"] = json.loads(d["rubric_scores"]) if d.get("rubric_scores") else {}
+                d["passed_criteria"] = json.loads(d["passed_criteria"]) if d.get("passed_criteria") else []
+                d["failed_criteria"] = json.loads(d["failed_criteria"]) if d.get("failed_criteria") else []
+                results.append(d)
+            return results

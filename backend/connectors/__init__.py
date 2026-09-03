@@ -1,30 +1,15 @@
-"""
-CONVERA Connectors Package
-==========================
-Governed by: CONVERA Intelligence & Integration Architecture (CIIA v1.0)
-"""
-
-from .base import (
-    BaseConnector,
-    ProvenanceMetadata,
-    NormalizedScholarlyWork,
-    EvidenceCandidate
-)
-from .openalex_connector import OpenAlexConnector
-from .semantic_scholar_connector import SemanticScholarConnector
+from .base import BaseConnector, NormalizedScholarlyWork, ProvenanceMetadata
 from .crossref_connector import CrossrefConnector
+from .openalex_connector import OpenAlexConnector
 from .pubmed_connector import PubMedConnector
-from .hub import ConnectorHub, connector_hub
+from .semanticscholar_connector import SemanticScholarConnector
 
 __all__ = [
     "BaseConnector",
-    "ProvenanceMetadata",
     "NormalizedScholarlyWork",
-    "EvidenceCandidate",
-    "OpenAlexConnector",
-    "SemanticScholarConnector",
+    "ProvenanceMetadata",
     "CrossrefConnector",
+    "OpenAlexConnector",
     "PubMedConnector",
-    "ConnectorHub",
-    "connector_hub",
+    "SemanticScholarConnector",
 ]
