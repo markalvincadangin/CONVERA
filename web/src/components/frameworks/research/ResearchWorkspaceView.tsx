@@ -75,6 +75,33 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const currentPhaseId = activePhase !== undefined ? phaseMap[activePhase] || "A" : activePhaseId;
   const activePhaseMeta = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
   
+  // Active Problem Anchor Selector
+  const [selectedAnchorId, setSelectedAnchorId] = useState<string>(session?.problem_statement || "");
+  const [isAnchorDrawerOpen, setIsAnchorDrawerOpen] = useState<boolean>(false);
+
+  const handleSelectProblemAnchor = (prob: ProblemRecord) => {
+    setSelectedAnchorId(prob.id);
+    if (session && onUpdateSession) {
+      onUpdateSession({
+        ...session,
+        problem_statement: prob.problem_statement,
+      });
+    }
+
+    if (currentPhaseId === "A") {
+      setFieldObservations(
+        `[Anchor: ${prob.id}] ${prob.problem_statement} | Setting: ${prob.sufferer_location || "Regional Setting"} | Impact: ${prob.quantified_impact || "Observed loss"}`
+      );
+      toast.success(`Loaded "${prob.id}" into Stage A Field Observations!`, "Problem Anchor Loaded");
+    } else if (currentPhaseId === "B") {
+      toast.success(`Set "${prob.id}" as active problem for Gate 1 Problem Significance Review!`, "Stage B Anchor Set");
+    } else if (currentPhaseId === "C") {
+      setSearchQuery(prob.problem_statement);
+      fetchMatrix(prob.problem_statement);
+      toast.success(`Loaded "${prob.id}" and generating Literature Matrix...`, "Stage C Lit Matrix");
+    }
+  };
+
   // Dynamic Database-Driven Research Domains State
   const [domains, setDomains] = useState<ResearchDomainRecord[]>([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState<boolean>(false);

@@ -49,11 +49,13 @@ import {
 interface ProblemBankViewProps {
   session: SessionState | null;
   onSendToPhase2: (selectedIds: string[]) => void;
+  onSendToStage?: (stageNumber: number, selectedIds: string[]) => void;
 }
 
 export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   session,
   onSendToPhase2,
+  onSendToStage,
 }) => {
   const [problems, setProblems] = useState<ProblemRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);

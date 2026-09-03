@@ -7,7 +7,7 @@ import { ConfirmModal } from "@/components/common/ConfirmModal";
 import { Button } from "@/components/common/Button";
 import { ProblemCommentsSection } from "./ProblemCommentsSection";
 import { authService } from "@/services/authService";
-import { ProblemRecord } from "@/lib/types";
+import { ProblemRecord, SessionState } from "@/lib/types";
 import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
@@ -42,10 +42,12 @@ import {
 interface ProblemDetailModalProps {
   problem: ProblemRecord | null;
   isOpen: boolean;
+  session?: SessionState | null;
   onClose: () => void;
   onProblemUpdated: (problem: ProblemRecord) => void;
   onProblemDeleted: (problemId: string) => void;
   onAdvanceToPhase2?: (problemId: string) => void;
+  onAdvanceToStage?: (stageNumber: number, problemId: string) => void;
 }
 
 export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({

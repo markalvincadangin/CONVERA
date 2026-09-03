@@ -204,9 +204,23 @@ export default function Home() {
     document.body.removeChild(element);
   };
 
-  const handleSendToPhase2 = (selectedIds: string[]) => {
+  const handleSendToStage = (stageNumber: number, selectedIds: string[]) => {
     setPhase2SelectedIds(selectedIds);
-    setActivePhase(2);
+    if (selectedIds.length > 0 && session) {
+      const selectedProb = problems.find((p) => p.id === selectedIds[0]);
+      if (selectedProb) {
+        handleUpdateSession({
+          ...session,
+          problem_statement: selectedProb.problem_statement,
+          phase3_problem: selectedProb.problem_statement,
+        });
+      }
+    }
+    setActivePhase(stageNumber);
+  };
+
+  const handleSendToPhase2 = (selectedIds: string[]) => {
+    handleSendToStage(2, selectedIds);
   };
 
   return (
