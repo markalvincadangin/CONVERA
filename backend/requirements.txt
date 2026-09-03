@@ -7,3 +7,4 @@ uvicorn>=0.34.0
 sse-starlette>=2.0.0
 pytest>=8.0.0
 httpx>=0.28.0
+pytest-asyncio
