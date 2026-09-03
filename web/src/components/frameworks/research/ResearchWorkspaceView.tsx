@@ -34,6 +34,12 @@ import { SessionState, ProblemRecord } from "@/lib/types";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
+import {
+  STANDARD_RESEARCH_DOMAINS,
+  STANDARD_EMPIRICAL_BREAKDOWNS,
+  EmpiricalBreakdownTemplate
+} from "@/lib/constants";
+import { X, Tag } from "lucide-react";
 
 interface ResearchWorkspaceViewProps {
   session: SessionState | null;
@@ -49,39 +55,6 @@ const PHASES = [
   { id: "D", name: "Phase D: Artifact Design & Kernel Theory", desc: "Abductive leap, 4 DSR artifact classes, and algorithmic architecture." },
   { id: "E", name: "Phase E: Trapping & Evaluation Design", desc: "Independent/dependent variables, circumscription loops, and Kothari experimental designs.", gate: "Gate 3: Artifact Rigor & Design" },
   { id: "F", name: "Phase F: Relevance & Feasibility Synthesis", desc: "SDGs, DOST-PCIEERD, Data Privacy Act 2012, and Gate 4 Proposal Canvas.", gate: "Gate 4: Proposal Readiness" },
-];
-
-const RESEARCH_DOMAINS = [
-  "Precision Agriculture & Edge AI",
-  "Marine & Aquaculture IoT",
-  "Biomedical Informatics & Triage",
-  "Disaster Mesh Networks & LoRaWAN",
-  "Smart Energy & Grid Telemetry",
-  "Cybersecurity & Threat Telemetry",
-  "Urban Transit & Fleet Optimization",
-];
-
-const SAMPLE_RESEARCH_BREAKDOWNS = [
-  {
-    label: "Miagao Bulb Onion (Edge AI)",
-    domain: "Precision Agriculture & Edge AI",
-    text: "Miagao, Iloilo onion farmers lose 40% harvest to humidity rot. Offline optical camera sensors fog up in tropical monsoons, causing 42% model false-negative rate on mold detection.",
-  },
-  {
-    label: "Carles Tuna Catch (Marine IoT)",
-    domain: "Marine & Aquaculture IoT",
-    text: "Carles, Iloilo tuna fishers face 15% fish spoilage. LoRaWAN telemetry transceivers drop 38% packets beyond 12km offshore, preventing real-time refrigeration temperature logging.",
-  },
-  {
-    label: "Dumangas Milkfish (Aquaculture)",
-    domain: "Marine & Aquaculture IoT",
-    text: "Dumangas bangus ponds experience 8% mortality. Optical dissolved oxygen probes suffer bio-fouling calibration drift after 72 hours in brackish waters.",
-  },
-  {
-    label: "Western Visayas Triage (Health AI)",
-    domain: "Biomedical Informatics & Triage",
-    text: "Rural district health units experience 45-minute clinical triage latency. Edge tablet classification models fail without continuous internet connectivity.",
-  },
 ];
 
 export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
@@ -106,10 +79,45 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const activePhaseMeta = PHASES.find((p) => p.id === currentPhaseId) || PHASES[0];
   
   // Stage A Discovery State
+  const [customDomains, setCustomDomains] = useState<string[]>([]);
+  const [newCustomDomainInput, setNewCustomDomainInput] = useState<string>("");
+  const [showCustomInput, setShowCustomInput] = useState<boolean>(false);
   const [selectedDomains, setSelectedDomains] = useState<string[]>([
     "Precision Agriculture & Edge AI",
     "Marine & Aquaculture IoT",
   ]);
+
+  const allAvailableDomains = [...STANDARD_RESEARCH_DOMAINS, ...customDomains];
+
+  const handleAddCustomDomain = () => {
+    const trimmed = newCustomDomainInput.trim();
+    if (!trimmed) return;
+    if (allAvailableDomains.includes(trimmed)) {
+      if (!selectedDomains.includes(trimmed)) {
+        setSelectedDomains((prev) => [...prev, trimmed]);
+      }
+      setNewCustomDomainInput("");
+      setShowCustomInput(false);
+      return;
+    }
+    setCustomDomains((prev) => [...prev, trimmed]);
+    setSelectedDomains((prev) => [...prev, trimmed]);
+    setNewCustomDomainInput("");
+    setShowCustomInput(false);
+    toast.success(`Added custom research domain: "${trimmed}"`, "Domain Added");
+  };
+
+  const handleRemoveCustomDomain = (domain: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCustomDomains((prev) => prev.filter((d) => d !== domain));
+    setSelectedDomains((prev) => prev.filter((d) => d !== domain));
+  };
+
+  const filteredSamples = selectedDomains.length > 0
+    ? STANDARD_EMPIRICAL_BREAKDOWNS.filter((s) => selectedDomains.includes(s.domain))
+    : STANDARD_EMPIRICAL_BREAKDOWNS;
+
+  const displaySamples = filteredSamples.length > 0 ? filteredSamples : STANDARD_EMPIRICAL_BREAKDOWNS;
   const [fieldObservations, setFieldObservations] = useState<string>("");
   const [isDiscovering, setIsDiscovering] = useState<boolean>(false);
   const [discoveredProblems, setDiscoveredProblems] = useState<ProblemRecord[]>([]);
@@ -135,7 +143,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
     );
   };
 
-  const handleSelectAllDomains = () => setSelectedDomains(RESEARCH_DOMAINS);
+  const handleSelectAllDomains = () => setSelectedDomains(allAvailableDomains);
   const handleClearDomains = () => setSelectedDomains([]);
 
   const handleRunEmpiricalDiscovery = async () => {
@@ -273,56 +281,126 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                 </div>
               </div>
 
-              {/* Domain Chips */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono">
-                  Target Research Domains ({selectedDomains.length} Selected)
-                </label>
+              {/* Domain Chips with Custom Domain Creation */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5 text-emerald-400" /> Target Research Domains ({selectedDomains.length} Active)
+                  </label>
+                  {!showCustomInput && (
+                    <button
+                      onClick={() => setShowCustomInput(true)}
+                      className="text-[11px] font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" /> Add Custom Domain
+                    </button>
+                  )}
+                </div>
+
+                {/* Inline Custom Domain Adder */}
+                {showCustomInput && (
+                  <div className="p-3 bg-slate-950 border border-emerald-500/40 rounded-2xl flex items-center gap-2 animate-in fade-in duration-150">
+                    <input
+                      type="text"
+                      value={newCustomDomainInput}
+                      onChange={(e) => setNewCustomDomainInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCustomDomain();
+                        } else if (e.key === "Escape") {
+                          setShowCustomInput(false);
+                        }
+                      }}
+                      placeholder="Type custom research domain (e.g. 'Quantum Cryptography & Key Distribution')..."
+                      className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      autoFocus
+                    />
+                    <Button variant="primary" size="sm" onClick={handleAddCustomDomain} className="text-xs font-bold">
+                      Add Domain
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => setShowCustomInput(false)} className="text-xs">
+                      Cancel
+                    </Button>
+                  </div>
+                )}
+
                 <div className="flex flex-wrap gap-2">
-                  {RESEARCH_DOMAINS.map((domain) => {
+                  {allAvailableDomains.map((domain) => {
                     const isSelected = selectedDomains.includes(domain);
+                    const isCustom = customDomains.includes(domain);
                     return (
-                      <button
+                      <div
                         key={domain}
                         onClick={() => toggleDomain(domain)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => e.key === "Enter" && toggleDomain(domain)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 cursor-pointer select-none ${
                           isSelected
-                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm"
+                            ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm ring-1 ring-emerald-500/20"
                             : "bg-slate-950/60 text-slate-400 border border-slate-800 hover:border-slate-700 hover:text-slate-300"
                         }`}
                       >
                         <Cpu className={`w-3.5 h-3.5 ${isSelected ? "text-emerald-400" : "text-slate-500"}`} />
-                        {domain}
-                      </button>
+                        <span>{domain}</span>
+                        {isCustom && (
+                          <button
+                            onClick={(e) => handleRemoveCustomDomain(domain, e)}
+                            className="p-0.5 ml-1 rounded-full text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                            title="Remove custom domain"
+                          >
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
-              {/* Sample Field Breakdowns Quick-Fill */}
-              <div className="space-y-2">
-                <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
-                  <Lightbulb className="w-3.5 h-3.5 text-amber-400" /> Sample Empirical Breakdown Observations (Click to Load)
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                  {SAMPLE_RESEARCH_BREAKDOWNS.map((item, idx) => (
+              {/* Standardized Sample Field Breakdowns Quick-Fill */}
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono flex items-center gap-1.5">
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-400" /> Standard Empirical Breakdown Templates ({displaySamples.length} Available)
+                  </label>
+                  <span className="text-[11px] text-slate-400 font-mono">
+                    Click any card to load observation
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                  {displaySamples.map((item) => (
                     <button
-                      key={idx}
+                      key={item.id}
                       onClick={() => {
                         setFieldObservations(item.text);
                         if (!selectedDomains.includes(item.domain)) {
                           setSelectedDomains((prev) => [...prev, item.domain]);
                         }
-                        toast.info(`Loaded sample: ${item.label}`, "Observation Loaded");
+                        toast.info(`Loaded standardized template: ${item.label}`, "Observation Loaded");
                       }}
-                      className="p-2.5 rounded-xl bg-slate-950/70 border border-slate-800/80 hover:border-emerald-500/40 text-left transition-all group"
+                      className="p-3 rounded-2xl bg-slate-950/70 border border-slate-800/80 hover:border-emerald-500/40 text-left transition-all group flex flex-col justify-between space-y-2 hover:shadow-md hover:bg-slate-900/50"
                     >
-                      <span className="text-[11px] font-bold text-slate-200 group-hover:text-emerald-300 block truncate font-mono">
-                        {item.label}
-                      </span>
-                      <p className="text-[10px] text-slate-500 line-clamp-2 mt-1 leading-snug">
-                        {item.text}
-                      </p>
+                      <div>
+                        <div className="flex items-center justify-between gap-1">
+                          <span className="text-[11px] font-bold text-slate-200 group-hover:text-emerald-300 font-mono truncate">
+                            {item.label}
+                          </span>
+                          <span className="text-[9px] font-mono text-emerald-400/80 bg-emerald-950/60 border border-emerald-900 px-1.5 py-0.5 rounded">
+                            {item.id}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-slate-400 line-clamp-2 mt-1 leading-snug">
+                          {item.symptom}
+                        </p>
+                      </div>
+
+                      <div className="pt-1.5 border-t border-slate-800/60 flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                        <span className="truncate max-w-[140px]">{item.locality.split(",")[0]}</span>
+                        <span className="text-rose-400/90 truncate max-w-[120px]">{item.consequence.split(";")[0]}</span>
+                      </div>
                     </button>
                   ))}
                 </div>
