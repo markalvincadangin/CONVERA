@@ -3,34 +3,33 @@
   <img src="docs/about/brand/EMAERX.png" alt="EMAERX Brand" width="140" height="auto" />
 
   # CONVERA
-  ### Evidence-Driven Project Intelligence and Opportunity Validation System (v3.0)
-  **A Product of EMAERX**
+  ### Evidence-Driven Project Intelligence and Multi-Methodology Validation System
+  **A Flagship Product of EMAERX (v3.0)**
 
   *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*
 
-  [![CI Quality Gate](https://github.com/markalvincadangin/RatchetAI/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/markalvincadangin/RatchetAI/actions/workflows/ci.yml)
+  [![CI Quality Gate](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml)
   [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
   [![IEEE 830 Compliant](https://img.shields.io/badge/Standard-IEEE%20830%20%2F%20ISO%2029148-cyan.svg)](docs/SRSDS.md)
-  [![CHED CICT Aligned](https://img.shields.io/badge/Academic-CHED%20CICT%20Capstone-blue.svg)](docs/SRSDS.md)
-  [![UI/UX Standards](https://img.shields.io/badge/UX-WCAG%202.2%20%7C%20NN%2Fg%20Heuristics-purple.svg)](docs/DESIGN_SYSTEM.md)
+  [![CHED CICT Aligned](https://img.shields.io/badge/Academic-CHED%20CICT%20Capstone-blue.svg)](docs/frameworks/Computing%20Research%20Concept%20Development%20Framework.md)
+  [![UI/UX Standards](https://img.shields.io/badge/UX-WCAG%202.2%20AA%20%7C%20NN%2Fg%20Heuristics-purple.svg)](docs/frameworks/UIUX%20Design%20Framework.md)
   [![Python](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python&logoColor=white)](backend/)
-  [![Next.js](https://img.shields.io/badge/Next.js-16.0-black.svg?logo=next.js&logoColor=white)](web/)
+  [![Next.js](https://img.shields.io/badge/Next.js-15.2-black.svg?logo=next.js&logoColor=white)](web/)
   [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?logo=fastapi&logoColor=white)](backend/)
   [![SQLite WAL](https://img.shields.io/badge/Storage-SQLite%20WAL%20%7C%20Postgres-amber.svg)](backend/storage/)
 
   <p align="center">
-    <strong>Transforms fragmented project ideas, research papers, AI-generated outputs, assumptions, and field observations into structured, evidence-backed, validated, and decision-ready project opportunities.</strong>
+    <strong>Transforms fragmented project ideas, research papers, AI-generated outputs, field observations, and user assumptions into structured, evidence-backed, methodology-governed, and decision-ready project opportunities.</strong>
   </p>
 
   <p align="center">
-    <a href="#-quickstart-guide">Quickstart</a> • 
-    <a href="#-the-convera-3-step-framework">3-Step Framework</a> • 
-    <a href="#-system-architecture">Architecture</a> • 
-    <a href="#-5-phase-validation-pipeline">5-Phase Pipeline</a> • 
-    <a href="docs/CONVERA_MASTER_ARCHITECTURE.md">Master Architecture</a> • 
-    <a href="docs/CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md">Intelligence & Integration (CIIA)</a> • 
-    <a href="docs/SRSDS.md">Technical Specs (SRSDS)</a> • 
-    <a href="docs/about/product/CONVERA.md">Product Profile</a>
+    <a href="#-quickstart-guide">Quickstart</a> •
+    <a href="#-dual-governing-frameworks">Dual Frameworks</a> •
+    <a href="#-system-architecture">Architecture</a> •
+    <a href="#-key-features">Features</a> •
+    <a href="docs/CONVERA_MASTER_ARCHITECTURE.md">Master Architecture</a> •
+    <a href="docs/CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md">Intelligence (CIIA)</a> •
+    <a href="docs/SRSDS.md">Technical Specs (SRSDS)</a>
   </p>
 
 </div>
@@ -39,83 +38,94 @@
 
 ## 🧭 Executive Overview
 
-Student technopreneurship and computing capstone teams often generate project ideas and information faster than they can organize, validate, and decide what is actually worth pursuing. Ideas generated across AI chats, group chats, documents, spreadsheets, and personal notes are lost or debated without evidence.
+Student technopreneurship teams, computing thesis candidates, and project innovators often generate ideas and unstructured data faster than they can organize, validate, and prove what is actually worth pursuing. Promising insights generated across AI chats, group chats, literature reviews, spreadsheets, and field notes are frequently lost, misdirected, or debated without empirical backing.
 
-**CONVERA** bridges the **problem-to-decision gap** by organizing, validating, and translating raw ideas into decision-ready project opportunities:
+**CONVERA** bridges the **problem-to-decision gap** through a closed-loop epistemic ratcheting engine:
 
 - **From:** *"I think this is a good idea."*
-- **To:** *"We have empirical evidence and structured requirements that this is worth pursuing."*
+- **To:** *"We have empirical field evidence, dual-literature grounding, isolated scholarly gaps, and structured requirements proving this problem is worth solving."*
 
 ---
 
-## 🧬 The CONVERA 3-Step Framework
+## 🏛️ Dual Governing Frameworks
 
-CONVERA layers continuous evidence validation over the 5-phase venture lifecycle:
+CONVERA provides first-class, dynamic methodology governance tailored to the specific problem-solving paradigm of the active workspace:
 
+```text
+┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   DYNAMIC COMMAND DECK TRACKS                                    │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 🚀 INNOVATION & TECHNOPRENEURSHIP TRACK (7 Slots / 2 Gates):                                     │
+│ [0: Problem Bank] → [1: Discovery] → [2: Screening (G1)] → [3: Validation (G2)] →               │
+│ [4: Ideation] → [5: MVP Audit] → [6: Studio: Venture Hub]                                        │
+├──────────────────────────────────────────────────────────────────────────────────────────────────┤
+│ 🔬 COMPUTING RESEARCH DSR TRACK (8 Slots / 4 Gates):                                             │
+│ [0: Problem Bank] → [1: Stage A (Scouting)] → [2: Stage B (Validation G1)] →                     │
+│ [3: Stage C (Opportunity G2)] → [4: Stage D (Formulation)] → [5: Stage E (Evaluation G3)] →      │
+│ [6: Stage F (Feasibility G4)] → [7: Studio: Proposal Suite]                                      │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
 ```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              The CONVERA Evolution Framework                           │
-├────────────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                        │
-│   STEP 1 — EVIDENCE FOUNDATION & RELATIONAL KNOWLEDGE GRAPH                            │
-│   ├── 4-Claim Evidence Ledger (Friction, Frequency, Workaround, Adoption/Commitment)  │
-│   │   • Commercial (WTP) vs Civic/Academic Institutional feasibility toggle            │
-│   ├── Prioritized Assumption Radar with Mom Test behavioral interview questions        │
-│   └── Crossref, OpenAlex, and Europe PMC DOI Grounding with AI Relevance Gate          │
-│                                                                                        │
-│   STEP 2 — DECISION INTELLIGENCE & AUDIT TRAIL                                         │
-│   ├── Decision Room Workspace with side-by-side Evidence Ledger & Radar comparison     │
-│   ├── Explainable AI Judge ranking and candidate pros/cons                             │
-│   ├── Immutable Decision Audit Log (`decision_records` table)                          │
-│   └── Structured Pivot / Re-Evaluate Learning Loop (Phase 3 -> Phase 2 Rollback)       │
-│                                                                                        │
-│   STEP 3 — PROJECT TRANSLATION (IDEA-TO-SPECIFICATION)                                 │
-│   ├── IEEE 830 / CHED CICT Capstone & Startup MVP Software Requirements Generator      │
-│   ├── 6 Core Sections: Scope, Personas, Functional Requirements (FR-001..FR-008),      │
-│   │   Non-Functional Constraints (NFRs), Architecture Blueprint, Validation Rubric     │
-│   └── Deliverables Studio Integration with 1-Click Markdown & Defense Deck Export       │
-│                                                                                        │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-```
+
+### 1. Venture Innovation Pipeline
+Governed by [`Evidence-Ratcheted Problem-to-Solution Pipeline Framework.md`](docs/frameworks/Evidence-Ratcheted%20Problem-to-Solution%20Pipeline%20Framework.md):
+- **Phase 1: Regional Problem Landscape Discovery** (Agriculture, Healthcare, MSME, Governance).
+- **Phase 2: Problem Screening & Sizing Matrix** (`Gate 1: Opportunity Worthiness`).
+- **Phase 3: Socratic Mom Test Validation Clinic** (`Gate 2: Empirical Validation`).
+- **Phase 4: Mechanism Ideation & Solution Validation Board (SVB)**.
+- **Phase 5: MVP Validation & Skin-in-the-Game Commitment Audit**.
+
+### 2. Computing Research Concept Development (Academic DSR / CRCDP)
+Governed by [`Computing Research Concept Development Framework.md`](docs/frameworks/Computing%20Research%20Concept%20Development%20Framework.md):
+- **Stage A: Problem Discovery & Scouting Mechanism** (Bordens & Abbott).
+- **Stage B: Problem Validation & Grounding** (`Gate 1: Problem Significance`).
+- **Stage C: Research Opportunity & Gap Matrix** (`Gate 2: Research Gap Quality`).
+- **Stage D: Solution Formulation & 4 DSR Artifact Classes** (Constructs, Models, Methods, Instantiations — March & Smith).
+- **Stage E: Trapping & Evaluation Design** (`Gate 3: Evaluation Rigor & Circumscription`).
+- **Stage F: Relevance, Ethics & Proposal Readiness** (`Gate 4: Proposal Readiness` — DOST-PCIEERD / SDGs / RA 10173).
 
 ---
 
-## 🏛️ System Architecture
+## ⚡ Key Platform Features
 
-CONVERA is built as a decoupled, zero-ops **PC-Powered Hybrid Architecture**:
+| Capability | Description |
+| :--- | :--- |
+| **Unified Command Deck** | 100% dynamic top stepper that automatically adapts its slots (7 vs 8) and directly mounts the active stage with zero nested sub-buttons. |
+| **Global Command Palette (`Ctrl+K`)** | Obsidian-grade spotlight launcher to jump instantly to any phase, search problem records (`AGR-004`), or trigger AI tools. |
+| **Adaptive Deliverables Studio** | Multi-methodology output hub generating **9-Box Lean Canvases, SWOT, Pitch Decks, IEEE 830 SRS**, or **IMRaD DSR Proposals, LaTeX Matrices & BibTeX**. |
+| **Interactive Literature Matrix** | Live search against OpenAlex & EuropePMC with gap-to-study cross-filtering and 1-click Overleaf LaTeX table export. |
+| **Intelligence Scorecard HUD** | 4-Pillar confidence simulation with Monte Carlo sensitivity modeling. |
+| **Requirements Lineage Graph** | Full epistemic traceability mapping problems $	o$ evidence claims $	o$ assumptions $	o$ software requirements. |
+| **5-Rule Methodology Governance** | Isolated progress tracking with snapshot preservation during framework switches. |
 
-```
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT / MULTI-DEVICE TIER                                │
-│  Next.js 16 (App Router) • React 19 • Tailwind CSS • Glassmorphism Design System       │
-│  • 5-Phase Progressive Venture Workspace (Desktop, Tablet, Mobile)                     │
-│  • Step 1 Evidence Ledger & Assumption Radar Components                                │
-│  • Step 2 Decision Room Workspace & Timeline Modal                                     │
-│  • Step 3 Technical Capstone SRS Specification Generator                               │
-│  • Deliverables Studio (Lean Canvas, SWOT, 10-Slide Pitch Deck, Master Dossier)        │
-│  • Multi-User Collaboration & Project Rooms (Share Codes: `CONV-XXXX` / `RATCH-XXXX`)  │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-                                            │ HTTPS / Relative Proxy (`/api/...`)
-                                            ▼
-┌────────────────────────────────────────────────────────────────────────────────────────┐
-│                             API / SERVICE ORCHESTRATION TIER                            │
-│  FastAPI (Python 3.12) • Pydantic v2 • Asyncio Service Engine (Host: 0.0.0.0:8000)     │
-│  • Assumption & Claim Extraction Engine (backend/assumption_engine.py)                │
-│  • Multi-Candidate Decision Room & Pivot Engine (backend/decision_engine.py)          │
-│  • Capstone / MVP Technical SRS Generator (backend/srs_generator.py)                  │
-│  • Academic Research Client (OpenAlex, Europe PMC, Crossref with AI Relevance Gate)    │
-│  • 6-Level Socratic Mom Test Validation Engine                                         │
-└────────────────────────────────────────────────────────────────────────────────────────┘
-                      │                                              │
-                      ▼                                              ▼
-┌────────────────────────────────────────┐     ┌────────────────────────────────────────┐
-│        UNIVERSAL MULTI-PROVIDER GATEWAY│     │       STORAGE ADAPTER SUBSYSTEM        │
-│  Dynamic Multi-Model Failover Cascade  │     │  Pluggable Local & Cloud Persistence   │
-│  1. Google Gemini (gemini-3.8-flash)   │     │  • SQLite WAL (backend/ratchetai.db)  │
-│  2. Groq Cloud (llama-3.3-70b @ 500t/s)│     │  • PostgreSQL (Neon / Supabase Cloud)  │
-│  3. OpenRouter (Llama 3.3 70B Instruct)│     │  • Relational Schema + Zero-Ops WAL    │
-│  4. Local Ollama (qwen2.5 / llama3.2)  │     │  • Cascading Foreign Key Integrity     │
-└────────────────────────────────────────┘     └────────────────────────────────────────┘
+---
+
+## 🏗️ System Architecture
+
+```text
+CONVERA PLATFORM
+│
+├── ACTIVE WORKSPACE
+│     ├── Active Methodology Framework (Innovation vs Research)
+│     ├── Quality Gate Status (Passed, Blocked, Evaluated)
+│     └── Active Session State & Snapshot Rollbacks
+│
+├── CANONICAL PROBLEM BANK (Persistent Knowledge Asset)
+│     ├── 4-Claim Evidence Ledgers (Friction, Frequency, Workaround, Commitment)
+│     ├── Sufferer Archetype & Quantified Economic Loss
+│     └── Academic DOI Grounding & Literature Citations
+│
+├── CORE BACKEND ENGINES (Python 3.12 / FastAPI)
+│     ├── Socratic Mom Test Interrogator
+│     ├── Literature Harvester (OpenAlex, Crossref, Europe PMC)
+│     ├── Circumscription & Artifact Evaluator
+│     ├── Requirements Traceability Engine
+│     └── Monte Carlo Scorecard Engine
+│
+└── FRONTEND INTERACTION LAYER (Next.js 15 / React 19 / Tailwind CSS v4)
+      ├── Unified Command Deck (PipelineStepper.tsx)
+      ├── Global Command Palette (CommandPaletteModal.tsx - Ctrl+K)
+      ├── Adaptive Deliverables Studio (DeliverablesStudio.tsx)
+      └── Motion Physics Layer (Framer Motion)
 ```
 
 ---
@@ -123,35 +133,66 @@ CONVERA is built as a decoupled, zero-ops **PC-Powered Hybrid Architecture**:
 ## 🚀 Quickstart Guide
 
 ### Prerequisites
-- **Node.js** $\ge 18.0.0$
-- **Python** $\ge 3.12.0$
+- **Python 3.11+** (Python 3.12 recommended)
+- **Node.js 18+** (Node.js 20+ recommended)
+- **Git**
 
-### 1-Click Multi-Device Launch (Localhost & Campus Wi-Fi)
-```powershell
-# Starts FastAPI on 0.0.0.0:8000 and Next.js on 0.0.0.0:3000
-.\start.bat
+### 1. Clone the Repository
+```bash
+git clone https://github.com/markalvincadangin/CONVERA.git
+cd CONVERA
 ```
-- Open on host: `http://localhost:3000`
-- Open on mobile/tablet (same Wi-Fi): `http://<YOUR_PC_IP>:3000`
 
-### Worldwide Remote Sharing (Cloudflare Tunnel)
-```powershell
-# Automatically launches and displays a secure public HTTPS URL
-.\share-tunnel.ps1
+### 2. Setup and Launch Backend
+```bash
+# Create and activate virtual environment
+python -m venv venv
+
+# Windows (PowerShell)
+.\venv\Scripts\Activate.ps1
+# Linux / macOS
+source venv/bin/activate
+
+# Install dependencies
+pip install -r backend/requirements.txt
+
+# Launch FastAPI Server
+python backend/main.py
 ```
+*Backend runs live at `http://localhost:8000` (Swagger UI at `http://localhost:8000/docs`).*
+
+### 3. Setup and Launch Frontend
+```bash
+cd web
+
+# Install dependencies
+npm install
+
+# Start Next.js Development Server
+npm run dev
+```
+*Frontend runs live at `http://localhost:3000`.*
 
 ---
 
-## 👥 About EMAERX
+## 🧪 Testing & Verification
 
-**EMAERX** is a technology and innovation team focused on exploring possibilities, engineering intelligent solutions, and advancing ideas into meaningful real-world outcomes.
+Run the full hermetic backend test suite:
+```bash
+pytest backend/tests/ -q
+```
+*Expected result: `81 passed` (100% Hermetic Pass).*
 
-- **Founders:** Mark Alvin, Mae Daniella Faith, John Emmanuel
-- **Tagline:** *WHERE WHAT'S NEXT BEGINS.*
-- **Brand Phrase:** *MAKE · EXPLORE · ADVANCE*
-- **Profiles:** Read [docs/about/EMAERX.md](docs/about/EMAERX.md) and [docs/about/product/CONVERA.md](docs/about/product/CONVERA.md).
+Run frontend type-checking:
+```bash
+cd web
+npx tsc --noEmit
+```
+*Expected result: `0 errors` (100% Type-Safe Pass).*
 
 ---
 
-## 📄 License
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+## 📄 License & Attribution
+
+CONVERA is licensed under the [MIT License](LICENSE).  
+Designed and engineered by **EMAERX** in collaboration with regional computing, agriculture, and technopreneurship stakeholders.
