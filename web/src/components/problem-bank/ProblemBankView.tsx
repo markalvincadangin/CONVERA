@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
-import { Input } from "@/components/common/Input";
-import { Spinner } from "@/components/common/Spinner";
 import { ProblemRecord, EvidenceTier, SessionState } from "@/lib/types";
 import { problemService } from "@/services/problemService";
 import { ALL_SECTORS } from "@/lib/constants";
@@ -14,29 +12,24 @@ import { ProblemDetailModal } from "./ProblemDetailModal";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { BlindSpotModal } from "./BlindSpotModal";
 import {
-  Database,
   Search,
-  Filter,
   Plus,
   Flame,
   Radar,
   Download,
   ShieldCheck,
   Radio,
-  FileText,
-  TrendingDown,
   Sparkles,
-  ArrowUpDown,
-  Tag,
   CheckCircle2,
-  AlertTriangle,
-  RotateCcw,
   RefreshCw,
   LayoutGrid,
   List,
   ThumbsUp,
   ArrowRight,
-  FolderPlus,
+  MapPin,
+  User,
+  Activity,
+  FileText,
 } from "lucide-react";
 
 interface ProblemBankViewProps {
@@ -127,49 +120,25 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
     }
   };
 
-  const handleProblemSaved = (newProblem: ProblemRecord) => {
-    setProblems((prev) => [newProblem, ...prev.filter((p) => p.id !== newProblem.id)]);
-  };
-
-  const handleProblemUpdated = (updated: ProblemRecord) => {
-    setProblems((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    if (selectedProblem?.id === updated.id) {
-      setSelectedProblem(updated);
-    }
-  };
-
-  const handleProblemDeleted = (deletedId: string) => {
-    setProblems((prev) => prev.filter((p) => p.id !== deletedId));
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      next.delete(deletedId);
-      return next;
-    });
-  };
-
   const handleVote = async (e: React.MouseEvent, problemId: string) => {
     e.stopPropagation();
     try {
       const res = await problemService.voteProblem(problemId, "up");
-      handleProblemUpdated(res.problem);
-    } catch (err) {
-      console.error("Voting error:", err);
+      setProblems((prev) =>
+        prev.map((p) => (p.id === problemId ? res.problem : p))
+      );
+    } catch (err: any) {
+      console.error("Vote failed:", err);
     }
-  };
-
-  const handleOpenChallenge = (e: React.MouseEvent, problem: ProblemRecord) => {
-    e.stopPropagation();
-    setChallengeTargetProblem(problem);
-    setIsDevilsAdvocateOpen(true);
   };
 
   const handleExportCSV = () => {
     if (filteredProblems.length === 0) return;
     const headers = [
-      "ID",
+      "Problem ID",
       "Sector",
-      "Sufferer",
-      "Location",
+      "Sufferer Occupation",
+      "Sufferer Location",
       "Problem Statement",
       "Evidence Tier",
       "Score",
@@ -204,24 +173,27 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
     document.body.removeChild(link);
   };
 
-  const tierBadge = (tier: EvidenceTier) => {
+  const renderTierBadge = (tier: EvidenceTier) => {
     if (tier === "STRONGLY_DOCUMENTED") {
       return (
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <ShieldCheck className="w-3 h-3" /> Strongly Documented
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap shadow-sm">
+          <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
+          <span>Strongly Documented</span>
         </span>
       );
     }
     if (tier === "DOCUMENTED") {
       return (
-        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
-           Documented
+        <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 whitespace-nowrap shadow-sm">
+          <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-cyan-400" />
+          <span>Documented</span>
         </span>
       );
     }
     return (
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 border border-amber-500/20">
-         Signal
+      <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 whitespace-nowrap shadow-sm">
+        <Radio className="w-3.5 h-3.5 shrink-0 text-amber-400" />
+        <span>Signal</span>
       </span>
     );
   };
@@ -231,14 +203,13 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       {/* Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-900 via-slate-900/90 to-slate-950 rounded-3xl border border-slate-800 shadow-xl">
         <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="text-xl"></span>
+          <div className="flex items-center gap-2.5">
             <h2 className="text-lg font-bold text-white tracking-tight">Structured Problem Bank</h2>
             <span className="text-xs font-mono font-bold bg-cyan-500/10 text-cyan-400 px-2.5 py-0.5 rounded-full border border-cyan-500/20">
               {problems.length} Records
             </span>
           </div>
-          <p className="text-xs text-slate-400 max-w-2xl">
+          <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
             Single source of truth for your venture team. Ingest discoveries from Phase 1, enrich raw field observations with AI, and stress-test assumptions with the Devil's Advocate agent.
           </p>
         </div>
@@ -283,17 +254,17 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       </div>
 
       {/* Control Bar: Search & Filters */}
-      <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-3">
+      <div className="p-4 bg-slate-900/80 rounded-2xl border border-slate-800 space-y-3 shadow-sm">
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
           {/* Search Box */}
           <div className="sm:col-span-4 relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search problem statements, locations, sufferers..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500/50 shadow-inner"
             />
           </div>
 
@@ -302,7 +273,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             <select
               value={selectedSector}
               onChange={(e) => setSelectedSector(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 shadow-inner"
             >
               <option value="All">All Sectors ({problems.length})</option>
               {ALL_SECTORS.map((sec) => (
@@ -318,7 +289,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             <select
               value={selectedTier}
               onChange={(e) => setSelectedTier(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50"
+              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 shadow-inner"
             >
               <option value="All">All Evidence Tiers</option>
               <option value="STRONGLY_DOCUMENTED">Strongly Documented</option>
@@ -328,12 +299,12 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           </div>
 
           {/* View Mode Toggle */}
-          <div className="sm:col-span-2 flex items-center justify-end gap-1">
+          <div className="sm:col-span-2 flex items-center justify-end gap-1.5">
             <button
               onClick={() => setViewMode("cards")}
-              className={`p-2 rounded-lg border transition-all ${
+              className={`p-2 rounded-xl border transition-all ${
                 viewMode === "cards"
-                  ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
+                  ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30 shadow-sm"
                   : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
               }`}
               title="Card View"
@@ -342,9 +313,9 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             </button>
             <button
               onClick={() => setViewMode("table")}
-              className={`p-2 rounded-lg border transition-all ${
+              className={`p-2 rounded-xl border transition-all ${
                 viewMode === "table"
-                  ? "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
+                  ? "bg-cyan-500/15 text-cyan-400 border-cyan-500/30 shadow-sm"
                   : "bg-slate-950 text-slate-400 border-slate-800 hover:text-white"
               }`}
               title="Table View"
@@ -374,8 +345,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                 variant="primary"
                 size="sm"
                 onClick={() => onSendToPhase2(Array.from(selectedIds))}
-                leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
-                className="shadow-lg shadow-cyan-500/20"
+                rightIcon={<ArrowRight className="w-4 h-4" />}
               >
                 Screen {selectedIds.size} Selected in Phase 2
               </Button>
@@ -384,187 +354,70 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         )}
       </div>
 
-      {/* Main Content Area */}
+      {/* Main Content: Table or Cards */}
       {isLoading ? (
-        <div className="py-20 flex items-center justify-center">
-          <Spinner size="lg" label="Loading Problem Bank records..." />
+        <div className="py-20 text-center space-y-3">
+          <RefreshCw className="w-8 h-8 text-cyan-400 animate-spin mx-auto" />
+          <p className="text-sm text-slate-400 font-mono">Loading problem bank records...</p>
         </div>
       ) : error ? (
-        <Card variant="glass" className="p-8 text-center space-y-3 border-red-500/30">
+        <div className="p-6 rounded-2xl bg-red-500/10 border border-red-500/30 text-center space-y-2">
           <p className="text-sm font-bold text-red-400">{error}</p>
           <Button variant="secondary" size="sm" onClick={fetchProblems}>
-            Retry
+            Try Again
           </Button>
-        </Card>
-      ) : filteredProblems.length === 0 ? (
-        <Card variant="glass" className="p-12 text-center space-y-4">
-          <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center mx-auto border border-cyan-500/20">
-            <FolderPlus className="w-6 h-6" />
-          </div>
-          <div className="space-y-1">
-            <h4 className="text-base font-bold text-white">No Problems Found in Bank</h4>
-            <p className="text-xs text-slate-400 max-w-md mx-auto">
-              Run automated discovery in Phase 1 or use the "Add Problem" button above to log your team's field observations.
-            </p>
-          </div>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setIsAddModalOpen(true)}
-            leftIcon={<Plus className="w-3.5 h-3.5" />}
-          >
-            Add First Problem
-          </Button>
-        </Card>
-      ) : viewMode === "cards" ? (
-        /* Card Grid View */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProblems.map((p) => {
-            const isSelected = selectedIds.has(p.id);
-            const hasCritique = Boolean(p.devils_advocate_data);
-
-            return (
-              <div
-                key={sanitizeProblemId(p.id)}
-                className={`p-4 rounded-2xl border transition-all duration-200 flex flex-col justify-between gap-3 relative cursor-pointer ${
-                  isSelected
-                    ? "bg-slate-800/90 border-cyan-500 shadow-lg shadow-cyan-500/10 ring-1 ring-cyan-500/50"
-                    : "bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900"
-                }`}
-                onClick={() => {
-                  setSelectedProblem(p);
-                  setIsDetailModalOpen(true);
-                }}
-              >
-                {/* Card Top */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between gap-2" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={isSelected}
-                        onChange={() => handleToggleSelect(p.id)}
-                        className="rounded border-slate-700 text-cyan-500 focus:ring-0 w-4 h-4 cursor-pointer"
-                      />
-                      <span className="font-mono text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded border border-slate-700">
-                        {sanitizeProblemId(p.id)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      {/* Upvote Button */}
-                      <button
-                        onClick={(e) => handleVote(e, p.id)}
-                        className="flex items-center gap-1 bg-slate-800/80 hover:bg-slate-700 px-2 py-0.5 rounded-full border border-slate-700 text-[10px] font-mono font-bold text-slate-300 hover:text-white transition-colors"
-                        title="Upvote problem"
-                      >
-                        <ThumbsUp className="w-2.5 h-2.5 text-cyan-400" />
-                        <span>{p.votes || 0}</span>
-                      </button>
-
-                      {/* Evidence Score */}
-                      <span className="text-[11px] font-mono font-bold text-cyan-400 bg-cyan-500/10 px-2 py-0.5 rounded-full border border-cyan-500/20">
-                        {p.score || 0}%
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-                    <span className="text-[10px] font-medium text-slate-300 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                      {p.sector}
-                    </span>
-                    {tierBadge(p.evidence_tier)}
-                    {hasCritique && (
-                      <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-red-500/10 text-red-400 border border-red-500/20 flex items-center gap-0.5">
-                        <Flame className="w-2.5 h-2.5" /> Challenged
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Problem Statement */}
-                  <h4 className="text-xs sm:text-sm font-bold text-white line-clamp-2 leading-snug">
-                    {sanitizeText(p.problem_statement)}
-                  </h4>
-
-                  {/* Sufferer & Location */}
-                  <p className="text-[11px] text-slate-400 line-clamp-1">
-                    <strong className="text-slate-300">{sanitizeText(p.sufferer_occupation)}</strong> in {sanitizeText(p.sufferer_location)}
-                  </p>
-                </div>
-
-                {/* Card Bottom: Sources, Workaround, and Devil's Advocate trigger */}
-                <div className="pt-2 border-t border-slate-800/80 space-y-2 text-[11px]">
-                  {p.quantified_impact && (
-                    <div className="text-emerald-400 font-medium truncate text-[11px]">
-                       {sanitizeText(p.quantified_impact)}
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between text-slate-500 text-[10px] font-mono">
-                    <span>
-                      {p.sources?.length || 0} {p.sources?.length === 1 ? "source" : "sources"}
-                    </span>
-
-                    <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={(e) => handleOpenChallenge(e, p)}
-                        className="text-red-400 hover:text-red-300 font-bold flex items-center gap-0.5 text-[10px] px-2 py-0.5 rounded bg-red-500/10 border border-red-500/20"
-                        title="Devil's Advocate Challenge"
-                      >
-                        <Flame className="w-2.5 h-2.5" /> Stress Test
-                      </button>
-
-                      <span className="text-cyan-400 font-semibold hover:underline flex items-center gap-0.5">
-                        Dossier <ArrowRight className="w-2.5 h-2.5" />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
         </div>
-      ) : (
-        /* Table View */
-        <div className="bg-slate-900/80 rounded-2xl border border-slate-800 overflow-hidden">
+      ) : filteredProblems.length === 0 ? (
+        <div className="py-20 text-center space-y-3 rounded-2xl bg-slate-950/60 border border-slate-800/80 p-8">
+          <p className="text-sm text-slate-400">No problems found matching your filters.</p>
+          <Button variant="primary" size="sm" onClick={() => setIsAddModalOpen(true)}>
+            + Add New Problem
+          </Button>
+        </div>
+      ) : viewMode === "table" ? (
+        /* ========================================================= */
+        /* Table View (Polished 100% Heuristic Grid)                 */
+        /* ========================================================= */
+        <div className="rounded-2xl border border-slate-800 bg-slate-950/90 overflow-hidden shadow-xl">
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-950 text-slate-400 uppercase font-bold text-[10px] tracking-wider border-b border-slate-800">
-                <tr>
-                  <th className="p-3 w-10">
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-900/90 border-b border-slate-800 text-[10px] font-mono uppercase tracking-wider text-slate-400">
+                  <th className="p-3.5 w-10 text-center">
                     <input
                       type="checkbox"
                       checked={selectedIds.size === filteredProblems.length && filteredProblems.length > 0}
                       onChange={handleSelectAll}
-                      className="rounded border-slate-700 text-cyan-500 focus:ring-0 w-4 h-4"
+                      className="rounded border-slate-700 text-cyan-500 focus:ring-0 w-4 h-4 cursor-pointer"
                     />
                   </th>
-                  <th className="p-3">ID</th>
-                  <th className="p-3">Sector</th>
-                  <th className="p-3">Target Sufferer & Location</th>
-                  <th className="p-3">Problem Statement</th>
-                  <th className="p-3">Evidence Tier</th>
-                  <th className="p-3">Votes</th>
-                  <th className="p-3">Score</th>
-                  <th className="p-3">Sources</th>
-                  <th className="p-3 text-right">Actions</th>
+                  <th className="p-3.5 whitespace-nowrap">ID</th>
+                  <th className="p-3.5 whitespace-nowrap">Sector</th>
+                  <th className="p-3.5 min-w-[200px]">Target Sufferer & Location</th>
+                  <th className="p-3.5 min-w-[280px]">Problem Statement</th>
+                  <th className="p-3.5 whitespace-nowrap">Evidence Tier</th>
+                  <th className="p-3.5 text-center whitespace-nowrap">Votes</th>
+                  <th className="p-3.5 text-center whitespace-nowrap">Score</th>
+                  <th className="p-3.5 text-center whitespace-nowrap">Sources</th>
+                  <th className="p-3.5 text-right whitespace-nowrap pr-4">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800/60">
                 {filteredProblems.map((p) => {
                   const isSelected = selectedIds.has(p.id);
+                  const cleanId = sanitizeProblemId(p.id);
                   return (
                     <tr
-                      key={sanitizeProblemId(p.id)}
-                      className={`hover:bg-slate-800/50 cursor-pointer transition-colors ${
-                        isSelected ? "bg-cyan-500/5" : ""
+                      key={cleanId}
+                      className={`hover:bg-slate-850/60 cursor-pointer transition-colors group ${
+                        isSelected ? "bg-cyan-500/10" : ""
                       }`}
                       onClick={() => {
                         setSelectedProblem(p);
                         setIsDetailModalOpen(true);
                       }}
                     >
-                      <td className="p-3" onClick={(e) => e.stopPropagation()}>
+                      <td className="p-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                         <input
                           type="checkbox"
                           checked={isSelected}
@@ -572,45 +425,88 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                           className="rounded border-slate-700 text-cyan-500 focus:ring-0 w-4 h-4 cursor-pointer"
                         />
                       </td>
-                      <td className="p-3 font-mono font-bold text-white whitespace-nowrap">{sanitizeProblemId(p.id)}</td>
-                      <td className="p-3 text-slate-400 whitespace-nowrap">{p.sector}</td>
-                      <td className="p-3 max-w-[180px]">
-                        <div className="font-semibold text-white truncate">{p.sufferer_occupation}</div>
-                        <div className="text-[10px] text-slate-400 truncate">{p.sufferer_location}</div>
+
+                      {/* ID */}
+                      <td className="p-3.5 font-mono font-bold text-white whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 group-hover:border-cyan-500/40 text-cyan-300">
+                          {cleanId}
+                        </span>
                       </td>
-                      <td className="p-3 max-w-[280px]">
-                        <p className="line-clamp-2 text-white font-medium leading-snug">{sanitizeText(p.problem_statement)}</p>
+
+                      {/* Sector */}
+                      <td className="p-3.5 text-slate-300 font-medium whitespace-nowrap">
+                        {p.sector}
                       </td>
-                      <td className="p-3 whitespace-nowrap">{tierBadge(p.evidence_tier)}</td>
-                      <td className="p-3 whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
+
+                      {/* Sufferer */}
+                      <td className="p-3.5 min-w-[200px] max-w-[240px]">
+                        <div className="font-semibold text-slate-100 truncate">
+                          {sanitizeText(p.sufferer_occupation)}
+                        </div>
+                        <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {sanitizeText(p.sufferer_location)}
+                        </div>
+                      </td>
+
+                      {/* Statement */}
+                      <td className="p-3.5 min-w-[280px] max-w-sm">
+                        <p className="line-clamp-2 text-slate-200 font-normal leading-snug">
+                          {sanitizeText(p.problem_statement)}
+                        </p>
+                      </td>
+
+                      {/* Evidence Tier */}
+                      <td className="p-3.5 whitespace-nowrap">
+                        {renderTierBadge(p.evidence_tier)}
+                      </td>
+
+                      {/* Votes */}
+                      <td className="p-3.5 text-center whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
                         <button
                           onClick={(e) => handleVote(e, p.id)}
-                          className="flex items-center gap-1 text-slate-300 hover:text-white bg-slate-900 px-2 py-0.5 rounded border border-slate-800 font-mono text-[11px]"
+                          className="inline-flex items-center gap-1.5 text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-850 px-2.5 py-1 rounded-lg border border-slate-800 hover:border-cyan-500/40 font-mono text-[11px] transition-all"
                         >
-                          <ThumbsUp className="w-2.5 h-2.5 text-cyan-400" />
-                          <span>{p.votes || 0}</span>
+                          <ThumbsUp className="w-3 h-3 text-cyan-400" />
+                          <span className="font-bold">{p.votes || 0}</span>
                         </button>
                       </td>
-                      <td className="p-3 font-mono font-bold text-cyan-400">{p.score || 0}%</td>
-                      <td className="p-3 text-slate-400 font-mono text-[11px] whitespace-nowrap">
+
+                      {/* Score */}
+                      <td className="p-3.5 text-center whitespace-nowrap">
+                        <span className="px-2 py-0.5 rounded-md font-mono text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">
+                          {p.score || 0}%
+                        </span>
+                      </td>
+
+                      {/* Sources */}
+                      <td className="p-3.5 text-center text-slate-400 font-mono text-[11px] whitespace-nowrap">
                         {p.sources?.length || 0} cited
                       </td>
-                      <td className="p-3 text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-end gap-2">
+
+                      {/* Actions */}
+                      <td className="p-3.5 text-right whitespace-nowrap pr-4" onClick={(e) => e.stopPropagation()}>
+                        <div className="inline-flex items-center gap-1.5">
                           <button
-                            onClick={(e) => handleOpenChallenge(e, p)}
-                            className="text-red-400 hover:text-red-300 font-bold text-xs flex items-center gap-0.5"
+                            onClick={() => {
+                              setChallengeTargetProblem(p);
+                              setIsDevilsAdvocateOpen(true);
+                            }}
+                            className="px-2 py-1 rounded-lg text-[11px] font-semibold text-rose-400 hover:text-rose-300 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 transition-all flex items-center gap-1"
+                            title="Run Devil's Advocate Adversarial Challenge"
                           >
-                            <Flame className="w-3 h-3" /> Stress Test
+                            <Flame className="w-3 h-3 text-rose-400" />
+                            <span>Stress Test</span>
                           </button>
+
                           <button
                             onClick={() => {
                               setSelectedProblem(p);
                               setIsDetailModalOpen(true);
                             }}
-                            className="text-cyan-400 hover:text-cyan-300 font-bold text-xs"
+                            className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-all flex items-center gap-1"
                           >
-                            View
+                            <span>Dossier</span>
+                            <ArrowRight className="w-3 h-3" />
                           </button>
                         </div>
                       </td>
@@ -621,13 +517,141 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             </table>
           </div>
         </div>
+      ) : (
+        /* ========================================================= */
+        /* Card View (Polished Ash Maurya Spatial Grid)              */
+        /* ========================================================= */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProblems.map((p) => {
+            const isSelected = selectedIds.has(p.id);
+            const cleanId = sanitizeProblemId(p.id);
+            return (
+              <div
+                key={cleanId}
+                onClick={() => {
+                  setSelectedProblem(p);
+                  setIsDetailModalOpen(true);
+                }}
+                className={`p-5 rounded-2xl border transition-all duration-200 cursor-pointer flex flex-col justify-between gap-4 group ${
+                  isSelected
+                    ? "bg-slate-900/90 border-cyan-500/50 ring-1 ring-cyan-500/30 shadow-lg shadow-cyan-500/10"
+                    : "bg-slate-950/70 border-slate-800 hover:border-slate-700 hover:bg-slate-900/80 shadow-md"
+                }`}
+              >
+                {/* Card Top: Checkbox, ID & Score */}
+                <div className="flex items-center justify-between gap-2 border-b border-slate-850 pb-3">
+                  <div className="flex items-center gap-2.5" onClick={(e) => e.stopPropagation()}>
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleToggleSelect(p.id)}
+                      className="rounded border-slate-700 text-cyan-500 focus:ring-0 w-4 h-4 cursor-pointer"
+                    />
+                    <span className="font-mono text-xs font-bold text-white px-2 py-0.5 rounded-md bg-slate-900 border border-slate-800 group-hover:border-cyan-500/40 text-cyan-300">
+                      {cleanId}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => handleVote(e, p.id)}
+                      className="flex items-center gap-1 text-slate-300 hover:text-white bg-slate-900 hover:bg-slate-850 px-2 py-0.5 rounded-md border border-slate-800 font-mono text-[11px] transition-all"
+                      title="Upvote problem priority"
+                    >
+                      <ThumbsUp className="w-3 h-3 text-cyan-400" />
+                      <span>{p.votes || 0}</span>
+                    </button>
+
+                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-md bg-cyan-500/15 text-cyan-400 border border-cyan-500/30">
+                      {p.score || 0}%
+                    </span>
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="space-y-3 flex-1">
+                  {/* Badges: Sector & Evidence Tier */}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="text-[10px] font-semibold text-slate-400 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-800">
+                      {p.sector}
+                    </span>
+                    {renderTierBadge(p.evidence_tier)}
+                    {p.devils_advocate_data && (
+                      <span className="text-[10px] font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded-md border border-rose-500/30 flex items-center gap-1">
+                        <Flame className="w-2.5 h-2.5" /> Challenged
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Problem Statement */}
+                  <h3 className="text-sm font-bold text-white group-hover:text-cyan-200 transition-colors line-clamp-3 leading-snug">
+                    {sanitizeText(p.problem_statement)}
+                  </h3>
+
+                  {/* Target Sufferer */}
+                  <div className="space-y-1 text-xs text-slate-400">
+                    <div className="flex items-center gap-1.5 text-slate-200 font-medium truncate">
+                      <User className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                      <span className="truncate">{sanitizeText(p.sufferer_occupation)}</span>
+                    </div>
+                    {p.sufferer_location && (
+                      <div className="flex items-center gap-1.5 text-slate-400 text-[11px] truncate">
+                        <MapPin className="w-3 h-3 text-slate-500 shrink-0" />
+                        <span className="truncate">{sanitizeText(p.sufferer_location)}</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Quantified Impact / Consequence */}
+                  {p.quantified_impact && (
+                    <div className="p-2.5 rounded-xl bg-slate-900/60 border border-slate-850 text-xs text-emerald-400 font-mono">
+                      <p className="line-clamp-2">{sanitizeText(p.quantified_impact)}</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Card Footer: Sources & Actions */}
+                <div className="pt-3 border-t border-slate-850 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                  <span className="font-mono">
+                    {p.sources?.length ? `${p.sources.length} sources` : "1 source"}
+                  </span>
+
+                  <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button
+                      onClick={() => {
+                        setChallengeTargetProblem(p);
+                        setIsDevilsAdvocateOpen(true);
+                      }}
+                      className="text-rose-400 hover:text-rose-300 flex items-center gap-1 font-semibold hover:underline"
+                    >
+                      <Flame className="w-3 h-3" /> Stress Test
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setSelectedProblem(p);
+                        setIsDetailModalOpen(true);
+                      }}
+                      className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold hover:underline"
+                    >
+                      <span>Dossier</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       {/* Modals */}
       <ManualProblemModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
-        onProblemSaved={handleProblemSaved}
+        onProblemSaved={(newProb) => {
+          setProblems((prev) => [newProb, ...prev]);
+        }}
         projectId={session?.project_id || undefined}
         sessionId={session?.session_id || undefined}
       />
@@ -636,9 +660,20 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         problem={selectedProblem}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
-        onProblemUpdated={handleProblemUpdated}
-        onProblemDeleted={handleProblemDeleted}
-        onAdvanceToPhase2={(pid) => onSendToPhase2([pid])}
+        onProblemUpdated={(updated) => {
+          setProblems((prev) =>
+            prev.map((p) => (p.id === updated.id ? updated : p))
+          );
+        }}
+        onProblemDeleted={(deletedId) => {
+          setProblems((prev) => prev.filter((p) => p.id !== deletedId));
+          setSelectedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(deletedId);
+            return next;
+          });
+        }}
+        onAdvanceToPhase2={(id) => onSendToPhase2([id])}
       />
 
       <BlindSpotModal
@@ -649,17 +684,11 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       />
 
       <DevilsAdvocateModal
-        problem={challengeTargetProblem}
         isOpen={isDevilsAdvocateOpen}
         onClose={() => setIsDevilsAdvocateOpen(false)}
-        onApplyReframing={(newStmt) => {
-          if (challengeTargetProblem) {
-            problemService.updateProblem(challengeTargetProblem.id, {
-              problem_statement: newStmt,
-            }).then((res) => {
-              handleProblemUpdated(res.problem);
-            });
-          }
+        problem={challengeTargetProblem}
+        onApplyReframing={() => {
+          fetchProblems();
         }}
       />
     </div>
