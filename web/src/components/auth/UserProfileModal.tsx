@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Modal } from "@/components/common/Modal";
 import { Button } from "@/components/common/Button";
-import { UserRoleBadge } from "./UserRoleBadge";
+import { UserRoleBadge, getRoleMeta } from "./UserRoleBadge";
 import {
   IconAvatar,
   AVATAR_LIBRARY,
@@ -138,14 +138,19 @@ export const UserProfileModal: React.FC<UserProfileModalProps> = ({
               
               {/* Mini Navbar Preview Pill */}
               <div className="flex items-center gap-2 pt-1 text-[11px] text-slate-400">
-                <span className="font-mono text-[10px] uppercase text-slate-500">Live Preview:</span>
-                <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs shadow-sm">
-                  <IconAvatar iconKey={profile.avatar} size="xs" />
-                  <span className="font-bold text-slate-200 truncate max-w-[120px]">
-                    {profile.name || "Anonymous User"}
-                  </span>
-                  <div className="scale-90 origin-left">
-                    <UserRoleBadge role={profile.role} size="sm" showIcon={false} />
+                <span className="font-mono text-[10px] uppercase text-slate-500">Navbar Preview:</span>
+                <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs shadow-sm">
+                  <div className="relative shrink-0 flex items-center justify-center">
+                    <IconAvatar iconKey={profile.avatar} size="sm" />
+                    <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-sm" />
+                  </div>
+                  <div className="flex flex-col text-left justify-center min-w-0 pr-0.5">
+                    <span className="text-xs font-bold text-slate-100 truncate leading-snug tracking-tight max-w-[120px]">
+                      {profile.name || "Anonymous User"}
+                    </span>
+                    <span className={`text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none ${getRoleMeta(profile.role).text}`}>
+                      {getRoleMeta(profile.role).label}
+                    </span>
                   </div>
                 </div>
               </div>

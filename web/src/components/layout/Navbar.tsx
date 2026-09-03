@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { VentureHealthBar } from "@/components/common/VentureHealthBar";
-import { UserRoleBadge } from "@/components/auth/UserRoleBadge";
+import { UserRoleBadge, getRoleMeta } from "@/components/auth/UserRoleBadge";
 import { IconAvatar } from "@/components/common/IconAvatar";
 import { UserProfileModal } from "@/components/auth/UserProfileModal";
 import { RoomSecurityModal } from "@/components/auth/RoomSecurityModal";
@@ -137,24 +137,24 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Right: User Profile, Health Meter & Action Toolbar */}
           <div className="flex items-center gap-2 sm:gap-2.5">
             {/* User Profile Command Pill */}
-            <Tooltip content={`Active Identity: ${userProfile.name} (${userProfile.role}) - Click to customize avatar & role`} position="bottom">
+            <Tooltip content={`Active Profile: ${userProfile.name} (${getRoleMeta(userProfile.role).label}) • Click to customize avatar & role`} position="bottom">
               <button
                 onClick={() => setIsProfileModalOpen(true)}
-                className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800/90 hover:border-slate-700 transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
               >
-                <div className="relative shrink-0">
+                <div className="relative shrink-0 flex items-center justify-center">
                   <IconAvatar iconKey={userProfile.avatar} size="sm" />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-slate-950 shadow-sm" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-sm" />
                 </div>
-                <div className="flex flex-col text-left pr-0.5">
-                  <span className="text-xs font-bold text-slate-100 group-hover:text-white max-w-[100px] truncate leading-tight tracking-tight">
+                <div className="flex flex-col text-left justify-center min-w-0 pr-0.5">
+                  <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[110px]">
                     {userProfile.name}
                   </span>
-                  <div className="scale-90 origin-left -mt-0.5">
-                    <UserRoleBadge role={userProfile.role} size="sm" showIcon={false} />
-                  </div>
+                  <span className={`text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none ${getRoleMeta(userProfile.role).text}`}>
+                    {getRoleMeta(userProfile.role).label}
+                  </span>
                 </div>
-                <ChevronDown className="w-3 h-3 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 hidden sm:block" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 ml-0.5" />
               </button>
             </Tooltip>
 
