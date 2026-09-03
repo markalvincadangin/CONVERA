@@ -9,7 +9,6 @@ import {
   ChevronDown,
   Lock,
   Key,
-  User,
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { VentureHealthBar } from "@/components/common/VentureHealthBar";
@@ -54,14 +53,14 @@ export const Navbar: React.FC<NavbarProps> = ({
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-slate-800/70 bg-slate-950/85 backdrop-blur-2xl transition-all">
+      <header className="sticky top-0 z-40 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-2xl transition-all shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-3 sm:gap-6">
           {/* Left: Brand & Product Identity */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="relative group flex items-center justify-center">
               <div className="absolute -inset-1 bg-gradient-to-r from-cyan-500 to-emerald-500 rounded-2xl blur-md opacity-25 group-hover:opacity-50 transition-opacity" />
               
-              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900/90 border border-slate-700/80 p-1 flex items-center justify-center shadow-lg shadow-black/40 overflow-hidden">
+              <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-slate-900/95 border border-slate-700/80 p-1 flex items-center justify-center shadow-lg shadow-black/40 overflow-hidden">
                 {!imageError ? (
                   <img
                     src="/brand/brandmark.png"
@@ -81,10 +80,10 @@ export const Navbar: React.FC<NavbarProps> = ({
                   RatchetAI
                 </span>
                 <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-[10px] font-bold text-emerald-400 tracking-wide font-mono">
-                  v3.0
+                  v3.1
                 </span>
               </div>
-              <p className="text-[10px] text-slate-400 hidden md:block tracking-tight -mt-0.5">
+              <p className="text-[10px] text-slate-400 hidden md:block tracking-tight -mt-0.5 font-medium">
                 Evidence-Ratcheted Technopreneurship Engine
               </p>
             </div>
@@ -96,10 +95,10 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Tooltip content="Switch session, copy room share code, or restore milestone snapshots" position="bottom">
                 <button
                   onClick={onOpenSessionManager}
-                  className="group w-full max-w-sm flex items-center justify-between gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/80 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-800/70 text-left transition-all duration-200 shadow-inner"
+                  className="group w-full max-w-sm flex items-center justify-between gap-2.5 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-850 text-left transition-all duration-200 shadow-sm"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="p-1 rounded-lg bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 shrink-0">
+                    <div className="p-1.5 rounded-lg bg-cyan-500/15 text-cyan-400 border border-cyan-500/25 shrink-0">
                       <FolderOpen className="w-3.5 h-3.5" />
                     </div>
                     <div className="min-w-0 flex flex-col">
@@ -116,7 +115,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                         <span>{sessionId}</span>
                         {session.share_code && (
                           <>
-                            <span>•</span>
+                            <span> </span>
                             <span className="text-cyan-300 font-bold">{session.share_code}</span>
                           </>
                         )}
@@ -136,22 +135,26 @@ export const Navbar: React.FC<NavbarProps> = ({
           </div>
 
           {/* Right: User Profile, Health Meter & Action Toolbar */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* User Profile Pill */}
-            <Tooltip content={`Active Role: ${userProfile.role} — Click to switch profile or role`} position="bottom">
+          <div className="flex items-center gap-2 sm:gap-2.5">
+            {/* User Profile Command Pill */}
+            <Tooltip content={`Active Identity: ${userProfile.name} (${userProfile.role}) - Click to customize avatar & role`} position="bottom">
               <button
                 onClick={() => setIsProfileModalOpen(true)}
-                className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs transition-all group"
+                className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
               >
-                <IconAvatar iconKey={userProfile.avatar} size="xs" />
-                <div className="hidden lg:flex flex-col text-left">
-                  <span className="text-xs font-bold text-slate-200 group-hover:text-white max-w-[110px] truncate leading-tight">
+                <div className="relative shrink-0">
+                  <IconAvatar iconKey={userProfile.avatar} size="sm" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border border-slate-950 shadow-sm" />
+                </div>
+                <div className="flex flex-col text-left pr-0.5">
+                  <span className="text-xs font-bold text-slate-100 group-hover:text-white max-w-[100px] truncate leading-tight tracking-tight">
                     {userProfile.name}
                   </span>
                   <div className="scale-90 origin-left -mt-0.5">
                     <UserRoleBadge role={userProfile.role} size="sm" showIcon={false} />
                   </div>
                 </div>
+                <ChevronDown className="w-3 h-3 text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 hidden sm:block" />
               </button>
             </Tooltip>
 
@@ -219,13 +222,16 @@ export const Navbar: React.FC<NavbarProps> = ({
         projectId={projectId}
       />
 
-      {/* Room PIN Security Modal */}
+      {/* Room Security PIN Modal */}
       {projectId && (
         <RoomSecurityModal
           isOpen={isSecurityModalOpen}
           onClose={() => setIsSecurityModalOpen(false)}
           projectId={projectId}
           mode="SET_PASSCODE"
+          onVerified={() => {
+            setIsSecurityModalOpen(false);
+          }}
         />
       )}
     </>
