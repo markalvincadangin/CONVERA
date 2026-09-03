@@ -213,6 +213,14 @@ class UpdateProblemRequest(BaseModel):
     votes: Optional[int] = None
     sources: Optional[List[Dict[str, Any]]] = None
 
+class ResearchQueryRequest(BaseModel):
+    query: str
+    engine: Optional[str] = "ALL"  # OPENALEX, EUROPE_PMC, REGIONAL_NEWS, ALL
+    limit: Optional[int] = 5
+
+class AttachSourcesRequest(BaseModel):
+    sources: List[Dict[str, Any]]
+
 class EnrichProblemRequest(BaseModel):
     raw_note: str
     project_id: Optional[str] = None
@@ -586,6 +594,94 @@ async def parse_phase1_output(req: ParsePhase1Request):
         }
     return {"status": "success", "count": 0, "new_created_count": 0, "merged_count": 0, "problems": []}
 
+
+# ----------------------------------------------------------------------
+# Academic & Web Research Endpoints
+# ----------------------------------------------------------------------
+
+research_client = FreeResearchClient()
+
+@app.post("/api/research/query")
+async def query_research(req: ResearchQueryRequest):
+    """Search OpenAlex, Europe PMC, or Regional News for academic literature and live articles."""
+    engine = (req.engine or "ALL").upper()
+    limit = req.limit or 5
+
+    if engine == "OPENALEX":
+        results = await research_client.search_academic_openalex(req.query, limit=limit)
+        return {"status": "success", "engine": "OPENALEX", "count": len(results), "results": results}
+    elif engine == "EUROPE_PMC":
+        results = await research_client.search_europe_pmc(req.query, limit=limit)
+        return {"status": "success", "engine": "EUROPE_PMC", "count": len(results), "results": results}
+    elif engine == "REGIONAL_NEWS":
+        results = await research_client.search_regional_news(req.query, limit=limit)
+        return {"status": "success", "engine": "REGIONAL_NEWS", "count": len(results), "results": results}
+    else:
+        # All engines in parallel
+        openalex = await research_client.search_academic_openalex(req.query, limit=limit)
+        europe_pmc = await research_client.search_europe_pmc(req.query, limit=limit)
+        news = await research_client.search_regional_news(req.query, limit=limit)
+        return {
+            "status": "success",
+            "engine": "ALL",
+            "openalex": openalex,
+            "europe_pmc": europe_pmc,
+            "regional_news": news,
+            "all_combined": openalex + europe_pmc + news,
+        }
+
+@app.post("/api/problems/{problem_id}/auto-research")
+async def auto_research_problem_endpoint(problem_id: str):
+    """Auto-fetch empirical peer-reviewed papers and regional news matching a specific problem."""
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    research_data = await research_client.auto_research_problem(problem)
+    return {
+        "status": "success",
+        "problem_id": problem_id,
+        "results": research_data,
+    }
+
+@app.post("/api/problems/{problem_id}/attach-sources")
+async def attach_sources_endpoint(problem_id: str, req: AttachSourcesRequest):
+    """Attach selected verified citations to a problem in SQLite and recalculate rubric score."""
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail="Problem not found")
+
+    existing_sources = problem.get("sources") or []
+    # Deduplicate incoming sources by URL or name
+    merged_sources = list(existing_sources)
+    existing_urls = {str(s.get("source_url", "")).strip().lower() for s in existing_sources if s.get("source_url")}
+    existing_names = {str(s.get("source_name", "")).strip().lower() for s in existing_sources}
+
+    added_count = 0
+    for new_src in req.sources:
+        url_key = str(new_src.get("source_url", "")).strip().lower()
+        name_key = str(new_src.get("source_name", "")).strip().lower()
+        if (url_key and url_key not in existing_urls) or (name_key not in existing_names):
+            merged_sources.append(new_src)
+            if url_key:
+                existing_urls.add(url_key)
+            existing_names.add(name_key)
+            added_count += 1
+
+    # Update in SQLite
+    updated = storage.update_problem(problem_id, {"sources": merged_sources})
+    breakdown = calculate_score_breakdown(updated or problem, merged_sources)
+
+    return {
+        "status": "success",
+        "problem_id": problem_id,
+        "added_count": added_count,
+        "total_sources_count": len(merged_sources),
+        "problem": updated,
+        "breakdown": breakdown,
+    }
 
 # ----------------------------------------------------------------------
 # Phase 1 Endpoints (Problem Discovery)

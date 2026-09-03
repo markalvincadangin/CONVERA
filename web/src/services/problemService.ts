@@ -133,6 +133,26 @@ export const problemService = {
     });
   },
 
+  async queryResearch(query: string, engine: string = "ALL", limit: number = 5): Promise<any> {
+    return fetchApi<any>("/api/research/query", {
+      method: "POST",
+      body: JSON.stringify({ query, engine, limit }),
+    });
+  },
+
+  async autoResearchProblem(problemId: string): Promise<{ status: string; problem_id: string; results: any }> {
+    return fetchApi<{ status: string; problem_id: string; results: any }>(`/api/problems/${problemId}/auto-research`, {
+      method: "POST",
+    });
+  },
+
+  async attachSources(problemId: string, sources: any[]): Promise<{ status: string; problem_id: string; added_count: number; total_sources_count: number; problem: ProblemRecord; breakdown: ScoreBreakdown }> {
+    return fetchApi<{ status: string; problem_id: string; added_count: number; total_sources_count: number; problem: ProblemRecord; breakdown: ScoreBreakdown }>(`/api/problems/${problemId}/attach-sources`, {
+      method: "POST",
+      body: JSON.stringify({ sources }),
+    });
+  },
+
   async parsePhase1Markdown(markdown: string, sessionId?: string, projectId?: string): Promise<{ status: string; count: number; problems: ProblemRecord[] }> {
     return fetchApi<{ status: string; count: number; problems: ProblemRecord[] }>("/api/problems/parse-phase1", {
       method: "POST",

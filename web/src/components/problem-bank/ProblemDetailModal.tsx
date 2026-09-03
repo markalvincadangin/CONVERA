@@ -9,8 +9,9 @@ import { ProblemRecord } from "@/lib/types";
 import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
+import { ResearchEvidenceModal } from "./ResearchEvidenceModal";
 import {
-  ExternalLink, Search, Plus, Globe,
+  ExternalLink, Search, Plus, Globe, BookOpen,
   ShieldCheck,
   Tag,
   Clock,
@@ -64,6 +65,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
+  const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
 
   const handleAddSource = () => {
@@ -358,16 +360,25 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
 
           {/* Evidence Sources & Live Verification */}
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <div className="flex items-center gap-2">
                 <ShieldCheck className="w-4 h-4 text-cyan-400" />
                 <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                  Verified Evidence Sources & Citations ({isEditing ? sources.length : (problem.sources?.length || 0)})
+                  Verified Evidence Sources ({isEditing ? sources.length : (problem.sources?.length || 0)})
                 </h4>
               </div>
-              <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">
-                {isEditing ? "Add real links or publications" : "Click 'Verify Coverage' to locate exact articles"}
-              </span>
+
+              {!isEditing && (
+                <button
+                  type="button"
+                  onClick={() => setIsResearchModalOpen(true)}
+                  className="font-mono text-xs font-bold text-cyan-300 hover:text-white bg-cyan-500/15 hover:bg-cyan-500/25 border border-cyan-500/30 hover:border-cyan-500/50 px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 shrink-0 shadow-sm"
+                  title="Search OpenAlex, Europe PMC, and Regional News for verified citations"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>Research Academic & Web Sources</span>
+                </button>
+              )}
             </div>
 
             {/* View Mode Sources */}
