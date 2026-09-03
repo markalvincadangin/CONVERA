@@ -1372,6 +1372,72 @@ async def get_mentor_signoffs(project_id: str):
 # CONVERA FRAMEWORK ENGINE REST API
 # ===========================================================================
 
+
+# ===========================================================================
+# CONVERA INTELLIGENCE & CONNECTOR LAYER (CIIA v1.0)
+# ===========================================================================
+
+@app.get("/api/connectors")
+async def api_list_connectors():
+    """List all registered research and tool connectors."""
+    connectors = await connector_hub.list_connectors()
+    return {"connectors": connectors}
+
+
+@app.get("/api/connectors/health")
+async def api_connectors_health():
+    """Check operational health and latency of all registered connectors."""
+    health_reports = await connector_hub.check_all_health()
+    return {"health": health_reports}
+
+
+class ConnectorSearchRequest(BaseModel):
+    query: str
+    limit_per_source: Optional[int] = 5
+    connector_ids: Optional[List[str]] = None
+
+
+@app.post("/api/connectors/search")
+async def api_connectors_search(req: ConnectorSearchRequest):
+    """Perform federated search across OpenAlex, Semantic Scholar, and Crossref."""
+    if not req.query.strip():
+        raise HTTPException(status_code=400, detail="Search query cannot be empty")
+    
+    results = await connector_hub.federated_search(
+        query=req.query.strip(),
+        limit_per_source=req.limit_per_source or 5,
+        connector_ids=req.connector_ids
+    )
+    return {
+        "query": req.query,
+        "count": len(results),
+        "results": [r.model_dump() for r in results]
+    }
+
+
+class DocumentIngestRequest(BaseModel):
+    raw_content: str
+    source_name: Optional[str] = "Research Inbox Note"
+    source_url: Optional[str] = None
+    doi: Optional[str] = None
+    authority_tier: Optional[str] = "FIELD_INTERVIEW"
+
+
+@app.post("/api/inbox/ingest")
+async def api_inbox_ingest(req: DocumentIngestRequest):
+    """Parse unstructured text into grounded problem claims and evidence candidates."""
+    if not req.raw_content.strip():
+        raise HTTPException(status_code=400, detail="Raw content cannot be empty")
+    
+    result = await parse_and_extract_document(
+        raw_content=req.raw_content.strip(),
+        source_name=req.source_name or "Research Inbox Note",
+        source_url=req.source_url,
+        doi=req.doi,
+        authority_tier=req.authority_tier or "FIELD_INTERVIEW"
+    )
+    return result.model_dump()
+
 @app.get("/api/frameworks")
 async def api_list_frameworks():
     """List all registered CONVERA frameworks (Innovation, Research, Capstone, Product)."""

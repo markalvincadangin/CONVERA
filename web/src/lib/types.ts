@@ -555,3 +555,57 @@ export interface FrameworkDetail {
   gates: FrameworkGate[];
   required_artifacts: string[];
 }
+
+
+// ===========================================================================
+// CONVERA CIIA CONNECTOR & INGESTION TYPES (CIIA v1.0)
+// ===========================================================================
+
+export interface ProvenanceMetadata {
+  source_name: string;
+  source_url?: string | null;
+  doi?: string | null;
+  retrieval_timestamp: string;
+  authority_tier: string; // PEER_REVIEWED, OFFICIAL_DATA, FIELD_INTERVIEW, WEB_SIGNAL
+  methodology_notes?: string | null;
+}
+
+export interface NormalizedScholarlyWork {
+  doi?: string | null;
+  title: string;
+  authors: string[];
+  year?: number | null;
+  venue?: string | null;
+  citation_count: number;
+  influential_citation_count?: number;
+  abstract?: string | null;
+  url?: string | null;
+  open_access_pdf_url?: string | null;
+  topics?: string[];
+  provenance: ProvenanceMetadata;
+}
+
+export interface EvidenceCandidate {
+  id: string;
+  problem_id?: string | null;
+  claim_text: string;
+  claim_type: "FRICTION_REALITY" | "FREQUENCY_CONSEQUENCE" | "WORKAROUND_DISSATISFACTION" | "ADOPTION_COMMITMENT" | string;
+  evidence_tier: "DISCOVERY_SIGNAL" | "CONTEXTUAL_EVIDENCE" | "VALIDATION_EVIDENCE" | string;
+  evidence_strength: "WEAK" | "MODERATE" | "STRONG" | "CONTRADICTED" | string;
+  ai_confidence: number;
+  supporting_quote?: string | null;
+  extracted_from?: string | null;
+  provenance: ProvenanceMetadata;
+  status: "PENDING_REVIEW" | "VALIDATED" | "REFUTED" | string;
+}
+
+export interface IngestedDocumentResult {
+  document_id: string;
+  inferred_title: string;
+  inferred_sector: string;
+  problem_statement: string;
+  evidence_candidates: EvidenceCandidate[];
+  identified_assumptions: { assumption: string; risk_level: string }[];
+  raw_chunk_count: number;
+  provenance: ProvenanceMetadata;
+}

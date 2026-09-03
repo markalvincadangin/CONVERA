@@ -24,6 +24,7 @@ from .framework_engine import (
 )
 from .problem_enricher import enrich_manual_problem_input
 from .problem_parser import clean_text, clean_problem_id, canonicalize_problem_id, infer_sector, parse_phase1_markdown
+from .document_parser import parse_and_extract_document, IngestedDocumentResult, chunk_text
 from .research_client import extract_core_topic, extract_keywords, extract_clean_location, FreeResearchClient
 from .srs_generator import generate_project_srs, format_srs_markdown
 
@@ -54,6 +55,9 @@ __all__ = [
     "canonicalize_problem_id",
     "infer_sector",
     "parse_phase1_markdown",
+    "parse_and_extract_document",
+    "IngestedDocumentResult",
+    "chunk_text",
     "extract_core_topic",
     "extract_keywords",
     "extract_clean_location",

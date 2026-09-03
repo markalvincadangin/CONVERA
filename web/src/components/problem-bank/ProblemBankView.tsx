@@ -12,6 +12,8 @@ import { ProblemDetailModal } from "./ProblemDetailModal";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { BlindSpotModal } from "./BlindSpotModal";
 import { RawBrainstormIngestModal } from "./RawBrainstormIngestModal";
+import { ResearchInboxDrawer } from "@/components/common/ResearchInboxDrawer";
+import { Inbox } from "lucide-react";
 import { Archive, RotateCcw } from "lucide-react";
 import {
   Search,
@@ -72,6 +74,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [challengeTargetProblem, setChallengeTargetProblem] = useState<ProblemRecord | null>(null);
   const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
   const [isRawIngestOpen, setIsRawIngestOpen] = useState(false);
+  const [isInboxDrawerOpen, setIsInboxDrawerOpen] = useState(false);
 
   const fetchProblems = async () => {
     setIsLoading(true);

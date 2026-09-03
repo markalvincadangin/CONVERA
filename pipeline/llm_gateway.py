@@ -12,7 +12,20 @@ import re
 import time
 import asyncio
 from pathlib import Path
-from typing import Dict, Any, Tuple
+from typing import Dict, Any, Tuple, Optional, List
+from enum import Enum
+
+from enum import Enum
+
+class TaskCategory(str, Enum):
+    FAST_EXTRACTION = "FAST_EXTRACTION"
+    CLASSIFICATION = "CLASSIFICATION"
+    BALANCED_SYNTHESIS = "BALANCED_SYNTHESIS"
+    SOCRATIC_CLINIC = "SOCRATIC_CLINIC"
+    DEVILS_ADVOCATE = "DEVILS_ADVOCATE"
+    DECISION_JUDGE = "DECISION_JUDGE"
+    SRS_SPECIFICATION = "SRS_SPECIFICATION"
+
 import httpx
 from dotenv import load_dotenv
 
@@ -278,6 +291,7 @@ async def generate_with_meta(
     system_instruction: str,
     prompt: str,
     history: list[dict] = None,
+    task_category: Optional[TaskCategory] = None,
 ) -> Tuple[str, Dict[str, Any]]:
     """
     Universal Generation Gateway that returns (clean_text, model_metadata).
@@ -358,7 +372,8 @@ async def generate_response_with_fallback(
     system_instruction: str,
     prompt: str,
     history: list[dict] = None,
+    task_category: Optional[TaskCategory] = None,
 ) -> str:
     """Backward-compatible helper returning raw text."""
-    content, _ = await generate_with_meta(system_instruction, prompt, history)
+    content, _ = await generate_with_meta(system_instruction, prompt, history, task_category=task_category)
     return content
