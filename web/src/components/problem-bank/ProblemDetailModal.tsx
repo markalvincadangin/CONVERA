@@ -10,7 +10,7 @@ import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import {
-  ExternalLink,
+  ExternalLink, Search, Plus, Globe,
   ShieldCheck,
   Tag,
   Clock,
@@ -55,11 +55,46 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   const [workaround, setWorkaround] = useState(problem.workaround || "");
   const [impact, setImpact] = useState(problem.quantified_impact || "");
   const [notes, setNotes] = useState(problem.notes || "");
+  const [sources, setSources] = useState<any[]>(problem.sources || []);
+  const [newSourceName, setNewSourceName] = useState("");
+  const [newSourceUrl, setNewSourceUrl] = useState("");
+  const [newSourceTier, setNewSourceTier] = useState<string>("B");
+  const [newSourceSummary, setNewSourceSummary] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
   const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
+
+  const handleAddSource = () => {
+    if (!newSourceName.trim()) return;
+    const newEntry = {
+      source_name: newSourceName.trim(),
+      source_url: newSourceUrl.trim() || null,
+      source_tier: newSourceTier,
+      quote_or_summary: newSourceSummary.trim() || null,
+      citation: newSourceName.trim(),
+    };
+    setSources([...sources, newEntry]);
+    setNewSourceName("");
+    setNewSourceUrl("");
+    setNewSourceSummary("");
+  };
+
+  const handleRemoveSource = (indexToRemove: number) => {
+    setSources(sources.filter((_, i) => i !== indexToRemove));
+  };
+
+  const getDeepSearchUrl = (srcName: string, domainUrl?: string | null) => {
+    const query = `${srcName} ${problem.sufferer_location || "Iloilo"} ${problem.problem_statement.slice(0, 45)}`;
+    if (domainUrl && domainUrl.startsWith("http")) {
+      try {
+        const hostname = new URL(domainUrl).hostname.replace(/^www\./, "");
+        return `https://www.google.com/search?q=site:${hostname}+${encodeURIComponent(query)}`;
+      } catch (e) {}
+    }
+    return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+  };
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -69,6 +104,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
         workaround,
         quantified_impact: impact,
         notes,
+        sources,
       });
       onProblemUpdated(res.problem);
       setIsEditing(false);
@@ -320,51 +356,165 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
             </div>
           </div>
 
-          {/* Evidence Sources */}
+          {/* Evidence Sources & Live Verification */}
           <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 space-y-3">
-            <div className="flex items-center gap-2">
-              <ShieldCheck className="w-4 h-4 text-cyan-400" />
-              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
-                Verified Evidence Sources ({problem.sources?.length || 0})
-              </h4>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-300">
+                  Verified Evidence Sources & Citations ({isEditing ? sources.length : (problem.sources?.length || 0)})
+                </h4>
+              </div>
+              <span className="text-[11px] text-slate-400 font-mono hidden sm:inline">
+                {isEditing ? "Add real links or publications" : "Click 'Verify Coverage' to locate exact articles"}
+              </span>
             </div>
 
-            {problem.sources && problem.sources.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                {problem.sources.map((src, i) => (
-                  <div
-                    key={i}
-                    className="p-2.5 bg-slate-900 rounded-xl border border-slate-800 space-y-1 text-xs"
-                  >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-white truncate">{src.source_name}</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">
-                        Tier {src.source_tier || "B"}
-                      </span>
-                    </div>
-                    {src.source_url ? (
-                      <a
-                        href={src.source_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px] truncate"
+            {/* View Mode Sources */}
+            {!isEditing ? (
+              (problem.sources && problem.sources.length > 0) ? (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  {problem.sources.map((src, i) => {
+                    const searchUrl = getDeepSearchUrl(src.source_name, src.source_url);
+                    const isDeepUrl = src.source_url && src.source_url.length > 25 && src.source_url.includes("/");
+
+                    return (
+                      <div
+                        key={i}
+                        className="p-3 bg-slate-900 rounded-xl border border-slate-800 space-y-2 text-xs flex flex-col justify-between"
                       >
-                        <ExternalLink className="w-3 h-3 shrink-0" />
-                        {src.source_url.replace(/^https?:\/\//, "")}
-                      </a>
-                    ) : (
-                      <span className="text-[11px] text-slate-500 italic">Internal / Primary Note</span>
-                    )}
-                    {src.quote_or_summary && (
-                      <p className="text-[11px] text-slate-400 line-clamp-2 mt-1 italic">
-                        "{src.quote_or_summary}"
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
+                        <div className="space-y-1">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="font-bold text-white truncate" title={src.source_name}>
+                              {src.source_name}
+                            </span>
+                            <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-800 text-cyan-400 border border-slate-700 shrink-0">
+                              Tier {src.source_tier || "B"}
+                            </span>
+                          </div>
+
+                          {src.quote_or_summary && (
+                            <p className="text-[11px] text-slate-300 line-clamp-2 italic">
+                              "{src.quote_or_summary}"
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Citation Links Toolbar */}
+                        <div className="flex items-center gap-2 pt-1 border-t border-slate-800/80">
+                          {src.source_url && (
+                            <a
+                              href={src.source_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 text-[11px] font-mono truncate hover:underline"
+                              title={src.source_url}
+                            >
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                              <span className="truncate max-w-[120px]">{src.source_url.replace(/^https?:\/\//, "")}</span>
+                            </a>
+                          )}
+
+                          <a
+                            href={searchUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-auto text-[10px] font-mono font-bold text-slate-300 hover:text-cyan-300 bg-slate-950 hover:bg-slate-800 border border-slate-700 px-2 py-1 rounded-lg flex items-center gap-1 transition-colors shrink-0"
+                            title="Open targeted Google search to find the exact published report or news article"
+                          >
+                            <Search className="w-3 h-3 text-cyan-400" />
+                            <span>Verify Coverage</span>
+                          </a>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 italic">No formal source citations attached.</p>
+              )
             ) : (
-              <p className="text-xs text-slate-500 italic">No formal source citations attached.</p>
+              /* Edit Mode: Source Manager */
+              <div className="space-y-3">
+                {/* List of currently editable sources */}
+                <div className="space-y-2">
+                  {sources.map((src, idx) => (
+                    <div key={idx} className="p-3 bg-slate-900 rounded-xl border border-slate-700 flex items-center justify-between gap-3 text-xs">
+                      <div className="min-w-0 flex-1 space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-bold text-white truncate">{src.source_name}</span>
+                          <span className="text-[10px] font-mono px-1 rounded bg-slate-800 text-cyan-400">
+                            Tier {src.source_tier}
+                          </span>
+                        </div>
+                        {src.source_url && (
+                          <p className="text-[11px] font-mono text-cyan-300 truncate">{src.source_url}</p>
+                        )}
+                        {src.quote_or_summary && (
+                          <p className="text-[11px] text-slate-400 truncate italic">"{src.quote_or_summary}"</p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveSource(idx)}
+                        className="p-1.5 rounded-lg text-rose-400 hover:bg-rose-500/20 hover:text-rose-300 transition-colors"
+                        title="Remove Source"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Add New Source Input Row */}
+                <div className="p-3 rounded-xl bg-slate-900/60 border border-dashed border-slate-700 space-y-2.5">
+                  <span className="text-xs font-bold text-slate-300 flex items-center gap-1.5 font-mono">
+                    <Plus className="w-3.5 h-3.5 text-cyan-400" /> Add Citation or Real Article Link:
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-12 gap-2 text-xs">
+                    <input
+                      type="text"
+                      placeholder="Source Title (e.g. Panay News: Onion Spoilage Investigation)"
+                      value={newSourceName}
+                      onChange={(e) => setNewSourceName(e.target.value)}
+                      className="sm:col-span-6 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                    />
+                    <input
+                      type="url"
+                      placeholder="Exact Article URL (e.g. https://panaynews.net/article-123)"
+                      value={newSourceUrl}
+                      onChange={(e) => setNewSourceUrl(e.target.value)}
+                      className="sm:col-span-4 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono text-[11px]"
+                    />
+                    <select
+                      value={newSourceTier}
+                      onChange={(e) => setNewSourceTier(e.target.value)}
+                      className="sm:col-span-2 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-cyan-300 font-mono font-bold focus:outline-none"
+                    >
+                      <option value="A">Tier A (Gov/PSA)</option>
+                      <option value="B">Tier B (News/Report)</option>
+                      <option value="C">Tier C (Field/Forum)</option>
+                    </select>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      placeholder="Quote or Summary of findings from the source..."
+                      value={newSourceSummary}
+                      onChange={(e) => setNewSourceSummary(e.target.value)}
+                      className="flex-1 bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddSource}
+                      disabled={!newSourceName.trim()}
+                      className="px-3 py-1.5 bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-semibold rounded-lg border border-cyan-500/40 text-xs transition-colors shrink-0 disabled:opacity-50"
+                    >
+                      + Add Citation
+                    </button>
+                  </div>
+                </div>
+              </div>
             )}
           </div>
 

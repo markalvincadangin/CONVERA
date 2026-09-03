@@ -19,36 +19,19 @@ CRITICAL INSTRUCTIONS:
 
 ---
 
-## VERIFIED SOURCE REGISTRY (USE ONLY THESE URLS)
+## EVIDENCE SOURCE CITATION PROTOCOL
 
-You MUST cite sources ONLY from this verified registry. Do NOT invent, guess, or fabricate any URL.
-If a source is not in this list, cite it as plain text WITHOUT a hyperlink.
+Ground every discovered problem in real empirical evidence, official publications, or verified regional news.
 
-### Government Agencies (National / Regional)
-- PSA (Philippine Statistics Authority): [PSA](https://psa.gov.ph)
-- DA Western Visayas: [DA Western Visayas](https://westernvisayas.da.gov.ph)
-- BFAR (Bureau of Fisheries): [BFAR](https://www.bfar.da.gov.ph)
-- DOH (Department of Health): [DOH](https://doh.gov.ph)
-- DTI (Department of Trade and Industry): [DTI](https://www.dti.gov.ph)
-- PhilHealth: [PhilHealth](https://www.philhealth.gov.ph)
-- DENR Region VI: [DENR Region VI](https://r6.denr.gov.ph)
-- DOST (Science and Technology): [DOST](https://www.dost.gov.ph)
-- DSWD Region VI: [DSWD Region VI](https://fo6.dswd.gov.ph)
-- DepEd Region VI: [DepEd Region VI](https://region6.deped.gov.ph)
-
-### Local Government
-- Iloilo Provincial Government: [Iloilo Province](https://iloilo.gov.ph)
-
-### Local News Media
-- Panay News: [Panay News](https://www.panaynews.net)
-- Visayan Daily Star: [Visayan Daily Star](https://visayandailystar.com)
-- Daily Guardian: [Daily Guardian](https://dailyguardian.com.ph)
-
-### SOURCE CITATION RULES:
-1. ONLY use URLs from the registry above. Never fabricate a URL.
-2. For sources NOT in this registry (e.g. community forums, Facebook groups, field observations), write the source name as plain text WITHOUT a markdown link.
-3. Each Source(s) cell MUST contain at least one registry hyperlink.
-4. Combine multiple sources with semicolons: `[PSA](https://psa.gov.ph); [Panay News](https://www.panaynews.net)`
+### CITATION FORMATTING RULES:
+1. Provide the SPECIFIC source name with publication title or survey topic (e.g. `PSA: Western Visayas Regional Agricultural Survey`, `DA-RFO6: Post-Harvest Cold Chain Advisory`, `Panay News: Miagao Onion Spoilage Investigation`, `Daily Guardian: Iloilo Fish Port Cold Storage Report`).
+2. Do NOT generate generic or invented dead URLs. 
+3. You may provide deep-query verification links formatted as:
+   - `[PSA: Western Visayas Agri Survey](https://www.google.com/search?q=site:psa.gov.ph+Western+Visayas+Agriculture)`
+   - `[Panay News: Miagao Onion Rot Report](https://www.google.com/search?q=site:panaynews.net+Miagao+onion+farmers)`
+   - `[DA Western Visayas Post-Harvest Report](https://westernvisayas.da.gov.ph)`
+4. For firsthand field data, cite as plain text: `Team Field Interview (Barangay Kirayan Tacas)` or `Local Vendor Observation (Iloilo Central Market)`.
+5. Combine multiple sources with semicolons: `[PSA: Agri Survey](https://www.google.com/search?q=site:psa.gov.ph+Western+Visayas+Agriculture); [Panay News: Onion Spoilage](https://www.google.com/search?q=site:panaynews.net+Miagao+onion+farmers)`
 
 ---
 
