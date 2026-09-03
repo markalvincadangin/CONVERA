@@ -159,3 +159,51 @@ class BaseStorageAdapter(ABC):
     def list_mentor_signoffs(self, project_id: str) -> List[Dict[str, Any]]:
         """List all mentor approvals/sign-offs for a project."""
         pass
+
+    # -----------------------------------------------------------------------
+    # Provenance, Contradictions, Unknowns, and Traceability
+    # -----------------------------------------------------------------------
+    @abstractmethod
+    def record_provenance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Record first-class provenance metadata for a source or claim."""
+        pass
+
+    @abstractmethod
+    def get_provenance(self, source_id: str) -> Optional[Dict[str, Any]]:
+        """Get provenance record by source_id."""
+        pass
+
+    @abstractmethod
+    def record_contradiction(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Record a contested contradiction relationship between two evidence items."""
+        pass
+
+    @abstractmethod
+    def list_assumptions(self, problem_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List problem assumptions."""
+        pass
+
+    @abstractmethod
+    def list_contradictions(self, claim_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List contradiction records."""
+        pass
+
+    @abstractmethod
+    def add_unknown(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add an item to the Unknowns Map (WHAT_WE_KNOW, WHAT_WE_THINK, WHAT_WE_DONT_KNOW)."""
+        pass
+
+    @abstractmethod
+    def list_unknowns(self, project_id: Optional[str] = None, session_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List items in the Unknowns Map."""
+        pass
+
+    @abstractmethod
+    def add_traceability_link(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Record a full lineage traceability link from Problem to Requirement."""
+        pass
+
+    @abstractmethod
+    def get_traceability_lineage(self, requirement_id: Optional[str] = None, problem_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Retrieve end-to-end traceability lineage chain."""
+        pass

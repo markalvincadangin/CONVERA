@@ -296,6 +296,58 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     resolution_status TEXT NOT NULL DEFAULT 'ACTIVE_ALERT',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
+                CREATE TABLE IF NOT EXISTS evidence_provenance (
+                    id TEXT PRIMARY KEY,
+                    source_id TEXT NOT NULL,
+                    connector TEXT NOT NULL,
+                    original_identifier TEXT,
+                    retrieval_timestamp TEXT NOT NULL,
+                    extraction_model TEXT,
+                    extraction_prompt_hash TEXT,
+                    human_verification_state TEXT DEFAULT 'UNVERIFIED',
+                    superseded_by_id TEXT,
+                    created_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS claim_contradictions (
+                    id TEXT PRIMARY KEY,
+                    claim_id TEXT NOT NULL,
+                    supporting_evidence_id TEXT NOT NULL,
+                    contradicting_evidence_id TEXT NOT NULL,
+                    status TEXT NOT NULL DEFAULT 'CONTESTED',
+                    investigation_notes TEXT,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS project_unknowns (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT NOT NULL,
+                    session_id TEXT,
+                    category TEXT NOT NULL,
+                    statement TEXT NOT NULL,
+                    risk_level TEXT DEFAULT 'MEDIUM',
+                    linked_claim_id TEXT,
+                    linked_assumption_id TEXT,
+                    resolution_test_id TEXT,
+                    is_resolved INTEGER DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS requirements_traceability (
+                    id TEXT PRIMARY KEY,
+                    requirement_id TEXT NOT NULL,
+                    requirement_text TEXT NOT NULL,
+                    category TEXT DEFAULT 'FUNCTIONAL',
+                    linked_decision_id TEXT,
+                    linked_assumption_id TEXT,
+                    linked_claim_id TEXT,
+                    linked_evidence_id TEXT,
+                    linked_problem_id TEXT,
+                    created_at TEXT NOT NULL
+                );
+
 
                 CREATE INDEX IF NOT EXISTS idx_claim_evidence_claim ON claim_evidence_links(claim_id);
                 CREATE INDEX IF NOT EXISTS idx_claim_evidence_source ON claim_evidence_links(source_id);
@@ -1763,3 +1815,181 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 (resolution_status.upper(), event_id),
             )
             return cur.rowcount > 0
+
+    # -----------------------------------------------------------------------
+    # First-Class Provenance, Contradictions, Unknowns, and Traceability
+    # -----------------------------------------------------------------------
+    def record_provenance(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        prov_id = data.get("id") or f"prov_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT OR REPLACE INTO evidence_provenance 
+                (id, source_id, connector, original_identifier, retrieval_timestamp, 
+                 extraction_model, extraction_prompt_hash, human_verification_state, superseded_by_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    prov_id,
+                    data.get("source_id", ""),
+                    data.get("connector", "manual"),
+                    data.get("original_identifier"),
+                    data.get("retrieval_timestamp") or now,
+                    data.get("extraction_model"),
+                    data.get("extraction_prompt_hash"),
+                    data.get("human_verification_state", "UNVERIFIED"),
+                    data.get("superseded_by_id"),
+                    now
+                )
+            )
+        data["id"] = prov_id
+        data["created_at"] = now
+        return data
+
+    def get_provenance(self, source_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM evidence_provenance WHERE source_id = ? OR id = ?",
+                (source_id, source_id)
+            ).fetchone()
+            return dict(row) if row else None
+
+    def list_assumptions(self, problem_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            if problem_id:
+                rows = conn.execute("SELECT * FROM problem_assumptions WHERE problem_id = ?", (problem_id,)).fetchall()
+            else:
+                rows = conn.execute("SELECT * FROM problem_assumptions").fetchall()
+            return [dict(r) for r in rows]
+
+    def record_contradiction(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        contra_id = data.get("id") or f"contra_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO claim_contradictions 
+                (id, claim_id, supporting_evidence_id, contradicting_evidence_id, status, investigation_notes, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    contra_id,
+                    data.get("claim_id", ""),
+                    data.get("supporting_evidence_id", ""),
+                    data.get("contradicting_evidence_id", ""),
+                    data.get("status", "CONTESTED"),
+                    data.get("investigation_notes", ""),
+                    now,
+                    now
+                )
+            )
+            # Update claim status to CONTESTED if not resolved
+            conn.execute(
+                "UPDATE problem_claims SET status = 'CONTESTED' WHERE id = ?",
+                (data.get("claim_id", ""),)
+            )
+        data["id"] = contra_id
+        data["created_at"] = now
+        data["updated_at"] = now
+        return data
+
+    def list_contradictions(self, claim_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            if claim_id:
+                rows = conn.execute(
+                    "SELECT * FROM claim_contradictions WHERE claim_id = ? ORDER BY created_at DESC",
+                    (claim_id,)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM claim_contradictions ORDER BY created_at DESC"
+                ).fetchall()
+            return [dict(r) for r in rows]
+
+    def add_unknown(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        unk_id = data.get("id") or f"unk_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO project_unknowns
+                (id, project_id, session_id, category, statement, risk_level, linked_claim_id, linked_assumption_id, resolution_test_id, is_resolved, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    unk_id,
+                    data.get("project_id", "default_proj"),
+                    data.get("session_id"),
+                    data.get("category", "WHAT_WE_THINK"),
+                    data.get("statement", ""),
+                    data.get("risk_level", "MEDIUM"),
+                    data.get("linked_claim_id"),
+                    data.get("linked_assumption_id"),
+                    data.get("resolution_test_id"),
+                    1 if data.get("is_resolved") else 0,
+                    now,
+                    now
+                )
+            )
+        data["id"] = unk_id
+        data["created_at"] = now
+        data["updated_at"] = now
+        return data
+
+    def list_unknowns(self, project_id: Optional[str] = None, session_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM project_unknowns WHERE 1=1"
+        params: List[Any] = []
+        if project_id:
+            query += " AND (project_id = ? OR project_id = 'default_proj')"
+            params.append(project_id)
+        if session_id:
+            query += " AND (session_id = ? OR session_id IS NULL)"
+            params.append(session_id)
+        query += " ORDER BY is_resolved ASC, created_at DESC"
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            return [dict(r) for r in rows]
+
+    def add_traceability_link(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        trace_id = data.get("id") or f"trc_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO requirements_traceability
+                (id, requirement_id, requirement_text, category, linked_decision_id, linked_assumption_id, linked_claim_id, linked_evidence_id, linked_problem_id, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    trace_id,
+                    data.get("requirement_id", "REQ-01"),
+                    data.get("requirement_text", ""),
+                    data.get("category", "FUNCTIONAL"),
+                    data.get("linked_decision_id"),
+                    data.get("linked_assumption_id"),
+                    data.get("linked_claim_id"),
+                    data.get("linked_evidence_id"),
+                    data.get("linked_problem_id"),
+                    now
+                )
+            )
+        data["id"] = trace_id
+        data["created_at"] = now
+        return data
+
+    def get_traceability_lineage(self, requirement_id: Optional[str] = None, problem_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM requirements_traceability WHERE 1=1"
+        params: List[Any] = []
+        if requirement_id:
+            query += " AND requirement_id = ?"
+            params.append(requirement_id)
+        if problem_id:
+            query += " AND linked_problem_id = ?"
+            params.append(problem_id)
+        query += " ORDER BY created_at DESC"
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            return [dict(r) for r in rows]

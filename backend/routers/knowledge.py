@@ -143,3 +143,98 @@ async def acknowledge_impact_alert(alert_id: str, req: ResolveAlertRequest):
     if not success:
         raise HTTPException(status_code=404, detail="Impact alert not found")
     return {"status": "success", "resolved": True}
+
+
+from engines.provenance_engine import ProvenanceEngine
+from engines.freshness_engine import FreshnessEngine
+from engines.contradiction_engine import ContradictionEngine
+from engines.unknowns_engine import UnknownsEngine
+
+class RecordProvenanceRequest(BaseModel):
+    source_id: str
+    connector: str = "manual"
+    original_identifier: Optional[str] = None
+    extraction_model: Optional[str] = None
+    extraction_prompt: Optional[str] = None
+    human_verified: bool = False
+
+class RecordContradictionRequest(BaseModel):
+    claim_id: str
+    supporting_evidence_id: str
+    contradicting_evidence_id: str
+    investigation_notes: Optional[str] = None
+
+class AddUnknownRequest(BaseModel):
+    project_id: str = "default_proj"
+    category: str = Field("WHAT_WE_THINK", description="WHAT_WE_KNOW, WHAT_WE_THINK, WHAT_WE_DONT_KNOW")
+    statement: str
+    risk_level: str = "MEDIUM"
+    session_id: Optional[str] = None
+    linked_claim_id: Optional[str] = None
+    linked_assumption_id: Optional[str] = None
+    resolution_test_id: Optional[str] = None
+
+@router.post("/provenance")
+async def record_provenance(req: RecordProvenanceRequest):
+    engine = ProvenanceEngine()
+    record = engine.record_evidence_provenance(
+        source_id=req.source_id,
+        connector=req.connector,
+        original_identifier=req.original_identifier,
+        extraction_model=req.extraction_model,
+        extraction_prompt=req.extraction_prompt,
+        human_verified=req.human_verified
+    )
+    return {"status": "recorded", "provenance": record}
+
+@router.get("/provenance/{source_id}")
+async def get_provenance(source_id: str):
+    engine = ProvenanceEngine()
+    prov = engine.get_provenance_dossier(source_id)
+    if not prov:
+        raise HTTPException(status_code=404, detail=f"Provenance record for source '{source_id}' not found")
+    return {"provenance": prov}
+
+@router.get("/freshness")
+async def get_project_freshness(project_id: Optional[str] = None):
+    storage = get_storage()
+    sources = storage.list_sources(project_id=project_id) if hasattr(storage, "list_sources") else []
+    engine = FreshnessEngine()
+    result = engine.evaluate_project_freshness(sources)
+    return result
+
+@router.post("/contradictions")
+async def register_contradiction(req: RecordContradictionRequest):
+    engine = ContradictionEngine()
+    record = engine.register_contradiction(
+        claim_id=req.claim_id,
+        supporting_evidence_id=req.supporting_evidence_id,
+        contradicting_evidence_id=req.contradicting_evidence_id,
+        investigation_notes=req.investigation_notes or ""
+    )
+    return {"status": "contested", "contradiction": record}
+
+@router.get("/contradictions")
+async def list_contradictions(claim_id: Optional[str] = None):
+    engine = ContradictionEngine()
+    return {"contradictions": engine.list_project_contradictions(claim_id=claim_id)}
+
+@router.post("/unknowns")
+async def add_unknown(req: AddUnknownRequest):
+    engine = UnknownsEngine()
+    res = engine.add_unknown_item(
+        project_id=req.project_id,
+        category=req.category,
+        statement=req.statement,
+        risk_level=req.risk_level,
+        session_id=req.session_id,
+        linked_claim_id=req.linked_claim_id,
+        linked_assumption_id=req.linked_assumption_id,
+        resolution_test_id=req.resolution_test_id
+    )
+    return {"status": "added", "item": res}
+
+@router.get("/unknowns")
+async def get_unknowns_map(project_id: str = "default_proj", session_id: Optional[str] = None):
+    engine = UnknownsEngine()
+    return engine.generate_project_unknowns_map(project_id=project_id, session_id=session_id)

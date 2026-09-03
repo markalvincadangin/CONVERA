@@ -146,3 +146,134 @@ export const knowledgeService = {
     });
   },
 };
+
+
+export interface ProvenanceRecord {
+  id: string;
+  source_id: string;
+  connector: string;
+  original_identifier?: string;
+  retrieval_timestamp: string;
+  extraction_model?: string;
+  extraction_prompt_hash?: string;
+  human_verification_state: "UNVERIFIED" | "VERIFIED_BY_RESEARCHER" | "DISPUTED";
+  superseded_by_id?: string;
+  created_at: string;
+}
+
+export interface FreshnessReport {
+  overall_freshness_score: number;
+  stale_count: number;
+  aging_count: number;
+  fresh_count: number;
+  sources_analyzed: number;
+  stale_alerts: Array<{
+    source_id: string;
+    source_title: string;
+    age_years: number;
+    warning: string;
+  }>;
+}
+
+export interface ContradictionRecord {
+  id: string;
+  claim_id: string;
+  supporting_evidence_id: string;
+  contradicting_evidence_id: string;
+  status: "CONTESTED" | "RESOLVED_SUPPORTED" | "RESOLVED_CONTRADICTED" | "DISMISSED";
+  investigation_notes: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface UnknownItem {
+  id: string;
+  project_id: string;
+  session_id?: string;
+  category: "WHAT_WE_KNOW" | "WHAT_WE_THINK" | "WHAT_WE_DONT_KNOW";
+  statement: string;
+  risk_level: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  linked_claim_id?: string;
+  linked_assumption_id?: string;
+  resolution_test_id?: string;
+  is_resolved?: boolean;
+}
+
+export interface UnknownsMapReport {
+  project_id: string;
+  summary: {
+    what_we_know_count: number;
+    what_we_think_count: number;
+    what_we_dont_know_count: number;
+    critical_unknowns_count: number;
+  };
+  what_we_know: UnknownItem[];
+  what_we_think: UnknownItem[];
+  what_we_dont_know: UnknownItem[];
+}
+
+export interface TraceabilityNode {
+  requirement_id: string;
+  requirement_text: string;
+  category: string;
+  lineage: {
+    problem?: { id?: string; statement?: string };
+    claim?: { id?: string };
+    evidence?: { id?: string };
+    assumption?: { id?: string };
+    decision?: { id?: string };
+  };
+  created_at: string;
+}
+
+// Extended API methods
+export const provenanceApi = {
+  get: (sourceId: string) => fetchApi<{ provenance: ProvenanceRecord }>(`/api/knowledge/provenance/${sourceId}`),
+  record: (data: Partial<ProvenanceRecord>) => fetchApi<{ status: string; provenance: ProvenanceRecord }>("/api/knowledge/provenance", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+};
+
+export const freshnessApi = {
+  get: (projectId?: string) => fetchApi<FreshnessReport>(`/api/knowledge/freshness${projectId ? `?project_id=${projectId}` : ""}`),
+};
+
+export const contradictionApi = {
+  list: (claimId?: string) => fetchApi<{ contradictions: ContradictionRecord[] }>(`/api/knowledge/contradictions${claimId ? `?claim_id=${claimId}` : ""}`),
+  record: (data: { claim_id: string; supporting_evidence_id: string; contradicting_evidence_id: string; investigation_notes?: string }) =>
+    fetchApi<{ status: string; contradiction: ContradictionRecord }>("/api/knowledge/contradictions", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
+export const unknownsApi = {
+  getMap: (projectId?: string) => fetchApi<UnknownsMapReport>(`/api/knowledge/unknowns${projectId ? `?project_id=${projectId}` : ""}`),
+  add: (data: Partial<UnknownItem>) => fetchApi<{ status: string; item: UnknownItem }>("/api/knowledge/unknowns", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+};
+
+export const traceabilityApi = {
+  getGraph: (params?: { requirement_id?: string; problem_id?: string }) => {
+    const qs = new URLSearchParams();
+    if (params?.requirement_id) qs.append("requirement_id", params.requirement_id);
+    if (params?.problem_id) qs.append("problem_id", params.problem_id);
+    return fetchApi<{ count: number; traceability_records: TraceabilityNode[] }>(`/api/traceability/graph?${qs.toString()}`);
+  },
+  addLink: (data: {
+    requirement_id: string;
+    requirement_text: string;
+    category?: string;
+    linked_decision_id?: string;
+    linked_assumption_id?: string;
+    linked_claim_id?: string;
+    linked_evidence_id?: string;
+    linked_problem_id?: string;
+  }) => fetchApi<{ status: string; traceability_record: any }>("/api/traceability/link", {
+    method: "POST",
+    body: JSON.stringify(data),
+  }),
+};

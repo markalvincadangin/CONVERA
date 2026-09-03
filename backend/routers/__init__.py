@@ -13,6 +13,7 @@ from .sessions import router as sessions_router
 from .pipeline import router as pipeline_router
 from .knowledge import router as knowledge_router
 from .decisions import router as decisions_router
+from .traceability import router as traceability_router
 
 __all__ = [
     "connectors_router",
@@ -25,4 +26,5 @@ __all__ = [
     "pipeline_router",
     "knowledge_router",
     "decisions_router",
+    "traceability_router",
 ]
