@@ -281,20 +281,20 @@ export default function Home() {
           </div>
         ) : session ? (
           <div>
-            {session.framework_id?.toUpperCase().includes("RESEARCH") ? (
+            {activePhase === 0 ? (
+              <ProblemBankView
+                session={session}
+                onSendToPhase2={handleSendToPhase2}
+              />
+            ) : session.framework_id?.toUpperCase().includes("RESEARCH") ? (
               <ResearchWorkspaceView
                 session={session}
                 problems={problems}
+                activePhase={activePhase}
                 onUpdateSession={handleUpdateSession}
               />
             ) : (
               <>
-                {activePhase === 0 && (
-                  <ProblemBankView
-                    session={session}
-                    onSendToPhase2={handleSendToPhase2}
-                  />
-                )}
 
             {activePhase === 1 && (
               <Phase1View
