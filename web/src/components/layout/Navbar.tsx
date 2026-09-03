@@ -110,7 +110,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {!imageError ? (
                   <img
                     src="/brand/brandmark.png"
-                    alt="RatchetAI Logo"
+                    alt="CONVERA Logo"
                     className="w-full h-full object-contain filter drop-shadow group-hover:scale-105 transition-transform duration-200"
                     onError={() => setImageError(true)}
                   />

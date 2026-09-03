@@ -98,7 +98,7 @@ export const RawBrainstormIngestModal: React.FC<RawBrainstormIngestModalProps> =
             </h4>
           </div>
           <p className="text-slate-400 leading-relaxed text-[11px]">
-            Paste unstructured idea dumps from ChatGPT, Claude, Gemini, or team discussions. RatchetAI will strip solution bias, structure the friction, identify the sufferer, and calculate economic loss.
+            Paste unstructured idea dumps from ChatGPT, Claude, Gemini, or team discussions. CONVERA will strip solution bias, structure the friction, identify the sufferer, and calculate economic loss.
           </p>
         </div>
 

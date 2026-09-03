@@ -64,7 +64,7 @@ export const PresentationModal: React.FC<PresentationModalProps> = ({
         <div className="space-y-6 text-center py-8">
           <div className="flex items-center justify-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 p-1.5 shadow-xl shadow-cyan-500/10 flex items-center justify-center">
-              <img src="/brand/brandmark.png" alt="RatchetAI Brandmark" className="w-full h-full object-contain" />
+              <img src="/brand/brandmark.png" alt="CONVERA Brandmark" className="w-full h-full object-contain" />
             </div>
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-semibold">
               Evidence-Ratcheted Technopreneurship Engine
@@ -215,10 +215,10 @@ export const PresentationModal: React.FC<PresentationModalProps> = ({
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/50">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl overflow-hidden bg-slate-900 border border-slate-800 p-1 flex items-center justify-center">
-              <img src="/brand/brandmark.png" alt="RatchetAI Brandmark" className="w-full h-full object-contain" />
+              <img src="/brand/brandmark.png" alt="CONVERA Brandmark" className="w-full h-full object-contain" />
             </div>
             <div>
-              <span className="text-sm font-bold text-white tracking-tight">RatchetAI Pitch Deck Mode</span>
+              <span className="text-sm font-bold text-white tracking-tight">CONVERA Presentation Mode</span>
               <p className="text-[11px] text-slate-400">Slide {currentSlide + 1} of {slides.length}</p>
             </div>
           </div>

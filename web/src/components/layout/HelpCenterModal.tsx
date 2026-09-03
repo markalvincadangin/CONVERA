@@ -40,7 +40,7 @@ export const HelpCenterModal: React.FC<HelpCenterModalProps> = ({ isOpen, onClos
     },
     {
       q: "How do we generate our Lean Canvas and 10-Slide Pitch Deck?",
-      a: "Navigate to the Studio tab in the top stepper. RatchetAI synthesizes your validated Phase 1-5 findings into an Ash Maurya 9-Box Lean Canvas, a 2x2 SWOT with competitor comparison, and a 10-Slide Investor Pitch Deck with 30-second speaker scripts.",
+      a: "Navigate to the Studio tab in the top stepper. CONVERA synthesizes your validated findings into an Ash Maurya 9-Box Lean Canvas, a 2x2 SWOT with competitor comparison, and a 10-Slide Investor Pitch Deck with 30-second speaker scripts.",
     },
     {
       q: "How do Team Roles and Passcodes work?",
@@ -142,7 +142,7 @@ export const HelpCenterModal: React.FC<HelpCenterModalProps> = ({ isOpen, onClos
                   <h3 className="text-base font-bold">The 5-Minute Validation Workflow</h3>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  RatchetAI enforces an empirical validation pipeline: discover real regional problems, screen for economic pain, stress-test with Socratic interviews, formulate divergent mechanisms, and audit real customer commitments before writing code.
+                  CONVERA enforces an evidence-driven validation pipeline across both Venture Innovation and Computing Research frameworks: discover real regional problems, screen for economic pain, stress-test with Socratic interviews, formulate divergent mechanisms, and audit real customer commitments before writing code.
                 </p>
               </div>
 
@@ -440,7 +440,7 @@ export const HelpCenterModal: React.FC<HelpCenterModalProps> = ({ isOpen, onClos
         </div>
 
         <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between text-xs text-slate-400">
-          <span>RatchetAI v3.1 Documentation</span>
+          <span>CONVERA v3.0 Documentation</span>
           <Button variant="ghost" size="sm" onClick={onClose}>
             Close Guide
           </Button>

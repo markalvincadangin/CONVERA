@@ -198,7 +198,7 @@ export default function Home() {
     const element = document.createElement("a");
     const file = new Blob([exportedMarkdown], { type: "text/markdown" });
     element.href = URL.createObjectURL(file);
-    element.download = `RatchetAI_Dossier_${session.session_id}.md`;
+    element.download = `CONVERA_Master_Dossier_${session.session_id}.md`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -239,7 +239,7 @@ export default function Home() {
 
         {isLoadingSession ? (
           <div className="py-24 flex items-center justify-center">
-            <Spinner size="lg" label="Connecting to RatchetAI SQLite WAL backend..." />
+            <Spinner size="lg" label="Connecting to CONVERA SQLite WAL backend..." />
           </div>
         ) : connectionError && !session ? (
           <div className="py-12 max-w-xl mx-auto space-y-6">
