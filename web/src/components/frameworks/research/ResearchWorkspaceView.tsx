@@ -371,16 +371,16 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
           <button
             onClick={() => setIsScorecardOpen(true)}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 transition flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-400 border border-indigo-500/20 transition inline-flex items-center gap-1.5 whitespace-nowrap"
           >
-            <Sparkles className="w-3.5 h-3.5" /> Scorecard
+            <Sparkles className="w-3.5 h-3.5 shrink-0" /> <span>Scorecard</span>
           </button>
           
           <button
             onClick={() => setIsTraceabilityOpen(true)}
-            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 transition flex items-center gap-1.5"
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 transition inline-flex items-center gap-1.5 whitespace-nowrap"
           >
-            <Layers className="w-3.5 h-3.5 text-cyan-400" /> Traceability
+            <Layers className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> <span>Traceability</span>
           </button>
         </div>
       </div>
@@ -458,9 +458,10 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                   variant="primary"
                   size="sm"
                   onClick={() => setShowCustomModal(true)}
-                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs shrink-0 font-bold"
+                  leftIcon={<Plus className="w-3.5 h-3.5" />}
+                  className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs shrink-0 font-bold whitespace-nowrap"
                 >
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Add Domain to DB
+                  Add Domain to DB
                 </Button>
               </div>
 

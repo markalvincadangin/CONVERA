@@ -88,9 +88,9 @@ export const UnknownsMap: React.FC<UnknownsMapProps> = ({ projectId = "default_p
         <div className="flex items-center gap-3">
           <button
             onClick={() => setShowAddModal(true)}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-cyan-950/50 transition-all active:scale-95"
+            className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 px-3.5 py-2 text-xs font-bold text-white shadow-md shadow-cyan-950/50 transition-all active:scale-95 whitespace-nowrap shrink-0"
           >
-            <Plus className="w-3.5 h-3.5" /> Add Unknown / Hypothesis
+            <Plus className="w-3.5 h-3.5 shrink-0" /> <span>Add Unknown / Hypothesis</span>
           </button>
         </div>
       </div>
