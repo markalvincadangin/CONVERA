@@ -219,6 +219,24 @@ class ResearchQueryRequest(BaseModel):
     engine: Optional[str] = "ALL"  # OPENALEX, EUROPE_PMC, REGIONAL_NEWS, ALL
     limit: Optional[int] = 5
 
+class SynthesizeDecisionRoomRequest(BaseModel):
+    candidate_ids: List[str]
+
+class CommitDecisionRequest(BaseModel):
+    session_id: Optional[str] = None
+    stage: str = "PHASE_2_SELECTION"
+    selected_problem_id: str
+    rejected_problem_ids: List[str] = []
+    decision_rationale: str
+    supporting_evidence_ids: List[str] = []
+
+class PivotLoopRequest(BaseModel):
+    session_id: str
+    current_problem_id: str
+    pivot_reason: str
+    invalidated_assumption_id: Optional[str] = None
+    author: Optional[str] = "Founder"
+
 class UpdateClaimRequest(BaseModel):
     status: str
     confidence_score: Optional[float] = None
@@ -661,6 +679,57 @@ async def auto_research_problem_endpoint(problem_id: str):
         "results": research_data,
     }
 
+@app.post("/api/decisions/synthesize")
+async def synthesize_decision_room_endpoint(req: SynthesizeDecisionRoomRequest):
+    """Synthesize multi-candidate decision comparison."""
+    from decision_engine import synthesize_decision_room
+    storage = get_storage()
+    candidates = []
+    for pid in req.candidate_ids:
+        p = storage.get_problem(pid)
+        if p:
+            candidates.append(p)
+
+    if not candidates:
+        raise HTTPException(status_code=400, detail="No valid candidates found.")
+
+    res = await synthesize_decision_room(candidates)
+    return {"status": "success", "synthesis": res}
+
+@app.post("/api/decisions/commit")
+async def commit_decision_endpoint(req: CommitDecisionRequest):
+    """Log an immutable decision record (Selection / Winner)."""
+    storage = get_storage()
+    record = storage.create_decision_record({
+        "session_id": req.session_id,
+        "stage": req.stage,
+        "selected_problem_id": req.selected_problem_id,
+        "rejected_problem_ids": req.rejected_problem_ids,
+        "decision_rationale": req.decision_rationale,
+        "supporting_evidence_ids": req.supporting_evidence_ids,
+    })
+    return {"status": "success", "decision_record": record}
+
+@app.post("/api/decisions/pivot")
+async def execute_pivot_endpoint(req: PivotLoopRequest):
+    """Execute a structured Pivot Loop back to Phase 2 with recorded history."""
+    from decision_engine import execute_pivot_loop
+    res = execute_pivot_loop(
+        session_id=req.session_id,
+        current_problem_id=req.current_problem_id,
+        pivot_reason=req.pivot_reason,
+        invalidated_assumption_id=req.invalidated_assumption_id,
+        author=req.author or "Founder",
+    )
+    return res
+
+@app.get("/api/decisions")
+async def list_decisions_endpoint(session_id: Optional[str] = None):
+    """List chronological decision records audit trail."""
+    storage = get_storage()
+    records = storage.list_decision_records(session_id=session_id)
+    return {"status": "success", "decisions": records}
+
 @app.get("/api/problems/{problem_id}/knowledge-graph")
 async def get_knowledge_graph_endpoint(problem_id: str):
     """Retrieve relational knowledge graph (claims, assumptions, alternatives, sources)."""
@@ -720,9 +789,7 @@ async def archive_problem_endpoint(problem_id: str, req: ArchiveProblemRequest):
 
     rejection_note = f"[ARCHIVED by {req.author} on {datetime.now().strftime('%Y-%m-%d %H:%M')}]: {req.reason.strip()}"
     existing_notes = problem.get("notes") or ""
-    updated_notes = f"{rejection_note}
-
-{existing_notes}".strip()
+    updated_notes = f"{rejection_note}\n\n{existing_notes}".strip()
 
     updated = storage.update_problem(problem_id, {
         "status": "archived",

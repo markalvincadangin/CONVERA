@@ -8,6 +8,8 @@ import {
   ClaimRecord,
   AssumptionRecord,
   ClaimStatus,
+  DecisionRecord,
+  DecisionSynthesis,
 } from "@/lib/types";
 
 export interface ListProblemsParams {
@@ -52,6 +54,45 @@ export const problemService = {
       method: "PUT",
       body: JSON.stringify(updates),
     });
+  },
+
+  async synthesizeDecisionRoom(candidateIds: string[]): Promise<{ status: string; synthesis: DecisionSynthesis }> {
+    return fetchApi<{ status: string; synthesis: DecisionSynthesis }>(`/api/decisions/synthesize`, {
+      method: "POST",
+      body: JSON.stringify({ candidate_ids: candidateIds }),
+    });
+  },
+
+  async commitDecision(params: {
+    session_id?: string;
+    stage?: string;
+    selected_problem_id: string;
+    rejected_problem_ids: string[];
+    decision_rationale: string;
+    supporting_evidence_ids?: string[];
+  }): Promise<{ status: string; decision_record: DecisionRecord }> {
+    return fetchApi<{ status: string; decision_record: DecisionRecord }>(`/api/decisions/commit`, {
+      method: "POST",
+      body: JSON.stringify(params),
+    });
+  },
+
+  async executePivot(params: {
+    session_id: string;
+    current_problem_id: string;
+    pivot_reason: string;
+    invalidated_assumption_id?: string;
+    author?: string;
+  }): Promise<{ status: string; message: string; decision_record: DecisionRecord }> {
+    return fetchApi<{ status: string; message: string; decision_record: DecisionRecord }>(`/api/decisions/pivot`, {
+      method: "POST",
+      body: JSON.stringify(params),
+    });
+  },
+
+  async listDecisions(sessionId?: string): Promise<{ status: string; decisions: DecisionRecord[] }> {
+    const q = sessionId ? `?session_id=${sessionId}` : "";
+    return fetchApi<{ status: string; decisions: DecisionRecord[] }>(`/api/decisions${q}`);
   },
 
   async getKnowledgeGraph(id: string): Promise<{ status: string; knowledge_graph: KnowledgeGraphData }> {

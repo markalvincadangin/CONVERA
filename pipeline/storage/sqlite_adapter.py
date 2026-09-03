@@ -1304,3 +1304,63 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             conn.execute("UPDATE problem_assumptions SET status = ? WHERE id = ?", (status, assumption_id))
             row = conn.execute("SELECT * FROM problem_assumptions WHERE id = ?", (assumption_id,)).fetchone()
             return dict(row) if row else None
+
+    # ------------------------------------------------------------------------
+    # Decision Intelligence & Audit Trail (Step 2 Foundation)
+    # ------------------------------------------------------------------------
+
+    def create_decision_record(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create an immutable decision audit record."""
+        import uuid
+        did = data.get("id") or f"DEC-{str(uuid.uuid4())[:8].upper()}"
+        rejected = data.get("rejected_problem_ids", [])
+        if not isinstance(rejected, str):
+            rejected = json.dumps(rejected)
+
+        evidence = data.get("supporting_evidence_ids", [])
+        if not isinstance(evidence, str):
+            evidence = json.dumps(evidence)
+
+        with self._get_connection() as conn:
+            conn.execute(
+                """INSERT INTO decision_records 
+                   (id, session_id, stage, selected_problem_id, rejected_problem_ids, decision_rationale, supporting_evidence_ids)
+                   VALUES (?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    did,
+                    data.get("session_id"),
+                    data.get("stage", "PHASE_2_SELECTION"),
+                    data.get("selected_problem_id", ""),
+                    rejected,
+                    data.get("decision_rationale", ""),
+                    evidence,
+                )
+            )
+            row = conn.execute("SELECT * FROM decision_records WHERE id = ?", (did,)).fetchone()
+            return dict(row) if row else {}
+
+    def list_decision_records(self, session_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List chronological decision records for a session or global workspace."""
+        with self._get_connection() as conn:
+            query = "SELECT * FROM decision_records"
+            params = []
+            if session_id:
+                query += " WHERE session_id = ? OR session_id IS NULL"
+                params.append(session_id)
+            query += " ORDER BY created_at DESC"
+            rows = conn.execute(query, params).fetchall()
+            results = []
+            for r in rows:
+                item = dict(r)
+                if isinstance(item.get("rejected_problem_ids"), str):
+                    try:
+                        item["rejected_problem_ids"] = json.loads(item["rejected_problem_ids"])
+                    except Exception:
+                        pass
+                if isinstance(item.get("supporting_evidence_ids"), str):
+                    try:
+                        item["supporting_evidence_ids"] = json.loads(item["supporting_evidence_ids"])
+                    except Exception:
+                        pass
+                results.append(item)
+            return results

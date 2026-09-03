@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { ShieldCheck, Send, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, Sparkles, User, Bot, Award, Lightbulb, MapPin, DollarSign, Clock } from "lucide-react";
+import { ShieldCheck, Send, RotateCcw, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, Sparkles, User, Bot, Award, Lightbulb, MapPin, DollarSign, Clock } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
 import { LEVEL_ORDER, LEVEL_LABELS } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
+import { problemService } from "@/services/problemService";
 import { SessionState } from "@/lib/types";
 
 interface Phase3ViewProps {
@@ -79,6 +80,25 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
       alert("Failed to initialize Phase 3 Socratic validation.");
     } finally {
       setIsInitializing(false);
+    }
+  };
+
+  const handlePivotLoop = async () => {
+    const reason = window.prompt(
+      "Enter the reason for executing a Pivot Loop back to Phase 2 (e.g. 'Mom Test interview refuted Willingness-to-Pay / Sufferer lacks purchasing authority'):"
+    );
+    if (!reason || !reason.trim()) return;
+
+    try {
+      const res = await problemService.executePivot({
+        session_id: session.session_id,
+        current_problem_id: problemStatement,
+        pivot_reason: reason.trim(),
+      });
+      alert(res.message);
+      onGoBack();
+    } catch (err: any) {
+      alert("Failed to execute pivot loop: " + err.message);
     }
   };
 

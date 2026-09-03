@@ -419,3 +419,27 @@ export interface KnowledgeGraphData {
   alternatives: AlternativeRecord[];
   sources: ProblemSource[];
 }
+
+
+export interface DecisionRecord {
+  id: string;
+  session_id?: string;
+  stage: string;
+  selected_problem_id: string;
+  rejected_problem_ids: string[];
+  decision_rationale: string;
+  supporting_evidence_ids: string[];
+  created_at: string;
+}
+
+export interface DecisionSynthesis {
+  recommended_winner_id: string;
+  recommendation_summary: string;
+  candidate_breakdowns: {
+    problem_id: string;
+    rank: number;
+    pros: string[];
+    risks: string[];
+    verdict: "RECOMMENDED" | "VIABLE_ALTERNATIVE" | "HIGH_RISK";
+  }[];
+}

@@ -11,6 +11,8 @@ import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
 import { ScreeningScorecardGrid } from "./ScreeningScorecardGrid";
 import { ProblemComparisonMatrix } from "./ProblemComparisonMatrix";
+import { DecisionRoomWorkspace } from "./DecisionRoomWorkspace";
+import { DecisionTimelineModal } from "@/components/common/DecisionTimelineModal";
 import { phaseService } from "@/services/phaseService";
 import { problemService } from "@/services/problemService";
 import { SessionState, ProblemRecord } from "@/lib/types";
@@ -36,6 +38,7 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [bankCount, setBankCount] = useState<number>(0);
   const [candidateRecords, setCandidateRecords] = useState<ProblemRecord[]>([]);
+  const [isTimelineOpen, setIsTimelineOpen] = useState(false);
   const [screenSource, setScreenSource] = useState<"BANK" | "TEXT">(
     selectedProblemIds.length > 0 ? "BANK" : "BANK"
   );
@@ -209,16 +212,25 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
         )}
       </Card>
 
-      {/* Interactive Multi-Candidate Decision Matrix */}
+      {/* Step 2 Decision Room Workspace */}
       {candidateRecords.length > 0 && !session.phase2_response && !isScreening && (
-        <ProblemComparisonMatrix
+        <DecisionRoomWorkspace
           candidates={candidateRecords}
+          sessionId={session.session_id}
           onSelectWinningProblem={(winningProb) => {
             setSelectedProblem(winningProb.problem_statement);
             onAdvanceToNextPhase(winningProb.problem_statement);
           }}
+          onOpenTimeline={() => setIsTimelineOpen(true)}
         />
       )}
+
+      {/* Decision Timeline Modal */}
+      <DecisionTimelineModal
+        isOpen={isTimelineOpen}
+        onClose={() => setIsTimelineOpen(false)}
+        sessionId={session.session_id}
+      />
 
       {/* Error Banner */}
       {errorMessage && (
