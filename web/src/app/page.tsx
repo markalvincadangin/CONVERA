@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Navbar,
   PipelineStepper,
@@ -280,8 +281,15 @@ export default function Home() {
             </Card>
           </div>
         ) : session ? (
-          <div>
-            {activePhase === 0 ? (
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${session.session_id}_${session.framework_id}_${activePhase}`}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.16, ease: "easeOut" }}
+            >
+              {activePhase === 0 ? (
               <ProblemBankView
                 session={session}
                 onSendToPhase2={handleSendToPhase2}
@@ -363,7 +371,8 @@ export default function Home() {
                 )}
               </>
             )}
-          </div>
+            </motion.div>
+          </AnimatePresence>
         ) : null}
       </main>
 
