@@ -215,8 +215,8 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       desc: "Ethics & DOST/SDG",
       icon: ShieldCheck,
       isComplete: Boolean(session?.phase5_complete),
-      isAvailable: true,
-      lockReason: "",
+      isAvailable: Boolean(session?.phase5_complete || session?.phase4_complete),
+      lockReason: "Complete Kothari experimental evaluation in Stage E first.",
       isBank: false,
     },
     {
