@@ -327,7 +327,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
         {currentPhaseId === "A" && (
           <div className="space-y-6">
             {/* 1. Database-Driven Master Domain Explorer & Empirical Scanner */}
-            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 space-y-6 shadow-xl relative overflow-hidden">
+            <div className="rounded-3xl border border-emerald-500/30 bg-gradient-to-b from-slate-900/90 to-slate-950/90 p-6 space-y-6 shadow-xl relative">
               {/* Explorer Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
@@ -512,39 +512,40 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                     <p className="text-xs text-slate-400 font-mono">Querying database research domains...</p>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-[420px] overflow-y-auto pr-1 no-scrollbar">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 max-h-[580px] overflow-y-auto p-1.5 custom-scrollbar">
                     {filteredDomains.map((domain) => {
                       const isSelected = selectedDomains.includes(domain.title);
                       return (
                         <div
                           key={domain.id}
-                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative group ${
+                          className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 relative group hover:shadow-lg ${
                             isSelected
-                              ? "bg-emerald-950/30 border-emerald-500/50 shadow-md shadow-emerald-950/30 ring-1 ring-emerald-500/30"
-                              : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/60"
+                              ? "bg-emerald-950/40 border-emerald-500/60 shadow-md shadow-emerald-950/40 ring-1 ring-emerald-500/40"
+                              : "bg-slate-950/80 border-slate-800/90 hover:border-slate-700 hover:bg-slate-900/70"
                           }`}
                         >
-                          <div className="space-y-2">
-                            <div className="flex items-center justify-between gap-1">
-                              <span className="font-mono font-bold text-xs text-emerald-400 bg-emerald-950/80 border border-emerald-800/80 px-2 py-0.5 rounded-md">
+                          <div className="space-y-2.5">
+                            {/* Card Header: ID & Badges */}
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-mono font-bold text-xs text-emerald-400 bg-emerald-950/90 border border-emerald-800/80 px-2 py-0.5 rounded-lg shadow-sm">
                                 {domain.id}
                               </span>
-                              <div className="flex items-center gap-1">
-                                <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full border ${
+                              <div className="flex items-center gap-1.5">
+                                <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md border ${
                                   domain.domain_type === "Sector"
-                                    ? "bg-blue-950/50 text-blue-300 border-blue-800"
+                                    ? "bg-blue-950/70 text-blue-300 border-blue-800/80"
                                     : domain.domain_type === "Cross-cutting"
-                                    ? "bg-purple-950/50 text-purple-300 border-purple-800"
+                                    ? "bg-purple-950/70 text-purple-300 border-purple-800/80"
                                     : domain.domain_type === "Custom"
-                                    ? "bg-pink-950/50 text-pink-300 border-pink-800"
-                                    : "bg-amber-950/50 text-amber-300 border-amber-800"
+                                    ? "bg-pink-950/70 text-pink-300 border-pink-800/80"
+                                    : "bg-amber-950/70 text-amber-300 border-amber-800/80"
                                 }`}>
                                   {domain.domain_type}
                                 </span>
                                 {Boolean(domain.is_custom) && (
                                   <button
                                     onClick={(e) => handleDeleteCustomDomain(domain.id, domain.title, e)}
-                                    className="p-1 rounded-md text-slate-500 hover:text-rose-400 hover:bg-slate-800 transition-colors"
+                                    className="p-1 rounded-md text-slate-400 hover:text-rose-400 hover:bg-slate-800 transition-colors"
                                     title="Delete custom domain from database"
                                   >
                                     <Trash2 className="w-3 h-3" />
@@ -553,42 +554,46 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
                               </div>
                             </div>
 
-                            <h4 className="text-xs font-bold text-slate-100 leading-snug group-hover:text-emerald-300 transition-colors">
+                            {/* Domain Title */}
+                            <h4 className="text-xs font-bold text-white leading-snug group-hover:text-emerald-300 transition-colors">
                               {domain.title}
                             </h4>
 
+                            {/* Description */}
                             {domain.description && (
                               <p className="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
                                 {domain.description}
                               </p>
                             )}
 
-                            <div className="p-2.5 rounded-xl bg-slate-900/80 border border-slate-800/80 space-y-1 text-[10px]">
-                              <div className="flex items-center gap-1.5 text-slate-400 truncate">
+                            {/* Setting & Stakeholders Box */}
+                            <div className="p-2.5 rounded-xl bg-slate-900/90 border border-slate-800/90 space-y-1 text-[10px]">
+                              <div className="flex items-center gap-1.5 text-slate-300">
                                 <MapPin className="w-3 h-3 text-emerald-400 shrink-0" />
                                 <span className="truncate"><strong>Context:</strong> {domain.context_setting || "Operational Setting"}</span>
                               </div>
-                              <div className="flex items-center gap-1.5 text-slate-400 truncate">
+                              <div className="flex items-center gap-1.5 text-slate-400">
                                 <Users className="w-3 h-3 text-cyan-400 shrink-0" />
                                 <span className="truncate"><strong>Stakeholders:</strong> {domain.stakeholders || "Practitioners"}</span>
                               </div>
                             </div>
                           </div>
 
-                          <div className="pt-2 border-t border-slate-800/60 flex items-center justify-between gap-2">
+                          {/* Card Footer Actions */}
+                          <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2">
                             <button
                               onClick={() => handleLoadDomainContext(domain)}
-                              className="text-[11px] font-mono text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors"
+                              className="text-[11px] font-mono font-semibold text-cyan-400 hover:text-cyan-300 flex items-center gap-1.5 py-1 px-2 rounded-lg hover:bg-slate-800/60 transition-colors"
                             >
-                              <FileCheck className="w-3 h-3" /> Load Context
+                              <FileCheck className="w-3.5 h-3.5 text-cyan-400" /> Load Context
                             </button>
 
                             <button
                               onClick={() => toggleDomain(domain.title)}
-                              className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-sm ${
                                 isSelected
-                                  ? "bg-emerald-500 text-slate-950 shadow-sm"
-                                  : "bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white"
+                                  ? "bg-emerald-500 text-slate-950 font-bold hover:bg-emerald-400"
+                                  : "bg-slate-800/90 text-slate-300 hover:bg-slate-700 hover:text-white border border-slate-700/60"
                               }`}
                             >
                               {isSelected ? "✓ Selected" : "+ Select"}
