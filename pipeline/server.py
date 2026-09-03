@@ -2,9 +2,9 @@ from __future__ import annotations
 
 """
 RatchetAI FastAPI Backend Server
-Evidence-Ratcheted Problem-to-Solution Multi-Agent Pipeline v2.0
+Evidence-Ratcheted Problem-to-Solution Multi-Agent Pipeline v3.0
 Powered by Universal Multi-Provider LLM Gateway (Gemini, Groq, OpenRouter, Ollama)
-Integrated with High-Concurrency SQLite WAL / PostgreSQL Database Engine
+Integrated with High-Concurrency SQLite WAL / PostgreSQL Database Engine & Structured Problem Bank
 """
 
 import os
@@ -20,7 +20,7 @@ from pathlib import Path
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, HTTPException, BackgroundTasks, Request, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
@@ -43,6 +43,8 @@ from gates import (
     format_concept_shortfall
 )
 from llm_gateway import generate_response_with_fallback, generate_with_meta
+from problem_parser import parse_phase1_markdown
+from problem_enricher import enrich_manual_problem_input
 from prompts.phase1_system import PHASE1_SYSTEM
 from prompts.phase2_system import PHASE2_SYSTEM
 from prompts.phase3_system import PHASE3_SYSTEM
@@ -51,8 +53,8 @@ from prompts.phase5_system import PHASE5_SYSTEM
 
 app = FastAPI(
     title="RatchetAI Venture Engine API",
-    description="Backend API with Universal Multi-Provider LLM Gateway & Persistent Database Storage",
-    version="2.0.0",
+    description="Backend API with Universal Multi-Provider LLM Gateway, Structured Problem Bank & Persistent Database Storage",
+    version="3.0.0",
 )
 
 # Enable CORS for Next.js frontend and LAN access
@@ -103,10 +105,12 @@ class Phase1AdditionsRequest(BaseModel):
 class Phase2ScreenRequest(BaseModel):
     session_id: str
     problem_landscape: Optional[str] = None
+    selected_problem_ids: Optional[List[str]] = None
 
 class Phase3InitRequest(BaseModel):
     session_id: str
     problem_statement: str
+    problem_id: Optional[str] = None
 
 class Phase3TurnRequest(BaseModel):
     session_id: str
@@ -126,13 +130,59 @@ class Phase5AuditRequest(BaseModel):
     cohort: str
     sample_size: int
     actions_count: int
-    pass_threshold: float
-    fail_threshold: float
+    pass_threshold: Any
+    fail_threshold: Any
     evidence_desc: str
+
+# Problem Bank Models
+class AddProblemRequest(BaseModel):
+    id: Optional[str] = None
+    project_id: Optional[str] = None
+    session_id: Optional[str] = None
+    sector: str = "General"
+    sufferer_occupation: Optional[str] = ""
+    sufferer_location: Optional[str] = ""
+    problem_statement: str
+    evidence_tier: Optional[str] = "SIGNAL"
+    workaround: Optional[str] = ""
+    quantified_impact: Optional[str] = ""
+    evidence_types: Optional[List[str]] = Field(default_factory=list)
+    source: Optional[str] = "manual"
+    source_detail: Optional[str] = "Manual Entry"
+    tags: Optional[List[str]] = Field(default_factory=list)
+    status: Optional[str] = "discovered"
+    notes: Optional[str] = ""
+    sources: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
+
+class UpdateProblemRequest(BaseModel):
+    sector: Optional[str] = None
+    sufferer_occupation: Optional[str] = None
+    sufferer_location: Optional[str] = None
+    problem_statement: Optional[str] = None
+    evidence_tier: Optional[str] = None
+    workaround: Optional[str] = None
+    quantified_impact: Optional[str] = None
+    evidence_types: Optional[List[str]] = None
+    tags: Optional[List[str]] = None
+    status: Optional[str] = None
+    phase2_verdict: Optional[str] = None
+    phase3_verdict: Optional[str] = None
+    notes: Optional[str] = None
+    sources: Optional[List[Dict[str, Any]]] = None
+
+class EnrichProblemRequest(BaseModel):
+    raw_note: str
+    project_id: Optional[str] = None
+    session_id: Optional[str] = None
+
+class ParsePhase1Request(BaseModel):
+    markdown: str
+    session_id: Optional[str] = None
+    project_id: Optional[str] = None
 
 
 # ----------------------------------------------------------------------
-# Session Management & Snapshot Endpoints
+# System & Session Management Endpoints
 # ----------------------------------------------------------------------
 
 @app.get("/api/health")
@@ -141,7 +191,7 @@ async def health_check():
         "status": "healthy",
         "timestamp": datetime.now().isoformat(),
         "database": "sqlite_wal",
-        "version": "2.0.0"
+        "version": "3.0.0"
     }
 
 
@@ -229,7 +279,7 @@ async def export_dossier(session_id: str):
     pname = state.get("project_name", "Iloilo Venture Project")
 
     md = [
-        f"# {pname} — RatchetAI Venture Dossier",
+        f"# {pname} - RatchetAI Venture Dossier",
         f"**Session ID:** `{session_id}`  ",
         f"**Generated:** {datetime.now().strftime('%B %d, %Y - %I:%M %p')}  \n",
         "---",
@@ -253,12 +303,107 @@ async def export_dossier(session_id: str):
 
 
 # ----------------------------------------------------------------------
+# Problem Bank Endpoints (Structured Data Layer)
+# ----------------------------------------------------------------------
+
+@app.get("/api/problems")
+async def list_problems(
+    project_id: Optional[str] = None,
+    sector: Optional[str] = None,
+    evidence_tier: Optional[str] = None,
+    status: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = Query(100, ge=1, le=500),
+    offset: int = Query(0, ge=0)
+):
+    storage = get_storage()
+    return storage.list_problems(
+        project_id=project_id,
+        sector=sector,
+        evidence_tier=evidence_tier,
+        status=status,
+        search=search,
+        limit=limit,
+        offset=offset
+    )
+
+
+@app.post("/api/problems")
+async def create_problem(req: AddProblemRequest):
+    storage = get_storage()
+    data = req.model_dump()
+    created = storage.add_problem(data)
+    return {"status": "success", "problem": created}
+
+
+@app.get("/api/problems/{problem_id}")
+async def get_problem_detail(problem_id: str):
+    storage = get_storage()
+    problem = storage.get_problem(problem_id)
+    if not problem:
+        raise HTTPException(status_code=404, detail=f"Problem '{problem_id}' not found.")
+    return problem
+
+
+@app.put("/api/problems/{problem_id}")
+async def update_problem_detail(problem_id: str, req: UpdateProblemRequest):
+    storage = get_storage()
+    updates = {k: v for k, v in req.model_dump().items() if v is not None}
+    updated = storage.update_problem(problem_id, updates)
+    if not updated:
+        raise HTTPException(status_code=404, detail=f"Problem '{problem_id}' not found.")
+    return {"status": "success", "problem": updated}
+
+
+@app.delete("/api/problems/{problem_id}")
+async def delete_problem_item(problem_id: str):
+    storage = get_storage()
+    success = storage.delete_problem(problem_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Problem '{problem_id}' not found.")
+    return {"status": "success", "deleted": True}
+
+
+@app.post("/api/problems/enrich")
+async def enrich_manual_note(req: EnrichProblemRequest):
+    """Takes free-form field notes and returns a structured, rubric-validated problem record."""
+    if not req.raw_note or not req.raw_note.strip():
+        raise HTTPException(status_code=400, detail="Raw note text cannot be empty.")
+    
+    try:
+        enriched = await enrich_manual_problem_input(
+            raw_note=req.raw_note,
+            project_id=req.project_id,
+            session_id=req.session_id
+        )
+        return {"status": "success", "problem": enriched}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI enrichment failed: {str(e)}")
+
+
+@app.post("/api/problems/parse-phase1")
+async def parse_phase1_output(req: ParsePhase1Request):
+    """Parse Phase 1 markdown output and automatically store records in Problem Bank."""
+    storage = get_storage()
+    parsed = parse_phase1_markdown(
+        markdown=req.markdown,
+        session_id=req.session_id,
+        project_id=req.project_id
+    )
+    if parsed:
+        saved = storage.bulk_upsert_problems(parsed)
+        return {"status": "success", "count": len(saved), "problems": saved}
+    return {"status": "success", "count": 0, "problems": []}
+
+
+# ----------------------------------------------------------------------
 # Phase 1 Endpoints (Problem Discovery)
 # ----------------------------------------------------------------------
 
 @app.post("/api/phases/1/discover")
 async def phase1_discover(req: Phase1DiscoverRequest):
     state = load_session_state(req.session_id)
+    storage = get_storage()
 
     sectors_str = ", ".join(req.sectors) if req.sectors else ", ".join(ALL_SECTORS)
     prompt = (
@@ -281,16 +426,36 @@ async def phase1_discover(req: Phase1DiscoverRequest):
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"LLM generation failed: {str(e)}")
 
+    # Auto-parse and save to Problem Bank
+    parsed_count = 0
+    try:
+        parsed = parse_phase1_markdown(
+            markdown=response,
+            session_id=req.session_id,
+            project_id=state.get("project_id")
+        )
+        if parsed:
+            storage.bulk_upsert_problems(parsed)
+            parsed_count = len(parsed)
+    except Exception as err:
+        print(f"[!] Warning: Auto-parsing Phase 1 problems failed: {err}")
+
     state["phase1_response"] = response
     state["phase1_model_meta"] = meta
     state["phase1_complete"] = True
     save_session_state(req.session_id, state)
-    return {"state": state, "response": response, "model_meta": meta}
+    return {
+        "state": state,
+        "response": response,
+        "model_meta": meta,
+        "problem_bank_count": parsed_count
+    }
 
 
 @app.post("/api/phases/1/additions")
 async def phase1_additions(req: Phase1AdditionsRequest):
     state = load_session_state(req.session_id)
+    storage = get_storage()
     current_p1 = state.get("phase1_response", "")
 
     prompt = (
@@ -300,65 +465,110 @@ async def phase1_additions(req: Phase1AdditionsRequest):
     )
 
     try:
-        response, meta = await generate_with_meta(
+        response = await generate_response_with_fallback(
             system_instruction=PHASE1_SYSTEM,
             prompt=prompt,
         )
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"LLM generation failed: {str(e)}")
 
+    try:
+        parsed = parse_phase1_markdown(
+            markdown=response,
+            session_id=req.session_id,
+            project_id=state.get("project_id")
+        )
+        if parsed:
+            storage.bulk_upsert_problems(parsed)
+    except Exception as err:
+        print(f"[!] Warning: Auto-parsing Phase 1 additions failed: {err}")
+
     state["phase1_response"] = response
-    state["phase1_model_meta"] = meta
+    state["phase1_complete"] = True
     save_session_state(req.session_id, state)
-    return {"state": state, "response": response, "model_meta": meta}
+    return {"state": state, "response": response}
 
 
 # ----------------------------------------------------------------------
-# Phase 2 Endpoints (Problem Screening & Scorecard)
+# Phase 2 Endpoints (Problem Screening)
 # ----------------------------------------------------------------------
 
 @app.post("/api/phases/2/screen")
 async def phase2_screen(req: Phase2ScreenRequest):
     state = load_session_state(req.session_id)
-    landscape = req.problem_landscape or state.get("phase1_response", "")
+    storage = get_storage()
 
-    if not landscape.strip():
-        raise HTTPException(status_code=400, detail="No Phase 1 problem landscape provided.")
+    # If specific problems were selected from the bank, build targeted screening context
+    if req.selected_problem_ids:
+        selected_problems = []
+        for pid in req.selected_problem_ids:
+            prob = storage.get_problem(pid)
+            if prob:
+                selected_problems.append(prob)
+        
+        if selected_problems:
+            table_lines = [
+                "| Problem ID | Sufferer (Occupation + Location) | Problem Statement | Evidence Tier | Workaround | Quantified Impact | Sources |",
+                "|---|---|---|---|---|---|---|"
+            ]
+            for p in selected_problems:
+                src_str = "; ".join([s["source_name"] for s in p.get("sources", [])]) or "Manual"
+                table_lines.append(
+                    f"| {p['id']} | {p['sufferer_occupation']} in {p['sufferer_location']} | {p['problem_statement']} | {p['evidence_tier']} | {p['workaround']} | {p['quantified_impact']} | {src_str} |"
+                )
+            p1_landscape = "\n".join(table_lines)
+        else:
+            p1_landscape = req.problem_landscape or state.get("phase1_response", "No landscape provided.")
+    else:
+        p1_landscape = req.problem_landscape or state.get("phase1_response", "No landscape provided.")
 
     prompt = (
-        f"PHASE 1 PROBLEM CANDIDATES:\n{landscape}\n\n"
-        "Evaluate every problem candidate against the 5 screening criteria and Winnability check. "
-        "Assign scores (1-5), red flags, and verdicts (ADVANCE, SECOND_LOOK, or PARK). "
-        "Enforce mandatory exit conditions for SECOND_LOOK candidates."
+        f"PHASE 1 DISCOVERED PROBLEM LANDSCAPE FOR SCREENING:\n\n{p1_landscape}\n\n"
+        "Screen every problem in the batch across the 5 Core Plausibility Criteria. "
+        "Eliminate solutions-in-disguise, enforce revealed sacrifice over opinions, and output the Triage Matrix with Winnability Advisories."
     )
 
     try:
-        response = await generate_response_with_fallback(
+        response, meta = await generate_with_meta(
             system_instruction=PHASE2_SYSTEM,
             prompt=prompt,
         )
     except Exception as e:
         raise HTTPException(status_code=503, detail=f"LLM generation failed: {str(e)}")
 
+    # Update phase2 verdicts in Problem Bank if IDs are present
+    for pid in (req.selected_problem_ids or []):
+        if f"{pid}" in response:
+            verdict = "ADVANCE" if "ADVANCE" in response else "SECOND_LOOK"
+            storage.update_problem(pid, {"phase2_verdict": verdict, "status": "shortlisted"})
+            storage.record_problem_history(pid, 2, "screened", verdict, model_used=meta.get("display_name"))
+
     state["phase2_response"] = response
+    state["phase2_model_meta"] = meta
     state["phase2_complete"] = True
     save_session_state(req.session_id, state)
-    return {"state": state, "response": response}
+    return {"state": state, "response": response, "model_meta": meta}
 
 
 # ----------------------------------------------------------------------
-# Phase 3 Endpoints (Socratic Mom Test Clinic)
+# Phase 3 Endpoints (Socratic Problem Validation)
 # ----------------------------------------------------------------------
 
 @app.post("/api/phases/3/init")
 async def phase3_init(req: Phase3InitRequest):
     state = load_session_state(req.session_id)
+    storage = get_storage()
     state["phase3_problem"] = req.problem_statement
     state["completed_levels"] = []
     state["phase3_complete"] = False
 
+    if req.problem_id:
+        storage.update_problem(req.problem_id, {"status": "validating"})
+        storage.record_problem_history(req.problem_id, 3, "started_validation")
+
     initial_context = (
-        f"PROBLEM CANDIDATE TO VALIDATE:\n{req.problem_statement}\n\n"
+        f"TARGET PROBLEM FOR VALIDATION:\n{req.problem_statement}\n\n"
+        "Initiate Level-by-Level Socratic Validation. "
         "Start with Level 1: Specific Sufferer. Ask exactly one question for Level 1. Do not stack questions or pitch solutions."
     )
 

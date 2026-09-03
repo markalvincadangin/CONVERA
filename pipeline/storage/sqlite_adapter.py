@@ -3,6 +3,7 @@ import sqlite3
 import os
 import random
 import string
+import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from .base import BaseStorageAdapter
@@ -12,8 +13,50 @@ def generate_share_code(prefix: str = "RATCH") -> str:
     chars = "".join(random.choices(string.ascii_uppercase + "23456789", k=4))
     return f"{prefix}-{chars}"
 
+def calculate_evidence_score(problem: Dict[str, Any], sources: List[Dict[str, Any]]) -> float:
+    """Calculate an objective 0-100 evidence confidence score."""
+    score = 0.0
+
+    # 1. Base Evidence Tier (up to 40 pts)
+    tier = str(problem.get("evidence_tier", "")).upper()
+    if "STRONGLY" in tier:
+        score += 40.0
+    elif "DOCUMENTED" in tier:
+        score += 25.0
+    elif "SIGNAL" in tier:
+        score += 10.0
+
+    # 2. Source Diversity & Tier Quality (up to 30 pts)
+    if sources:
+        # Number of sources
+        score += min(len(sources) * 5.0, 15.0)
+        # Source tiers
+        has_tier_a = any(s.get("source_tier") == "A" or "psa" in str(s.get("source_url", "")).lower() or "doh" in str(s.get("source_url", "")).lower() or "da." in str(s.get("source_url", "")).lower() for s in sources)
+        has_tier_b = any(s.get("source_tier") == "B" or "news" in str(s.get("source_url", "")).lower() or "star" in str(s.get("source_url", "")).lower() or "guardian" in str(s.get("source_url", "")).lower() for s in sources)
+        if has_tier_a:
+            score += 10.0
+        if has_tier_b:
+            score += 5.0
+
+    # 3. Quantified Impact presence (up to 15 pts)
+    impact = str(problem.get("quantified_impact", "")).strip()
+    if any(char.isdigit() for char in impact) or "%" in impact or "₱" in impact or "PHP" in impact.upper():
+        score += 15.0
+    elif impact:
+        score += 5.0
+
+    # 4. Specific Workaround presence (up to 15 pts)
+    workaround = str(problem.get("workaround", "")).strip()
+    if workaround and len(workaround) > 10:
+        score += 15.0
+    elif workaround:
+        score += 5.0
+
+    return min(max(round(score, 1), 0.0), 100.0)
+
+
 class SQLiteStorageAdapter(BaseStorageAdapter):
-    """High-concurrency SQLite WAL storage adapter for RatchetAI."""
+    """High-concurrency SQLite WAL storage adapter with full Problem Bank support for RatchetAI."""
 
     def __init__(self, db_path: str = "pipeline/ratchetai.db"):
         self.db_path = db_path
@@ -67,10 +110,75 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
                 );
 
+                -- -----------------------------------------------------------
+                -- Problem Bank Tables
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS problems (
+                    id TEXT PRIMARY KEY,
+                    project_id TEXT,
+                    session_id TEXT,
+                    sector TEXT NOT NULL,
+                    sufferer_occupation TEXT,
+                    sufferer_location TEXT,
+                    problem_statement TEXT NOT NULL,
+                    evidence_tier TEXT DEFAULT 'SIGNAL',
+                    workaround TEXT,
+                    quantified_impact TEXT,
+                    evidence_types TEXT DEFAULT '[]',
+                    source TEXT DEFAULT 'llm_phase1',
+                    source_detail TEXT,
+                    tags TEXT DEFAULT '[]',
+                    status TEXT DEFAULT 'discovered',
+                    phase2_verdict TEXT,
+                    phase3_verdict TEXT,
+                    notes TEXT,
+                    score REAL DEFAULT 0.0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE SET NULL,
+                    FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE SET NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS problem_sources (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    problem_id TEXT NOT NULL,
+                    source_name TEXT NOT NULL,
+                    source_url TEXT,
+                    source_tier TEXT DEFAULT 'B',
+                    evidence_type TEXT,
+                    quote_or_summary TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS problem_phase_history (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    problem_id TEXT NOT NULL,
+                    phase_number INTEGER NOT NULL,
+                    action TEXT NOT NULL,
+                    verdict TEXT,
+                    llm_response TEXT,
+                    model_used TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+                );
+
+                -- Indices
                 CREATE INDEX IF NOT EXISTS idx_projects_share_code ON projects(share_code);
                 CREATE INDEX IF NOT EXISTS idx_sessions_updated ON sessions(updated_at DESC);
                 CREATE INDEX IF NOT EXISTS idx_snapshots_session ON session_snapshots(session_id, created_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_problems_sector ON problems(sector);
+                CREATE INDEX IF NOT EXISTS idx_problems_status ON problems(status);
+                CREATE INDEX IF NOT EXISTS idx_problems_project ON problems(project_id);
+                CREATE INDEX IF NOT EXISTS idx_problems_tier ON problems(evidence_tier);
+                CREATE INDEX IF NOT EXISTS idx_problems_updated ON problems(updated_at DESC);
+                CREATE INDEX IF NOT EXISTS idx_problem_sources_pid ON problem_sources(problem_id);
+                CREATE INDEX IF NOT EXISTS idx_problem_history_pid ON problem_phase_history(problem_id);
             """)
+
+    # ------------------------------------------------------------------
+    # Session Management Methods
+    # ------------------------------------------------------------------
 
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
@@ -102,7 +210,6 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         now = datetime.now(timezone.utc).isoformat()
 
         with self._get_connection() as conn:
-            # Ensure project exists if project_id is given
             if project_id:
                 proj = conn.execute("SELECT id FROM projects WHERE id = ?", (project_id,)).fetchone()
                 if not proj:
@@ -223,3 +330,298 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             if not row:
                 return None
             return dict(row)
+
+    # ------------------------------------------------------------------
+    # Problem Bank Methods
+    # ------------------------------------------------------------------
+
+    def add_problem(self, problem_data: Dict[str, Any]) -> Dict[str, Any]:
+        p = dict(problem_data)
+        problem_id = p.get("id") or p.get("problem_id") or f"PRB-{uuid.uuid4().hex[:6].upper()}"
+        p["id"] = problem_id
+
+        sources = p.get("sources") or []
+        score = p.get("score")
+        if score is None:
+            score = calculate_evidence_score(p, sources)
+        p["score"] = score
+
+        now = datetime.now(timezone.utc).isoformat()
+        evidence_types_json = json.dumps(p.get("evidence_types") or p.get("evidence_type_list") or [])
+        tags_json = json.dumps(p.get("tags") or [])
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO problems (
+                    id, project_id, session_id, sector, sufferer_occupation,
+                    sufferer_location, problem_statement, evidence_tier, workaround,
+                    quantified_impact, evidence_types, source, source_detail,
+                    tags, status, phase2_verdict, phase3_verdict, notes, score,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    project_id = coalesce(excluded.project_id, problems.project_id),
+                    session_id = coalesce(excluded.session_id, problems.session_id),
+                    sector = excluded.sector,
+                    sufferer_occupation = excluded.sufferer_occupation,
+                    sufferer_location = excluded.sufferer_location,
+                    problem_statement = excluded.problem_statement,
+                    evidence_tier = excluded.evidence_tier,
+                    workaround = excluded.workaround,
+                    quantified_impact = excluded.quantified_impact,
+                    evidence_types = excluded.evidence_types,
+                    source = excluded.source,
+                    source_detail = excluded.source_detail,
+                    tags = excluded.tags,
+                    status = excluded.status,
+                    phase2_verdict = coalesce(excluded.phase2_verdict, problems.phase2_verdict),
+                    phase3_verdict = coalesce(excluded.phase3_verdict, problems.phase3_verdict),
+                    notes = coalesce(excluded.notes, problems.notes),
+                    score = excluded.score,
+                    updated_at = excluded.updated_at
+            """, (
+                problem_id,
+                p.get("project_id"),
+                p.get("session_id"),
+                p.get("sector") or "General",
+                p.get("sufferer_occupation") or "",
+                p.get("sufferer_location") or "",
+                p.get("problem_statement") or "",
+                p.get("evidence_tier") or "SIGNAL",
+                p.get("workaround") or "",
+                p.get("quantified_impact") or "",
+                evidence_types_json,
+                p.get("source") or "llm_phase1",
+                p.get("source_detail") or "",
+                tags_json,
+                p.get("status") or "discovered",
+                p.get("phase2_verdict"),
+                p.get("phase3_verdict"),
+                p.get("notes") or "",
+                score,
+                now,
+                now
+            ))
+
+            # Insert/replace sources if provided
+            if sources:
+                conn.execute("DELETE FROM problem_sources WHERE problem_id = ?", (problem_id,))
+                for s in sources:
+                    conn.execute("""
+                        INSERT INTO problem_sources (
+                            problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
+                        ) VALUES (?, ?, ?, ?, ?, ?)
+                    """, (
+                        problem_id,
+                        s.get("source_name") or s.get("description") or "Source",
+                        s.get("source_url") or s.get("url"),
+                        s.get("source_tier") or "B",
+                        s.get("evidence_type") or "Reference",
+                        s.get("quote_or_summary") or ""
+                    ))
+
+        return self.get_problem(problem_id) or p
+
+    def get_problem(self, problem_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM problems WHERE id = ?", (problem_id,)).fetchone()
+            if not row:
+                return None
+            
+            p = dict(row)
+            try:
+                p["evidence_types"] = json.loads(p.get("evidence_types") or "[]")
+            except Exception:
+                p["evidence_types"] = []
+            try:
+                p["tags"] = json.loads(p.get("tags") or "[]")
+            except Exception:
+                p["tags"] = []
+
+            # Fetch sources
+            source_rows = conn.execute(
+                "SELECT * FROM problem_sources WHERE problem_id = ? ORDER BY id ASC",
+                (problem_id,)
+            ).fetchall()
+            p["sources"] = [dict(s) for s in source_rows]
+
+            # Fetch phase history
+            history_rows = conn.execute(
+                "SELECT * FROM problem_phase_history WHERE problem_id = ? ORDER BY created_at ASC",
+                (problem_id,)
+            ).fetchall()
+            p["phase_history"] = [dict(h) for h in history_rows]
+
+            return p
+
+    def list_problems(
+        self,
+        project_id: Optional[str] = None,
+        sector: Optional[str] = None,
+        evidence_tier: Optional[str] = None,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM problems WHERE 1=1"
+        params: List[Any] = []
+
+        if project_id:
+            query += " AND (project_id = ? OR project_id IS NULL)"
+            params.append(project_id)
+        if sector and sector != "All":
+            query += " AND sector = ?"
+            params.append(sector)
+        if evidence_tier and evidence_tier != "All":
+            query += " AND evidence_tier = ?"
+            params.append(evidence_tier)
+        if status and status != "All":
+            query += " AND status = ?"
+            params.append(status)
+        if search and search.strip():
+            like_term = f"%{search.strip()}%"
+            query += " AND (problem_statement LIKE ? OR sufferer_occupation LIKE ? OR sufferer_location LIKE ? OR notes LIKE ? OR id LIKE ?)"
+            params.extend([like_term, like_term, like_term, like_term, like_term])
+
+        query += " ORDER BY score DESC, updated_at DESC LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, params).fetchall()
+            results = []
+            for row in rows:
+                p = dict(row)
+                try:
+                    p["evidence_types"] = json.loads(p.get("evidence_types") or "[]")
+                except Exception:
+                    p["evidence_types"] = []
+                try:
+                    p["tags"] = json.loads(p.get("tags") or "[]")
+                except Exception:
+                    p["tags"] = []
+
+                # Attach sources summary
+                sources = conn.execute(
+                    "SELECT id, source_name, source_url, source_tier, evidence_type, quote_or_summary FROM problem_sources WHERE problem_id = ?",
+                    (p["id"],)
+                ).fetchall()
+                p["sources"] = [dict(s) for s in sources]
+                results.append(p)
+            return results
+
+    def update_problem(self, problem_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        existing = self.get_problem(problem_id)
+        if not existing:
+            return None
+
+        allowed_fields = [
+            "sector", "sufferer_occupation", "sufferer_location", "problem_statement",
+            "evidence_tier", "workaround", "quantified_impact", "evidence_types",
+            "source", "source_detail", "tags", "status", "phase2_verdict", "phase3_verdict",
+            "notes", "score", "project_id"
+        ]
+
+        set_clauses = []
+        params = []
+
+        for field in allowed_fields:
+            if field in updates:
+                val = updates[field]
+                if field in ("evidence_types", "tags") and not isinstance(val, str):
+                    val = json.dumps(val)
+                set_clauses.append(f"{field} = ?")
+                params.append(val)
+
+        if "sources" in updates:
+            sources = updates["sources"]
+            with self._get_connection() as conn:
+                conn.execute("DELETE FROM problem_sources WHERE problem_id = ?", (problem_id,))
+                for s in sources:
+                    conn.execute("""
+                        INSERT INTO problem_sources (
+                            problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
+                        ) VALUES (?, ?, ?, ?, ?, ?)
+                    """, (
+                        problem_id,
+                        s.get("source_name") or s.get("description") or "Source",
+                        s.get("source_url") or s.get("url"),
+                        s.get("source_tier") or "B",
+                        s.get("evidence_type") or "Reference",
+                        s.get("quote_or_summary") or ""
+                    ))
+            # Recalculate score
+            merged = {**existing, **updates}
+            new_score = calculate_evidence_score(merged, sources)
+            set_clauses.append("score = ?")
+            params.append(new_score)
+
+        if set_clauses:
+            now = datetime.now(timezone.utc).isoformat()
+            set_clauses.append("updated_at = ?")
+            params.append(now)
+            params.append(problem_id)
+
+            with self._get_connection() as conn:
+                conn.execute(
+                    f"UPDATE problems SET {', '.join(set_clauses)} WHERE id = ?",
+                    params
+                )
+
+        return self.get_problem(problem_id)
+
+    def delete_problem(self, problem_id: str) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute("DELETE FROM problems WHERE id = ?", (problem_id,))
+            return cur.rowcount > 0
+
+    def add_problem_sources(self, problem_id: str, sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            for s in sources:
+                conn.execute("""
+                    INSERT INTO problem_sources (
+                        problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
+                    ) VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    problem_id,
+                    s.get("source_name") or s.get("description") or "Source",
+                    s.get("source_url") or s.get("url"),
+                    s.get("source_tier") or "B",
+                    s.get("evidence_type") or "Reference",
+                    s.get("quote_or_summary") or ""
+                ))
+        p = self.get_problem(problem_id)
+        return p.get("sources", []) if p else []
+
+    def record_problem_history(
+        self,
+        problem_id: str,
+        phase_number: int,
+        action: str,
+        verdict: Optional[str] = None,
+        llm_response: Optional[str] = None,
+        model_used: Optional[str] = None
+    ) -> Dict[str, Any]:
+        with self._get_connection() as conn:
+            cur = conn.execute("""
+                INSERT INTO problem_phase_history (
+                    problem_id, phase_number, action, verdict, llm_response, model_used
+                ) VALUES (?, ?, ?, ?, ?, ?)
+            """, (problem_id, phase_number, action, verdict, llm_response, model_used))
+            history_id = cur.lastrowid
+            return {
+                "id": history_id,
+                "problem_id": problem_id,
+                "phase_number": phase_number,
+                "action": action,
+                "verdict": verdict,
+                "model_used": model_used,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }
+
+    def bulk_upsert_problems(self, problems: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        results = []
+        for p in problems:
+            res = self.add_problem(p)
+            results.append(res)
+        return results

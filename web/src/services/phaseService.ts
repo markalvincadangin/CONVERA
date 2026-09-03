@@ -25,23 +25,25 @@ export const phaseService = {
   },
 
   // Phase 2: Screening
-  async screen(sessionId: string, phase1Text?: string): Promise<{ response: string; state: SessionState }> {
+  async screen(sessionId: string, phase1Text?: string, selectedProblemIds?: string[]): Promise<{ response: string; state: SessionState }> {
     return await fetchApi<{ response: string; state: SessionState }>("/api/phases/2/screen", {
       method: "POST",
       body: JSON.stringify({
         session_id: sessionId,
-        phase1_text: phase1Text,
+        problem_landscape: phase1Text,
+        selected_problem_ids: selectedProblemIds,
       }),
     });
   },
 
   // Phase 3: Validation Clinic
-  async initPhase3(sessionId: string, problemStatement: string): Promise<{ agent_response: string; current_level: string; level_label: string; state: SessionState }> {
+  async initPhase3(sessionId: string, problemStatement: string, problemId?: string): Promise<{ agent_response: string; current_level: string; level_label: string; state: SessionState }> {
     return await fetchApi<{ agent_response: string; current_level: string; level_label: string; state: SessionState }>("/api/phases/3/init", {
       method: "POST",
       body: JSON.stringify({
         session_id: sessionId,
         problem_statement: problemStatement,
+        problem_id: problemId,
       }),
     });
   },
@@ -51,7 +53,7 @@ export const phaseService = {
       method: "POST",
       body: JSON.stringify({
         session_id: sessionId,
-        student_answer: studentAnswer,
+        answer: studentAnswer,
       }),
     });
   },
@@ -84,8 +86,8 @@ export const phaseService = {
       cohort: string;
       sample_size: number;
       actions_count: number;
-      pass_threshold: string;
-      fail_threshold: string;
+      pass_threshold: string | number;
+      fail_threshold: string | number;
       evidence_desc: string;
     }
   ): Promise<Phase5AuditResponse> {

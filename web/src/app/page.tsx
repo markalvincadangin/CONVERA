@@ -7,6 +7,7 @@ import { SessionManager } from "@/components/layout/SessionManager";
 import { CheatsheetDrawer } from "@/components/layout/CheatsheetDrawer";
 import { PresentationModal } from "@/components/layout/PresentationModal";
 import { HelpCenterModal } from "@/components/layout/HelpCenterModal";
+import { ProblemBankView } from "@/components/problem-bank/ProblemBankView";
 import { Phase1View } from "@/components/phases/phase1/Phase1View";
 import { Phase2View } from "@/components/phases/phase2/Phase2View";
 import { Phase3View } from "@/components/phases/phase3/Phase3View";
@@ -22,7 +23,7 @@ import { Download, Copy, Check, ServerCrash, RefreshCw, PlusCircle } from "lucid
 
 export default function DashboardPage() {
   const [session, setSession] = useState<SessionState | null>(null);
-  const [activePhase, setActivePhase] = useState<number>(1);
+  const [activePhase, setActivePhase] = useState<number>(0);
   const [isLoadingSession, setIsLoadingSession] = useState(true);
   const [connectionError, setConnectionError] = useState<string | null>(null);
 
@@ -56,7 +57,7 @@ export default function DashboardPage() {
           "Iloilo Technopreneurship Project"
         );
         setSession(newSession.state);
-        setActivePhase(1);
+        setActivePhase(0);
       }
     } catch (err: any) {
       console.error("Initialization error:", err);
@@ -78,7 +79,7 @@ export default function DashboardPage() {
     } else if (s.phase1_complete || s.phase2_response) {
       setActivePhase(2);
     } else {
-      setActivePhase(1);
+      setActivePhase(0); // Start at Problem Bank
     }
   };
 
@@ -120,6 +121,7 @@ export default function DashboardPage() {
     setSession(offlineState);
     setConnectionError(null);
     setIsLoadingSession(false);
+    setActivePhase(0);
   };
 
   const handleExportDossier = async () => {
@@ -153,6 +155,10 @@ export default function DashboardPage() {
     document.body.removeChild(element);
   };
 
+  const handleSendToPhase2 = (selectedIds: string[]) => {
+    setActivePhase(2);
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col selection:bg-cyan-500/30 selection:text-cyan-200">
       {/* Top Navigation */}
@@ -166,7 +172,7 @@ export default function DashboardPage() {
         isExporting={isExporting}
       />
 
-      {/* Interactive 5-Phase Timeline Stepper */}
+      {/* Interactive Pipeline Timeline Stepper */}
       <PipelineStepper
         activePhase={activePhase}
         onSelectPhase={(phase) => setActivePhase(phase)}
@@ -223,6 +229,13 @@ export default function DashboardPage() {
           </div>
         ) : session ? (
           <div>
+            {activePhase === 0 && (
+              <ProblemBankView
+                session={session}
+                onSendToPhase2={handleSendToPhase2}
+              />
+            )}
+
             {activePhase === 1 && (
               <Phase1View
                 session={session}
@@ -276,66 +289,78 @@ export default function DashboardPage() {
         ) : null}
       </main>
 
-      {/* Modals & Interactive Drawers */}
-      {session && (
-        <SessionManager
-          isOpen={isSessionManagerOpen}
-          onClose={() => setIsSessionManagerOpen(false)}
-          currentSessionId={session.session_id}
-          onSelectSession={handleSelectSession}
-        />
-      )}
+      {/* Session & Snapshots Manager Modal */}
+      <SessionManager
+        isOpen={isSessionManagerOpen}
+        onClose={() => setIsSessionManagerOpen(false)}
+        currentSessionId={session?.session_id || ""}
+        onSelectSession={handleSelectSession}
+      />
 
+      {/* Cheatsheet Drawer */}
       <CheatsheetDrawer
         isOpen={isCheatsheetOpen}
         onClose={() => setIsCheatsheetOpen(false)}
       />
 
+      {/* Help Center Modal */}
       <HelpCenterModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
       />
 
-      <PresentationModal
-        isOpen={isPresentationOpen}
-        onClose={() => setIsPresentationOpen(false)}
-        session={session}
-      />
+      {/* 6-Slide Pitch Deck Modal */}
+      {session && (
+        <PresentationModal
+          isOpen={isPresentationOpen}
+          onClose={() => setIsPresentationOpen(false)}
+          session={session}
+        />
+      )}
 
-      {/* Dossier Export Modal */}
+      {/* Export Markdown Modal */}
       <Modal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
-        title="RatchetAI Venture Dossier Export"
+        title="Venture Validation Dossier (Markdown)"
         maxWidth="4xl"
       >
         <div className="space-y-4">
           <p className="text-xs text-slate-400">
-            Comprehensive presentation-ready report compiling all completed phases, scorecards, SVB canvas, and MVP test audits.
+            Exported Markdown containing all completed pipeline phases, evidence audit notes, and decisions.
           </p>
 
-          <textarea
-            readOnly
-            rows={15}
-            value={exportedMarkdown}
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs font-mono text-slate-300 focus:outline-none"
-          />
+          <div className="p-4 bg-slate-950 rounded-2xl border border-slate-800 max-h-96 overflow-y-auto font-mono text-xs text-slate-300 whitespace-pre-wrap selection:bg-cyan-500/40">
+            {exportedMarkdown}
+          </div>
 
-          <div className="flex justify-end gap-3 pt-2">
+          <div className="flex justify-between items-center pt-2">
             <Button
               variant="secondary"
-              onClick={handleCopyMarkdown}
-              leftIcon={copiedDossier ? <Check className="w-4 h-4 text-emerald-400" /> : <Copy className="w-4 h-4" />}
-            >
-              {copiedDossier ? "Copied!" : "Copy Markdown"}
-            </Button>
-            <Button
-              variant="emerald"
+              size="sm"
               onClick={handleDownloadMarkdown}
-              leftIcon={<Download className="w-4 h-4" />}
+              leftIcon={<Download className="w-3.5 h-3.5" />}
             >
               Download .md File
             </Button>
+
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExportModalOpen(false)}
+              >
+                Close
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleCopyMarkdown}
+                leftIcon={copiedDossier ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              >
+                {copiedDossier ? "Copied to Clipboard!" : "Copy Markdown"}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>

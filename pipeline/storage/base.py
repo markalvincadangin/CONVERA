@@ -43,3 +43,64 @@ class BaseStorageAdapter(ABC):
     def get_project_by_code(self, share_code: str) -> Optional[Dict[str, Any]]:
         """Find a project workspace by its human-friendly share code."""
         pass
+
+    # ------------------------------------------------------------------
+    # Problem Bank Storage Operations
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def add_problem(self, problem_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Insert or update a problem record in the problem bank."""
+        pass
+
+    @abstractmethod
+    def get_problem(self, problem_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a problem record with its sources and phase history."""
+        pass
+
+    @abstractmethod
+    def list_problems(
+        self,
+        project_id: Optional[str] = None,
+        sector: Optional[str] = None,
+        evidence_tier: Optional[str] = None,
+        status: Optional[str] = None,
+        search: Optional[str] = None,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """List and filter problem bank records."""
+        pass
+
+    @abstractmethod
+    def update_problem(self, problem_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update problem fields, notes, tags, or status."""
+        pass
+
+    @abstractmethod
+    def delete_problem(self, problem_id: str) -> bool:
+        """Delete or archive a problem."""
+        pass
+
+    @abstractmethod
+    def add_problem_sources(self, problem_id: str, sources: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Attach evidence sources to a problem."""
+        pass
+
+    @abstractmethod
+    def record_problem_history(
+        self,
+        problem_id: str,
+        phase_number: int,
+        action: str,
+        verdict: Optional[str] = None,
+        llm_response: Optional[str] = None,
+        model_used: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """Record an audit trail event for a problem across phases."""
+        pass
+
+    @abstractmethod
+    def bulk_upsert_problems(self, problems: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Batch insert or update multiple problem records."""
+        pass

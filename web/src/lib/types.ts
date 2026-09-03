@@ -1,5 +1,7 @@
 export type EvidenceTier = "SIGNAL" | "DOCUMENTED" | "STRONGLY_DOCUMENTED";
 
+export type ProblemStatus = "discovered" | "shortlisted" | "validating" | "validated" | "archived";
+
 export type ScreeningVerdict = "ADVANCE" | "SECOND_LOOK" | "PARK";
 
 export type ProblemValidationVerdict = "VALIDATED" | "REVALIDATE" | "REJECT";
@@ -28,6 +30,53 @@ export interface ModelMetadata {
   model?: string;
   display_name?: string;
   latency_seconds?: number;
+}
+
+export interface ProblemSource {
+  id?: number;
+  problem_id?: string;
+  source_name: string;
+  source_url?: string | null;
+  source_tier?: "A" | "B" | "C" | "D";
+  evidence_type?: string;
+  quote_or_summary?: string;
+}
+
+export interface ProblemPhaseHistory {
+  id?: number;
+  problem_id?: string;
+  phase_number: number;
+  action: string;
+  verdict?: string | null;
+  llm_response?: string | null;
+  model_used?: string | null;
+  created_at?: string;
+}
+
+export interface ProblemRecord {
+  id: string;
+  project_id?: string | null;
+  session_id?: string | null;
+  sector: string;
+  sufferer_occupation: string;
+  sufferer_location: string;
+  problem_statement: string;
+  evidence_tier: EvidenceTier;
+  workaround?: string;
+  quantified_impact?: string;
+  evidence_types?: string[];
+  source?: "llm_phase1" | "manual" | "import";
+  source_detail?: string;
+  tags?: string[];
+  status?: ProblemStatus;
+  phase2_verdict?: ScreeningVerdict | null;
+  phase3_verdict?: ProblemValidationVerdict | null;
+  notes?: string;
+  score?: number;
+  sources?: ProblemSource[];
+  phase_history?: ProblemPhaseHistory[];
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface SessionMeta {
