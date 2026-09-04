@@ -30,6 +30,8 @@ export interface ModelMetadata {
   model?: string;
   display_name?: string;
   latency_seconds?: number;
+  is_degraded?: boolean;
+  fallback_reason?: string;
 }
 
 export interface ProblemSource {
