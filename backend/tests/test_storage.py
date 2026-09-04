@@ -5,7 +5,7 @@ from storage.sqlite_adapter import SQLiteStorageAdapter
 
 @pytest.fixture
 def test_storage(tmp_path):
-    db_file = tmp_path / "test_ratchetai.db"
+    db_file = tmp_path / "test_convera.db"
     storage = SQLiteStorageAdapter(db_path=str(db_file))
     yield storage
 

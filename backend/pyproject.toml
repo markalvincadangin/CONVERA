@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "ratchetai"
+name = "convera"
 version = "1.1.0"
-description = "RatchetAI: Evidence-Ratcheted Problem-to-Solution Multi-Agent Pipeline"
+description = "CONVERA: Evidence-Driven Project Intelligence and Validation Pipeline"
 readme = "README.md"
 authors = [{ name = "Technopreneurship Program" }]
 requires-python = ">=3.10"

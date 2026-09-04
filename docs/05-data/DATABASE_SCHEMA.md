@@ -15,13 +15,13 @@
 *Document Version: 1.1.0*  
 *Last Verified: 2026-09-04*  
 *Target Architecture: SQLite 3.45+ (WAL Mode)*  
-*Source Authority: Physical schema extracted from `backend/ratchetai.db` & `backend/storage/sqlite_adapter.py`*
+*Source Authority: Physical schema extracted from `backend/convera.db` & `backend/storage/sqlite_adapter.py`*
 
 ---
 
 ## 1. Executive Summary & Schema Invariants
 
-This document specifies the **physical relational database schema** for the CONVERA platform. Extracted directly from the operational SQLite database (`backend/ratchetai.db`) and verified against the Inversion-of-Control storage adapter (`backend/storage/sqlite_adapter.py`), this specification documents all 23 physical relational tables, column storage classes, primary and foreign key constraints, composite index topologies, and application-level JSON contracts.
+This document specifies the **physical relational database schema** for the CONVERA platform. Extracted directly from the operational SQLite database (`backend/convera.db`) and verified against the Inversion-of-Control storage adapter (`backend/storage/sqlite_adapter.py`), this specification documents all 23 physical relational tables, column storage classes, primary and foreign key constraints, composite index topologies, and application-level JSON contracts.
 
 ### Core Physical Schema Invariants
 
@@ -647,7 +647,7 @@ Pydantic Schemas / Structured Types (where implemented)
 
 | Verification Dimension | Criterion | Implemented Status | Verification Evidence |
 | :--- | :--- | :--- | :--- |
-| **Physical Table Extraction** | 23 tables extracted | 🟢 Complete | Verified against `backend/ratchetai.db` |
+| **Physical Table Extraction** | 23 tables extracted | 🟢 Complete | Verified against `backend/convera.db` |
 | **Engine Configuration** | WAL Mode & Foreign Keys | 🟢 Enforced | `PRAGMA journal_mode=WAL; PRAGMA foreign_keys=ON;` in `sqlite_adapter.py` |
 | **Relational Integrity** | 13 SQLite FKs | 🟢 Verified | Extracted via `PRAGMA foreign_key_list()` |
 | **Tenancy Scoping** | Project ownership path | 🟢 Verified | Direct or transitive `project_id` path across all 23 tables |

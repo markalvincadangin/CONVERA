@@ -134,7 +134,7 @@ npm run start --prefix web
 
 | Variable | Purpose | Observed default or behavior |
 | :--- | :--- | :--- |
-| `SQLITE_PATH` | SQLite database location. | `<backend>/ratchetai.db` when unset in `storage/factory.py`. |
+| `SQLITE_PATH` | SQLite database location. | `<backend>/convera.db` when unset in `storage/factory.py`. |
 | `DATABASE_URL` | Requests a PostgreSQL adapter for `postgresql://` or `postgres://` URLs. | Adapter module is absent; import failure falls back to SQLite. |
 | `HOST`, `PORT` | Values read by `backend/server.py` when that file is run directly. | `0.0.0.0`, `8000`. |
 | `NEXT_PUBLIC_API_URL` | Browser-side backend base URL override. | Empty uses relative `/api` calls; rewrite targets loopback backend. |

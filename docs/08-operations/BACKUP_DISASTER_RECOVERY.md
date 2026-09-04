@@ -44,9 +44,9 @@ Because CONVERA is an evidence-driven project intelligence system rather than a 
 │                          SQLITE WAL BACKUP PROTOCOL                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  [ Active CONVERA Backend ] ── Write Transactions ──► [ ratchetai.db ]      │
-│                                                       [ ratchetai.db-wal ]  │
-│                                                       [ ratchetai.db-shm ]  │
+│  [ Active CONVERA Backend ] ── Write Transactions ──► [ convera.db ]        │
+│                                                       [ convera.db-wal ]    │
+│                                                       [ convera.db-shm ]    │
 │                                                               │             │
 │                                                               ▼             │
 │  [ Step 1: WAL Checkpoint ] ◄── PRAGMA wal_checkpoint(PASSIVE / TRUNCATE); │
@@ -73,7 +73,7 @@ To generate an uncorrupted live backup while CONVERA is actively serving request
 # CONVERA Safe Live Backup Script (CCDS-OPS-002)
 set -euo pipefail
 
-DB_PATH="${SQLITE_PATH:-backend/ratchetai.db}"
+DB_PATH="${SQLITE_PATH:-backend/convera.db}"
 BACKUP_DIR="backups/$(date +%Y%m%d)"
 BACKUP_FILE="${BACKUP_DIR}/convera_backup_$(date +%Y%m%d_%H%M%S).db"
 
@@ -119,10 +119,10 @@ For non-destructive user rollbacks, framework switches, and experimentation safe
 ### Scenario A: SQLite Database Corruption or Lock Failure
 **Symptoms**: `sqlite3.DatabaseError: database disk image is malformed` or persistent lock contention timeouts.
 1. **Stop Application**: Terminate FastAPI and Next.js services (`killall uvicorn` or `docker compose down`).
-2. **Preserve Malformed Files**: Move `ratchetai.db`, `ratchetai.db-wal`, and `ratchetai.db-shm` to a quarantine folder (`quarantine/`).
+2. **Preserve Malformed Files**: Move `convera.db`, `convera.db-wal`, and `convera.db-shm` to a quarantine folder (`quarantine/`).
 3. **Execute SQLite Recovery / Restore**:
    * *Option 1 (Recent Verified Backup)*: Restore latest `.db.gz` backup from `backups/`.
-   * *Option 2 (SQLite Recover API)*: `sqlite3 quarantine/ratchetai.db ".recover" | sqlite3 backend/ratchetai.db`.
+   * *Option 2 (SQLite Recover API)*: `sqlite3 quarantine/convera.db ".recover" | sqlite3 backend/convera.db`.
 4. **Run Diagnostic Verification**:
    ```sql
    PRAGMA integrity_check;
@@ -138,7 +138,7 @@ For non-destructive user rollbacks, framework switches, and experimentation safe
 2. **Restore Filesystem & Secrets**:
    * Clone repository or deploy container image.
    * Restore `.env` configuration file containing API keys and host parameters.
-   * Decompress latest verified backup to `backend/ratchetai.db`.
+   * Decompress latest verified backup to `backend/convera.db`.
    * Restore document attachments and exported dossier artifacts to `exports/`.
 3. **Verify Lineage & Connectors**: Run pre-flight deployment gates (Gate 1 through Gate 4 in `DEPLOYMENT.md`).
 

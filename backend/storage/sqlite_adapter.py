@@ -44,9 +44,9 @@ def generate_share_code(prefix: str = "RATCH") -> str:
 
 
 class SQLiteStorageAdapter(BaseStorageAdapter):
-    """High-concurrency SQLite WAL storage adapter with full Problem Bank support for RatchetAI."""
+    """High-concurrency SQLite WAL storage adapter with full Problem Bank support for CONVERA."""
 
-    def __init__(self, db_path: str = "pipeline/ratchetai.db"):
+    def __init__(self, db_path: str = "backend/convera.db"):
         self.db_path = db_path
         os.makedirs(os.path.dirname(os.path.abspath(db_path)), exist_ok=True)
         self._init_db()

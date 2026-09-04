@@ -6,6 +6,7 @@ web/node_modules/
 out/
 build/
 dist/
+*.tsbuildinfo
 .env.local
 .env.development.local
 .env.test.local

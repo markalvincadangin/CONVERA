@@ -222,7 +222,7 @@ CONVERA distinguishes four classes of state:
                                        │
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │ 4. CANONICAL SYSTEM STATE (Backend SQLite Database)                         │
-│ • Supreme source of truth: 23 Relational Tables in `backend/ratchetai.db`.   │
+│ • Supreme source of truth: 23 Relational Tables in `backend/convera.db`.     │
 │ • Uniquely authoritative for all epistemic, audit, and decision records.    │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```

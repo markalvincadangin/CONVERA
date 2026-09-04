@@ -1,11 +1,11 @@
-# RatchetAI 1-Click Multi-Device Startup Script (Windows PowerShell)
+# CONVERA 1-Click Multi-Device Startup Script (Windows PowerShell)
 
 $RootDir = $PSScriptRoot
 if (-not $RootDir) {
     $RootDir = (Get-Location).Path
 }
 
-# If user is in web/ or pipeline/, move up to project root
+# If user is in web/ or backend/, move up to project root
 if (Test-Path "$RootDir\..\backend") {
     $RootDir = (Resolve-Path "$RootDir\..").Path
 }
@@ -17,7 +17,7 @@ if (-not $LocalIP) {
 }
 
 Write-Host "==========================================================" -ForegroundColor Cyan
-Write-Host "   RatchetAI: PC-Powered Multi-Device Venture Engine      " -ForegroundColor White
+Write-Host "   CONVERA: Project Intelligence System                   " -ForegroundColor White
 Write-Host "==========================================================" -ForegroundColor Cyan
 Write-Host "[*] Project Root: $RootDir" -ForegroundColor Gray
 Write-Host "[*] Local Access: http://localhost:3000" -ForegroundColor Green

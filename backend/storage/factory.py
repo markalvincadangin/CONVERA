@@ -25,9 +25,22 @@ def get_storage() -> BaseStorageAdapter:
         except Exception as e:
             print(f"[!] Warning: PostgreSQL connection failed ({e}). Falling back to SQLite WAL.")
 
-    # Always use absolute path to <pipeline_root>/ratchetai.db
-    db_path = os.getenv("SQLITE_PATH", str(PIPELINE_ROOT / "ratchetai.db"))
+    # Always use absolute path to <pipeline_root>/convera.db with legacy fallback
+    env_path = os.getenv("SQLITE_PATH", "").strip()
+    if env_path:
+        # If relative path supplied in env, resolve relative to PIPELINE_ROOT
+        db_path = str(Path(env_path) if Path(env_path).is_absolute() else (PIPELINE_ROOT / env_path))
+    else:
+        canonical_path = PIPELINE_ROOT / "convera.db"
+        legacy_path = PIPELINE_ROOT / "ratchetai.db"
+        if not canonical_path.exists() and legacy_path.exists():
+            print(f"[!] Notice: Found legacy database at {legacy_path}. Using fallback.")
+            db_path = str(legacy_path)
+        else:
+            db_path = str(canonical_path)
+
     _GLOBAL_STORAGE = SQLiteStorageAdapter(db_path=db_path)
     print(f"[OK] SQLite WAL Database Storage initialized at {db_path}.")
 
     return _GLOBAL_STORAGE
+
