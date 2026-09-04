@@ -4,6 +4,8 @@ from server import app
 from storage import get_storage
 from engines.gate_engine import GateEngine
 
+
+pytestmark = pytest.mark.integration
 client = TestClient(app)
 storage = get_storage()
 

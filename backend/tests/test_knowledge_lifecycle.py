@@ -5,6 +5,9 @@ from engines.knowledge_lifecycle import (
     get_problem_epistemic_tree,
 )
 
+pytestmark = pytest.mark.unit
+
+
 def test_claim_epistemic_balance_and_lifecycle():
     storage = get_storage()
     prob_id = "EPIS-PROB-001"

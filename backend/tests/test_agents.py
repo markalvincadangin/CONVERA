@@ -8,6 +8,8 @@ from agents.critic_agent import execute_critic_agent
 from agents.verifier_agent import execute_verifier_agent
 from connectors.base import NormalizedScholarlyWork, ProvenanceMetadata
 
+
+pytestmark = pytest.mark.unit
 @pytest.fixture
 def anyio_backend():
     return 'asyncio'

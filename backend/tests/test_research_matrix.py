@@ -5,6 +5,7 @@ from engines.literature_matrix import LiteratureMatrixEngine
 
 client = TestClient(app)
 
+@pytest.mark.live
 def test_literature_matrix_engine():
     engine = LiteratureMatrixEngine()
     sample_sources = [
@@ -34,6 +35,7 @@ def test_literature_matrix_engine():
     assert res["matrix_rows"][0]["study_citation"].startswith("Santos, J.")
     assert len(res["synthesized_gaps"]) >= 1
 
+@pytest.mark.live
 def test_research_matrix_endpoints():
     res = client.post("/api/research/matrix/generate", json={"query": "edge computing pest detection", "limit": 4})
     assert res.status_code == 200

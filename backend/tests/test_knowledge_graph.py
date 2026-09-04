@@ -3,6 +3,8 @@ import pytest_asyncio
 from storage import get_storage
 from engines.assumption_engine import extract_claims_and_assumptions
 
+
+pytestmark = pytest.mark.integration
 def test_knowledge_graph_storage():
     storage = get_storage()
     sess = storage.save_session("sess_kg_test", {"project_name": "KG Test Project"})

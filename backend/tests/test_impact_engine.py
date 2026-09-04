@@ -7,6 +7,9 @@ from engines.impact_engine import (
     propagate_test_result,
 )
 
+pytestmark = pytest.mark.integration
+
+
 def test_impact_propagation_cascade_and_falsification():
     storage = get_storage()
     prob_id = "IMPACT-PROB-001"

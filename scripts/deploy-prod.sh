@@ -16,9 +16,9 @@ if [ ! -f .env ] && [ -f backend/.env ]; then
     ln -s backend/.env .env 2>/dev/null || cp backend/.env .env
 fi
 
-# Stage 1: Unit Test Gate
-echo "[+] Stage 1: Running backend unit tests..."
-(cd backend && PYTHONPATH=. .venv/bin/pytest tests/ -q)
+# Stage 1: Offline Verification Gate (Tiers 1 + 2)
+echo "[+] Stage 1: Running backend offline verification suite (Tiers 1 + 2)..."
+(cd backend && PYTHONPATH=. .venv/bin/pytest tests/ -m "not live" -q)
 
 # Stage 2: Conformance Gate
 echo "[+] Stage 2: Running Phase 9 local conformance gate..."

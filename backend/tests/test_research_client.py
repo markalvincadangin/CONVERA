@@ -3,6 +3,7 @@ import pytest_asyncio
 from engines.research_client import FreeResearchClient, extract_keywords
 from storage import get_storage
 
+@pytest.mark.unit
 def test_extract_keywords():
     text = "Post-harvest bulb onion spoilage up to 40% due to continuous seasonal humidity."
     kw = extract_keywords(text, max_words=4)
@@ -11,6 +12,8 @@ def test_extract_keywords():
     assert "due" not in kw.lower()
 
 @pytest.mark.asyncio
+@pytest.mark.live
+@pytest.mark.smoke
 async def test_openalex_search():
     client = FreeResearchClient(timeout=10.0)
     results = await client.search_academic_openalex("Philippines agriculture", limit=2)
@@ -23,6 +26,8 @@ async def test_openalex_search():
         assert paper["source_tier"] == "A"
 
 @pytest.mark.asyncio
+@pytest.mark.live
+@pytest.mark.smoke
 async def test_crossref_search():
     client = FreeResearchClient(timeout=10.0)
     results = await client.search_crossref("Iloilo flood disaster", limit=2)
@@ -35,6 +40,8 @@ async def test_crossref_search():
         assert paper["source_tier"] == "A"
 
 @pytest.mark.asyncio
+@pytest.mark.live
+@pytest.mark.smoke
 async def test_europe_pmc_search():
     client = FreeResearchClient(timeout=10.0)
     results = await client.search_europe_pmc("Philippines rice yield", limit=2)
@@ -45,6 +52,7 @@ async def test_europe_pmc_search():
         assert "engine" in paper
 
 @pytest.mark.asyncio
+@pytest.mark.live
 async def test_auto_research_problem():
     client = FreeResearchClient(timeout=12.0)
     res = await client.auto_research_problem({

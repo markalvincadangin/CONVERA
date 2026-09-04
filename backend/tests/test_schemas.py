@@ -8,6 +8,9 @@ from schemas import (
     PivotAnalysis,
 )
 
+pytestmark = pytest.mark.unit
+
+
 
 def test_phase2_second_look_requires_exit_condition():
     # SECOND_LOOK without exit condition should raise ValueError

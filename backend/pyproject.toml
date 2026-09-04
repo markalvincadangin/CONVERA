@@ -30,4 +30,12 @@ dev = [
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 asyncio_mode = "auto"
-addopts = "-s"
+pythonpath = ["."]
+addopts = "-ra -q -m 'not live'"
+markers = [
+    "unit: Pure deterministic offline unit tests",
+    "integration: Local integration tests with SQLite or mocked services",
+    "live: External network tests requiring real API connectivity",
+    "smoke: Lightweight egress and connectivity probe subset of live tests",
+]
+

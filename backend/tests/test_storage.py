@@ -3,6 +3,8 @@ import os
 import shutil
 from storage.sqlite_adapter import SQLiteStorageAdapter
 
+
+pytestmark = pytest.mark.integration
 @pytest.fixture
 def test_storage(tmp_path):
     db_file = tmp_path / "test_convera.db"

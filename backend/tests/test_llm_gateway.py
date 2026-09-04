@@ -57,6 +57,7 @@ def reset_cooldown_tracker():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_configured_provider_selected():
     """Verify that when Gemini is configured and preferred, it is attempted first."""
     mock_gemini = AsyncMock(return_value="# Phase 1 Analysis\nValid output content")
@@ -74,6 +75,7 @@ async def test_configured_provider_selected():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_unconfigured_provider_skipped():
     """Verify that unconfigured providers are omitted from the cascade."""
     mock_gemini = AsyncMock()
@@ -96,6 +98,7 @@ async def test_unconfigured_provider_skipped():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_provider_health_check_failure():
     """Mock endpoint failure on .check_health(); verify provider reports unhealthy status."""
     prov = OpenRouterProvider()
@@ -106,6 +109,7 @@ async def test_provider_health_check_failure():
             assert "Connection refused" in status["error"]
 
 
+@pytest.mark.unit
 def test_provider_capability_representation():
     """Verify each provider accurately reports its ProviderCapabilities flags."""
     gemini_caps = GeminiProvider().capabilities
@@ -124,6 +128,7 @@ def test_provider_capability_representation():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_rate_limit_429_triggers_30s_cooldown():
     """Mock an HTTP 429 response from Tier 1; verify gateway cascades and triggers 30s cooldown."""
     mock_gemini = AsyncMock(side_effect=RateLimitError("Quota exceeded", provider="gemini", retry_after=30.0))
@@ -151,6 +156,7 @@ async def test_rate_limit_429_triggers_30s_cooldown():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_cooldown_bypasses_network_call():
     """Call gateway immediately following a 429; verify Tier 1 is bypassed with 0 network calls."""
     GLOBAL_COOLDOWN_TRACKER.mark_cooldown("gemini", RateLimitError("429", provider="gemini", retry_after=30.0))
@@ -174,6 +180,7 @@ async def test_cooldown_bypasses_network_call():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_service_unavailable_503_cascades():
     """Mock a 503 capacity spike on Tier 1; verify gateway cascades to Tier 2 and sets 15s cooldown."""
     mock_gemini = AsyncMock(side_effect=ServiceUnavailableError("Demand spike", provider="gemini", retry_after=15.0))
@@ -197,6 +204,7 @@ async def test_service_unavailable_503_cascades():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_timeout_cascades_cleanly():
     """Mock a timeout exception exceeding provider timeout; verify clean cascade progression."""
     mock_gemini = AsyncMock(side_effect=TimeoutError("Request timed out after 20.0s", provider="gemini"))
@@ -217,6 +225,7 @@ async def test_timeout_cascades_cleanly():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_billing_402_suppresses_until_reload():
     """Mock HTTP 402 Payment Required; verify provider is suppressed until reload/reset."""
     mock_gemini = AsyncMock(side_effect=BillingExhaustionError("Payment Required", provider="gemini"))
@@ -243,6 +252,7 @@ async def test_billing_402_suppresses_until_reload():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_retirement_410_suppresses_until_reload():
     """Mock HTTP 410 Endpoint Retired; verify provider is suppressed without stalling."""
     mock_gemini = AsyncMock(side_effect=EndpointRetiredError("Model retired", provider="gemini"))
@@ -265,6 +275,7 @@ async def test_retirement_410_suppresses_until_reload():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_malformed_json_response_retries_once():
     """Mock malformed response on attempt 1, clean on attempt 2; verify bounded 1x retry on same provider."""
     mock_gemini = AsyncMock(side_effect=[
@@ -290,6 +301,7 @@ async def test_malformed_json_response_retries_once():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_security_boundary_injection_terminates_immediately():
     """Pass a detected prompt-injection token; verify gateway immediately raises SecurityBoundaryError without cascading."""
     mock_gemini = AsyncMock()
@@ -310,6 +322,7 @@ async def test_security_boundary_injection_terminates_immediately():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_invalid_input_payload_terminates_immediately():
     """Pass empty prompt; verify gateway immediately raises InvalidInputError without cascading."""
     with pytest.raises(InvalidInputError) as exc_info:
@@ -325,6 +338,7 @@ async def test_invalid_input_payload_terminates_immediately():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_cascade_tier1_success():
     """Tier 1 succeeds -> return Tier 1 output (fallback_used = False)."""
     mock_gemini = AsyncMock(return_value="# Tier 1 Output")
@@ -337,6 +351,7 @@ async def test_cascade_tier1_success():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_cascade_tier1_fails_tier2_succeeds():
     """Tier 1 fails (503) -> Tier 2 succeeds -> return Tier 2 output."""
     mock_gemini = AsyncMock(side_effect=ServiceUnavailableError("503", provider="gemini"))
@@ -354,6 +369,7 @@ async def test_cascade_tier1_fails_tier2_succeeds():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_cascade_tier1_tier2_fail_tier3_succeeds():
     """Tiers 1 & 2 fail -> Tier 3 (openrouter) succeeds."""
     mock_gemini = AsyncMock(side_effect=ServiceUnavailableError("503", provider="gemini"))
@@ -376,6 +392,7 @@ async def test_cascade_tier1_tier2_fail_tier3_succeeds():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_cascade_all_fail_triggers_synthetic_fallback():
     """All providers fail -> triggers governed SyntheticFallbackProvider (is_degraded = True)."""
     with patch.object(PROVIDER_REGISTRY["gemini"], "is_configured", return_value=True), \
@@ -398,6 +415,7 @@ async def test_cascade_all_fail_triggers_synthetic_fallback():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_gateway_result_captures_runtime_provenance():
     """Verify GatewayResult.runtime_provenance contains all required fields."""
     mock_gemini = AsyncMock(return_value="# Verified Output")
@@ -415,6 +433,7 @@ async def test_gateway_result_captures_runtime_provenance():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_legacy_wrapper_backward_compatibility():
     """Call generate_response_with_fallback(); verify it returns identical result.content string."""
     mock_gemini = AsyncMock(return_value="# Legacy Output String")
@@ -431,6 +450,7 @@ async def test_legacy_wrapper_backward_compatibility():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_synthetic_fallback_sets_degraded_and_non_evidentiary():
     """When all models fail, verify complete epistemic envelope invariants."""
     with patch.object(PROVIDER_REGISTRY["gemini"], "is_configured", return_value=False), \
@@ -449,6 +469,7 @@ async def test_synthetic_fallback_sets_degraded_and_non_evidentiary():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_synthetic_fallback_contains_no_fabricated_citations():
     """Verify synthetic fallback content contains safe workflow guidance, never fake citations."""
     synth = SyntheticFallbackProvider()
@@ -466,6 +487,7 @@ async def test_synthetic_fallback_contains_no_fabricated_citations():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_synthetic_output_never_stamped_observed_or_documented():
     """Verify synthetic fallback output is never permitted to enter OBSERVED or DOCUMENTED tiers."""
     with patch.object(PROVIDER_REGISTRY["gemini"], "is_configured", return_value=False), \
@@ -483,21 +505,44 @@ async def test_synthetic_output_never_stamped_observed_or_documented():
 
 
 @pytest.mark.asyncio
+@pytest.mark.integration
 async def test_research_stage_a_stamps_signal_tier(client: AsyncClient):
     """Invoke /api/research/stage-a/discover; verify created candidate problems have evidence_tier == 'SIGNAL' (DEF-AI-003)."""
-    payload = {
-        "domains": ["Precision Agriculture & Edge AI"],
-        "field_observations": "Sensors corrode rapidly in tropical climates.",
-        "project_id": "test_proj_sdd003_signal"
-    }
-    response = await client.post("/api/research/stage-a/discover", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data.get("status") == "success"
+    mock_markdown = (
+        "# Phase A Computing Research Problem Discovery: Precision Agriculture & Edge AI\n\n"
+        "## Section 1: Phenomenon Scouting & Context Mapping\n"
+        "- **Application Domain:** Precision Agriculture & Edge AI\n"
+        "- **Target Setting & Locality:** Western Visayas, Philippines (Iloilo & Guimaras)\n"
+        "- **Primary Stakeholders / Sufferers:** Local cooperatives, field technicians, and municipal researchers.\n"
+        "- **Current Baseline Process / Workflow:** Manual inspection and uncalibrated analog logbooks.\n\n"
+        "## Section 2: Systematic Variable & Breakdown Decomposition\n"
+        "| Parameter | Category | Description | Observable Symptom / Metric |\n"
+        "|---|---|---|---|\n"
+        "| Sensor Lens Moisture | Independent | High tropical humidity condensation | 42% optical classification error rate |\n"
+        "| Edge MCU Latency | Dependent | Constrained compute on remote hardware | 1,450ms inference bottleneck |\n\n"
+        "### Primary Research Problem\n"
+        "- **Problem ID:** RES-001\n"
+        "- **Domain:** Precision Agriculture & Edge AI\n"
+        "- **Problem Statement:** Edge sensor telemetry in Precision Agriculture suffers severe signal degradation under tropical humidity.\n"
+        "- **Sufferer Location / Occupation:** Field Technicians in Iloilo\n"
+        "- **Quantified Consequence:** 38% data packet drop and ₱45,000 seasonal monitoring loss\n"
+        "- **Makeshift Workaround:** Daily manual site visits with paper logbooks\n"
+    )
+    with patch("routers.research.generate_response_with_fallback", new=AsyncMock(return_value=mock_markdown)):
+        payload = {
+            "domains": ["Precision Agriculture & Edge AI"],
+            "field_observations": "Sensors corrode rapidly in tropical climates.",
+            "project_id": "test_proj_sdd003_signal"
+        }
+        response = await client.post("/api/research/stage-a/discover", json=payload)
+        assert response.status_code == 200
+        data = response.json()
+        assert data.get("status") == "success"
 
-    problems = data.get("discovered_problems", [])
-    assert len(problems) > 0
-    for prob in problems:
-        # Crucial verification for DEF-AI-003: MUST be SIGNAL, NEVER OBSERVED
-        assert prob.get("evidence_tier") == "SIGNAL", f"Problem {prob.get('id')} had evidence_tier {prob.get('evidence_tier')}, expected SIGNAL"
-        assert prob.get("evidence_tier") != "OBSERVED"
+        problems = data.get("discovered_problems", [])
+        assert len(problems) > 0
+        for prob in problems:
+            # Crucial verification for DEF-AI-003: MUST be SIGNAL, NEVER OBSERVED
+            assert prob.get("evidence_tier") == "SIGNAL", f"Problem {prob.get('id')} had evidence_tier {prob.get('evidence_tier')}, expected SIGNAL"
+            assert prob.get("evidence_tier") != "OBSERVED"
+

@@ -2,6 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from server import app
 
+
+pytestmark = pytest.mark.integration
 client = TestClient(app)
 
 def test_full_production_lifecycle_e2e():
