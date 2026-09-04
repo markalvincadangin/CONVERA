@@ -91,7 +91,7 @@ async def test_critic_agent_execution():
 async def test_verifier_agent_execution():
     mock_verifier_json = """
     {
-      "verification_verdict": "VERIFIED_EMPIRICAL",
+      "verification_verdict": "PLAUSIBLE_SUPPORTED",
       "evidence_strength": "STRONG",
       "confidence_score": 0.92,
       "methodology_audit": "Peer-reviewed survey of 120 smallholder vessels with quantified empirical loss data.",
@@ -114,6 +114,6 @@ async def test_verifier_agent_execution():
                 doi="10.1016/j.heliyon.2023.e19482"
             )
             assert verif.citation_valid is True
-            assert verif.verification_verdict == "VERIFIED_EMPIRICAL"
+            assert verif.verification_verdict == "PLAUSIBLE_SUPPORTED"
             assert verif.evidence_strength == "STRONG"
             assert verif.verified_source_title == "Postharvest loss assessment in small-scale fisheries"

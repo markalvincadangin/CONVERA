@@ -60,7 +60,7 @@ OUTPUT FORMAT (STRICT JSON):
     {{
       "claim_type": "FRICTION_REALITY",
       "claim_text": "{sufferer} in {location} experiences genuine friction from {statement[:60]}.",
-      "status": "SUPPORTED",
+      "status": "HYPOTHESIS",
       "confidence_score": 75.0,
       "mode": "{mode}",
       "evidence_notes": "Corroborated by academic literature and field signals."
@@ -152,7 +152,7 @@ OUTPUT FORMAT (STRICT JSON):
                 {
                     "claim_type": "FRICTION_REALITY",
                     "claim_text": f"{sufferer} in {location} experiences genuine friction.",
-                    "status": "SUPPORTED",
+                    "status": "HYPOTHESIS",
                     "confidence_score": 70.0,
                     "mode": mode,
                     "evidence_notes": "Derived from discovery statement.",

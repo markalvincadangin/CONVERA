@@ -103,7 +103,7 @@ async def test_agent_api_endpoints(client: AsyncClient):
         assert data["plausibility_score"] == 70
 
     # 2. Verifier Agent API
-    mock_verif_json = '{"verification_verdict": "VERIFIED_EMPIRICAL", "evidence_strength": "STRONG", "confidence_score": 0.95, "methodology_audit": "Peer-reviewed", "contradictions": []}'
+    mock_verif_json = '{"verification_verdict": "PLAUSIBLE_UNVERIFIED", "evidence_strength": "STRONG", "confidence_score": 0.95, "methodology_audit": "Peer-reviewed", "contradictions": []}'
     with patch("agents.verifier_agent.generate_response_with_fallback", new=AsyncMock(return_value=mock_verif_json)):
         verif_res = await client.post("/api/agents/verifier", json={
             "claim_text": "35% fish spoilage during transport",
@@ -111,4 +111,4 @@ async def test_agent_api_endpoints(client: AsyncClient):
         })
         assert verif_res.status_code == 200
         data = verif_res.json()
-        assert data["verification_verdict"] == "VERIFIED_EMPIRICAL"
+        assert data["verification_verdict"] == "PLAUSIBLE_UNVERIFIED"
