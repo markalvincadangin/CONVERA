@@ -18,12 +18,18 @@ from llm_gateway import generate_response_with_fallback, TaskCategory
 
 
 class ClaimVerificationReport(BaseModel):
+    """
+    Structured report for evidence citation auditing.
+    Note: LLMs possess strictly advisory auditing authority. Empirical verification
+    requires external authoritative registry grounding (e.g. Crossref/PubMed) and human review.
+    Valid advisory verdicts: PLAUSIBLE_SUPPORTED, PLAUSIBLE_UNVERIFIED, HALLUCINATION_OR_INVALID, DIRECTLY_CONTRADICTED.
+    """
     claim_text: str
     doi: Optional[str] = None
     citation_valid: bool = True
     verified_source_title: Optional[str] = None
     verified_venue: Optional[str] = None
-    verification_verdict: str  # VERIFIED_EMPIRICAL, PLAUSIBLE_UNVERIFIED, HALLUCINATION_OR_INVALID, DIRECTLY_CONTRADICTED
+    verification_verdict: str  # PLAUSIBLE_SUPPORTED, PLAUSIBLE_UNVERIFIED, HALLUCINATION_OR_INVALID, DIRECTLY_CONTRADICTED
     evidence_strength: str  # STRONG, MODERATE, WEAK, CONTRADICTED
     confidence_score: float = Field(ge=0.0, le=1.0)
     methodology_audit: str
@@ -65,7 +71,7 @@ async def execute_verifier_agent(
         "Evaluate whether the claim is accurately supported, exaggerated, unverified, or contradicted.\n"
         "Respond ONLY with a valid JSON object matching this schema:\n"
         "{\n"
-        '  "verification_verdict": "VERIFIED_EMPIRICAL" | "PLAUSIBLE_UNVERIFIED" | "HALLUCINATION_OR_INVALID" | "DIRECTLY_CONTRADICTED",\n'
+        '  "verification_verdict": "PLAUSIBLE_SUPPORTED" | "PLAUSIBLE_UNVERIFIED" | "HALLUCINATION_OR_INVALID" | "DIRECTLY_CONTRADICTED",\n'
         '  "evidence_strength": "STRONG" | "MODERATE" | "WEAK" | "CONTRADICTED",\n'
         '  "confidence_score": 0.90,\n'
         '  "methodology_audit": "Evaluation of sample size, directness, and authority",\n'
@@ -96,12 +102,21 @@ async def execute_verifier_agent(
         data = json.loads(raw_json)
     except Exception:
         data = {
-            "verification_verdict": "VERIFIED_EMPIRICAL" if doi_valid else "PLAUSIBLE_UNVERIFIED",
+            "verification_verdict": "PLAUSIBLE_SUPPORTED" if doi_valid else "PLAUSIBLE_UNVERIFIED",
             "evidence_strength": "MODERATE" if doi_valid else "WEAK",
             "confidence_score": 0.80 if doi_valid else 0.50,
             "methodology_audit": "Standard verification applied.",
             "contradictions": []
         }
+
+    raw_verdict = str(data.get("verification_verdict", "PLAUSIBLE_UNVERIFIED"))
+    # Invariant guardrail: LLM cannot autonomously assert VERIFIED_EMPIRICAL
+    if raw_verdict == "VERIFIED_EMPIRICAL":
+        final_verdict = "PLAUSIBLE_SUPPORTED" if doi_valid else "PLAUSIBLE_UNVERIFIED"
+    elif raw_verdict in ["PLAUSIBLE_SUPPORTED", "PLAUSIBLE_UNVERIFIED", "HALLUCINATION_OR_INVALID", "DIRECTLY_CONTRADICTED"]:
+        final_verdict = raw_verdict
+    else:
+        final_verdict = "PLAUSIBLE_UNVERIFIED"
 
     return ClaimVerificationReport(
         claim_text=claim_text,
@@ -109,7 +124,7 @@ async def execute_verifier_agent(
         citation_valid=doi_valid or (not doi and bool(source_name)),
         verified_source_title=verified_title,
         verified_venue=verified_venue,
-        verification_verdict=data.get("verification_verdict", "PLAUSIBLE_UNVERIFIED"),
+        verification_verdict=final_verdict,
         evidence_strength=data.get("evidence_strength", "MODERATE"),
         confidence_score=float(data.get("confidence_score", 0.75)),
         methodology_audit=data.get("methodology_audit", "Methodology audit completed."),

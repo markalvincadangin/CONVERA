@@ -322,18 +322,36 @@ async def api_synthesize_decision_room(req: DecisionSynthesizeRequest):
     if not sess:
         raise HTTPException(status_code=404, detail="Session not found")
     
-    result = await synthesize_decision_room(req.session_id, sess.get("state_data", {}), req.stage)
+    state_data = sess.get("state_data", {})
+    candidate_ids = state_data.get("candidate_ids") or []
+    candidates = [storage.get_problem(cid) for cid in candidate_ids if storage.get_problem(cid)]
+    if not candidates:
+        project_id = sess.get("project_id")
+        if project_id:
+            candidates = storage.list_problems(project_id=project_id)[:4]
+    if not candidates:
+        active_problem_id = sess.get("active_problem_id") or state_data.get("active_problem_id")
+        if active_problem_id:
+            p = storage.get_problem(active_problem_id)
+            if p:
+                candidates = [p]
+
+    result = await synthesize_decision_room(candidates, storage=storage)
     return result
 
 
 @router.post("/api/decision-room/pivot")
 async def api_execute_pivot_loop(req: DecisionPivotRequest):
     """Execute evidence-grounded pivot loop and record decision rationale."""
-    result = await execute_pivot_loop(
+    # execute_pivot_loop is synchronous; do not await.
+    # Semantic Separation: req.next_candidate_id is a candidate identifier,
+    # NOT an assumption identifier. Do NOT map next_candidate_id -> invalidated_assumption_id.
+    # Leave invalidated_assumption_id unset (None) when not provided by request.
+    result = execute_pivot_loop(
         session_id=req.session_id,
         current_problem_id=req.current_problem_id,
-        kill_reason=req.kill_reason,
-        next_candidate_id=req.next_candidate_id
+        pivot_reason=req.kill_reason,
+        invalidated_assumption_id=None,
     )
     return result
 
