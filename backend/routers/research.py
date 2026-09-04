@@ -126,7 +126,7 @@ async def stage_a_discover(req: StageADiscoverRequest):
             "sufferer_occupation": "Field Researchers & Municipal Technicians",
             "quantified_impact": "38% telemetry packet loss and 1,450ms latency bottleneck",
             "workaround": "Manual pen-and-paper data recording",
-            "evidence_tier": "OBSERVED",
+            "evidence_tier": "SIGNAL",
             "source": "llm_research_stage_a"
         }]
 
