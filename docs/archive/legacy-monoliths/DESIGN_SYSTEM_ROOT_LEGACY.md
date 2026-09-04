@@ -1,3 +1,17 @@
+> [!WARNING]
+> **SUPERSEDED / HISTORICAL BASELINE SPECIFICATION**
+> This document is an early monolithic Design System draft.
+> It has been **fully superseded, expanded, and ratified** in the canonical Phase 6 presentation suite:
+> - Canonical Design System: [`docs/06-frontend/DESIGN_SYSTEM.md`](06-frontend/DESIGN_SYSTEM.md)
+> - UI/UX Interaction Principles: [`docs/06-frontend/UI_UX_PRINCIPLES.md`](06-frontend/UI_UX_PRINCIPLES.md)
+> - Information Architecture: [`docs/06-frontend/INFORMATION_ARCHITECTURE.md`](06-frontend/INFORMATION_ARCHITECTURE.md)
+> - Accessibility & WCAG 2.2 AA: [`docs/06-frontend/ACCESSIBILITY.md`](06-frontend/ACCESSIBILITY.md)
+>
+> In accordance with **Constitution Article VII (Documentation Authority)**, the ratified modular documents take absolute precedence.
+
+
+---
+
 # CONVERA Design System Specification (v3.0)
 
 **Parent Brand:** EMAERX  

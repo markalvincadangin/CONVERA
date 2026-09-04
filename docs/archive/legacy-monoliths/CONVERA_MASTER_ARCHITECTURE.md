@@ -1,3 +1,16 @@
+> [!WARNING]
+> **SUPERSEDED / HISTORICAL BASELINE SPECIFICATION**
+> This document is an early monolithic Master Architecture draft.
+> It has been **fully superseded and elevated** into the canonical ratified modular suites:
+> - Foundation & Axioms: [`docs/00-foundation/CONSTITUTION.md`](00-foundation/CONSTITUTION.md) & [`docs/00-foundation/CONVERA.md`](00-foundation/CONVERA.md)
+> - Product Definition: [`docs/01-product/PRODUCT_DEFINITION.md`](01-product/PRODUCT_DEFINITION.md)
+> - Canonical Epistemic Models: [`docs/02-system/DOMAIN_MODEL.md`](02-system/DOMAIN_MODEL.md), [`docs/02-system/KNOWLEDGE_MODEL.md`](02-system/KNOWLEDGE_MODEL.md), [`docs/02-system/EVIDENCE_MODEL.md`](02-system/EVIDENCE_MODEL.md), [`docs/02-system/DECISION_MODEL.md`](02-system/DECISION_MODEL.md), [`docs/02-system/TRACEABILITY_MODEL.md`](02-system/TRACEABILITY_MODEL.md)
+>
+> In accordance with **Constitution Article VII (Documentation Authority)**, the ratified modular documents take absolute precedence.
+
+
+---
+
 # CONVERA Master Architecture Specification
 
 **Product:** CONVERA  

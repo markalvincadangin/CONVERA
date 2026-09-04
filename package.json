@@ -1,8 +1,8 @@
 {
-  "name": "ratchetai-monorepo",
+  "name": "convera-monorepo",
   "version": "1.1.0",
   "private": true,
-  "description": "RatchetAI: Evidence-Ratcheted Problem-to-Solution Venture Engine",
+  "description": "CONVERA: Dual-Track Technopreneurial Inquiry Engine & Epistemic Knowledge Ratchet",
   "scripts": {
     "dev": "npm run dev --prefix web",
     "dev:backend": "cd backend && python -m uvicorn server:app --reload --port 8000",

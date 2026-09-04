@@ -1,71 +1,63 @@
-# CONVERA Project Constitution (v1.0)
-**Governing Standard:** CONVERA Architectural & Engineering Governance Specification  
-**Authority:** Immutable Non-Negotiable Development Principles  
-**Target Scope:** Dual-Track Project Intelligence (Innovation Track + Research Track)
+<!--
+Sync Note: This document is the OPERATIONAL PROJECTION of docs/00-foundation/CONSTITUTION.md.
+Do not edit this document independently; all changes must originate in docs/00-foundation/CONSTITUTION.md.
+-->
+
+# CONVERA — Agent Operational Constitution
+
+> **Non-Negotiable Rules for Antigravity & Spec Kit Agents.**  
+> Derived directly from `docs/00-foundation/CONSTITUTION.md`. Every proposed change, tool execution, and code generation must comply with these operational constraints.
 
 ---
 
-## Non-Negotiable Core Principles
-
-1. **Knowledge is Independent from Workflow State:**  
-   Problems, Claims, Evidence, Assumptions, Decisions, and Requirements exist independently in normalized relational tables. Workflow phase transitions must never destroy, overwrite, or mutate canonical knowledge records.
-
-2. **Normalized Epistemic Entities:**  
-   All epistemic components are first-class entities (`problem_claims`, `claim_evidence_links`, `problem_assumptions`, `decision_records`, `requirements_traceability`). Unstructured JSON blobs must never replace structured relational entities.
-
-3. **Framework Portability:**  
-   Switching between frameworks (e.g. `INNOVATION_RATCHET` and `RESEARCH_CRCDP`) preserves all canonical knowledge entities. Historical decisions and audit logs remain immutable, while working claims and hypotheses remain revisable.
-
-4. **External Signals vs. Internal Ownership:**  
-   External LLMs and research services provide raw signals and candidate interpretations. CONVERA exclusively owns persistent context, evidence structure, provenance, quality gate governance, and decision intelligence.
-
-5. **AI Output is Never Validated Fact by Default:**  
-   Raw LLM generation, candidate classifications, and web citations must never automatically graduate to `VALIDATED` status without verified source provenance and researcher confirmation.
-
-6. **First-Class Evidence Provenance:**  
-   All empirical evidence must retain provenance (Connector ID, DOI/PMID, retrieval timestamp, extraction model, verification status).
-
-7. **Epistemic Classification Standard:**  
-   System statements and intelligence outputs must strictly distinguish between `[FACT]`, `[OBSERVATION]`, `[INFERENCE]`, and `[RECOMMENDATION]`.
-
-8. **CIIA Central AI Gateway Enforcement:**  
-   All external AI provider interactions must pass through CIIA (`generate_response_with_fallback`) rather than direct unabstracted SDK calls.
-
-9. **Storage Abstraction & Domain Boundaries:**  
-   Domain engines and API routers must access data through `BaseStorageAdapter` / `get_storage()`. Do not tightly couple business logic to database vendor implementation details.
-
-10. **SQLite WAL Persistence Posture:**  
-    SQLite with Write-Ahead Logging (WAL) is the core persistence architecture. Do not introduce heavy external vector databases or cloud databases without an explicit architectural decision record.
-
-11. **Regression Immunity:**  
-    Validated existing functionality and passing test suites must never be casually broken or bypassed to expedite feature delivery.
-
-12. **Mandatory Verification Gates:**  
-    Every meaningful implementation change must pass automated engineering verification (Pytest suite, Next.js TypeScript build, schema integrity, and security checks).
-
-13. **Security & Data Isolation:**  
-    Enforce parameterized SQL, strict `project_id` workspace isolation, server-side secrets handling, input sanitization, and outbound URL allowlisting.
-
-14. **Parsimonious Architecture (Minimal Necessary Complexity):**  
-    Prefer the smallest, simplest architectural addition that satisfies the validated requirement.
-
-15. **Bounded Agent Autonomy & Human Ratification:**  
-    Agents may analyze, specify, plan, implement, and verify within bounded scope. Humans retain final approval over consequential architectural changes, gate sign-offs, and production commits.
-
-16. **Prohibition of Unnecessary Multi-Agent Swarms:**  
-    Do not introduce heavy multi-agent orchestration frameworks (e.g. CrewAI, AutoGen swarms) where single-responsibility autonomous agents and deterministic engines suffice.
-
-17. **Full Multi-Hop Traceability:**  
-    Preserve bi-directional lineage from Requirements $	o$ Decisions $	o$ Evidence $	o$ Claims $	o$ Problems $	o$ Artifacts.
-
-18. **Architectural Integrity Protection:**  
-    Never rewrite or restructure core architecture merely to make agent development easier.
+## 1. Rule I: Knowledge ≠ Workflow (Canonical Persistence)
+* Canonical knowledge entities (`Problem`, `Claim`, `Evidence`, `Assumption`, `Decision`, `Requirement`) exist independently of UI phases or frameworks.
+* Framework switching (Innovation $\leftrightarrow$ Research) must **never** delete, duplicate, or mutate persistent knowledge records.
+* Workflows query and enrich knowledge; they do not own or isolate domain truth.
 
 ---
 
-## Governance & Amendment Protocol
+## 2. Rule II: Decoupled Confidence & Anti-Hallucination
+* Strictly enforce:
+  $$\text{AI Linguistic Certainty} \neq \text{Empirical Evidence Strength} \neq \text{Decision Confidence}$$
+* Never treat fluent AI responses as factual ground truth.
+* If AI confidence is $\ge 0.80$ while empirical evidence strength is $\le 0.40$, trigger an **`OVERCONFIDENCE_WARNING`**.
 
-Amendments to this constitution require:
-1. A formal Architectural Decision Record (ADR) detailing the rationale, trade-offs, and empirical justification.
-2. Verified regression testing across both Innovation and Research tracks.
-3. Explicit human ratification before merging changes into `main`.
+---
+
+## 3. Rule III: Mandatory Provenance & Evidence Tiers
+* No information may be promoted to an Evidence record without provenance metadata sufficient to reconstruct its origin, extraction context, and verification state.
+* Provenance records must preserve historical lineage and must not be silently overwritten or deleted:
+  - Connector / Extraction Source ID
+  - Authoritative Source Identifier (DOI, PMID, URL, or File Hash)
+  - Extraction Timestamp (UTC)
+  - Extracting Model & Version, when applicable
+  - Researcher Verification Status (`UNVERIFIED`, `VERIFIED_BY_RESEARCHER`, `DISPUTED`)
+* Evaluated Evidence weights: Tier A (3.0), Tier B (2.0), Tier C (1.0).
+
+---
+
+## 4. Rule IV: Non-Destructive Invalidation & Blast Radius
+* Decision audit logs are **immutable**; decision validity is **reactive**.
+* When evidence is refuted or assumptions fail, the **Impact Engine** must flag dependent decisions with `STALE_REVIEW_REQUIRED`.
+* Never silently overwrite or delete human decisions; surface the `ImpactAlertBanner`.
+
+---
+
+## 5. Rule V: External Boundary & Free-First Posture
+* External AI/search providers are ephemeral signal generators; CONVERA exclusively owns persistent context and knowledge structure.
+* Core platform must function at $0 cost on local SQLite WAL and free-access APIs (OpenAlex, CrossRef, PubMed, Europe PMC, Semantic Scholar, Ollama).
+* Always maintain multi-tier provider fallbacks (`Gemini` $\to$ `Groq` $\to$ `Ollama`).
+
+---
+
+## 6. Rule VI: Two-Way Documentation Consistency & Conflict Resolution
+* Do not assert unverified features in documentation; do not leave permanent architectural changes undocumented.
+* When documentation, specifications, implementation, and tests disagree, it is a **ratification defect**, not permission to silently reinterpret any layer.
+* Surface the conflict and obtain human ratification before making a consequential change.
+
+---
+
+## 7. Rule VII: Human Ratification for Consequential Gates
+* AI acts as Socratic assistant (generating breakdowns, literature grids, gap analyses).
+* Humans must ratify Quality Gates 1–4, decision commitments, and final proposal submissions.

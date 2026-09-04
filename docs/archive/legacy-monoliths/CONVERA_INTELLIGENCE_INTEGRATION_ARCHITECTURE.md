@@ -1,3 +1,18 @@
+> [!WARNING]
+> **SUPERSEDED / HISTORICAL BASELINE SPECIFICATION**
+> This document is an early draft of the Intelligence & Integration Architecture.
+> It has been **fully superseded and expanded** by the canonical ratified Phase 4 AI suite:
+> - Master CIIA Specification: [`docs/04-ai/CIIA.md`](04-ai/CIIA.md)
+> - Task-Routed Gateway & Prompts: [`docs/04-ai/AI_ARCHITECTURE.md`](04-ai/AI_ARCHITECTURE.md)
+> - Socratic Governance & Constraints: [`docs/04-ai/AI_GOVERNANCE.md`](04-ai/AI_GOVERNANCE.md)
+> - Scholarly Connectors: [`docs/04-ai/CONNECTOR_ARCHITECTURE.md`](04-ai/CONNECTOR_ARCHITECTURE.md)
+> - Model Context Protocol: [`docs/04-ai/MCP.md`](04-ai/MCP.md)
+>
+> In accordance with **Constitution Article VII (Documentation Authority)**, the ratified modular documents take absolute precedence.
+
+
+---
+
 # CONVERA Intelligence & Integration Architecture (CIIA)
 
 **Product:** CONVERA  
