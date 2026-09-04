@@ -1,7 +1,7 @@
 # CONVERA SDD-001: Task Ledger
 
 **Specification ID**: `CONVERA-SDD-001`  
-**Status**: 🟢 PHASES 1–17 COMPLETE — AWAITING PROMOTION REVIEW (PHASE 18)  
+**Status**: 🟢 PROMOTED TO MAIN (ALL 18 PHASES COMPLETE)  
 
 ---
 
