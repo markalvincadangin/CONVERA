@@ -334,13 +334,23 @@ export const SessionManager: React.FC<SessionManagerProps> = ({
                       >
                         {/* Left: Folder Icon & Name / Input */}
                         <div
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Select session ${s.project_name || s.session_id}`}
                           onClick={() => {
                             if (!isEditing) {
                               onSelectSession(s.session_id);
                               onClose();
                             }
                           }}
-                          className="flex items-center gap-3 cursor-pointer flex-1 min-w-0"
+                          onKeyDown={(e) => {
+                            if (!isEditing && (e.key === "Enter" || e.key === " ")) {
+                              e.preventDefault();
+                              onSelectSession(s.session_id);
+                              onClose();
+                            }
+                          }}
+                          className="flex items-center gap-3 cursor-pointer flex-1 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 rounded-lg"
                         >
                           <div
                             className={`p-2.5 rounded-xl shrink-0 ${

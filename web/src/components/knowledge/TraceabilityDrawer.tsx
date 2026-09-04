@@ -21,9 +21,14 @@ export const TraceabilityDrawer: React.FC<TraceabilityDrawerProps> = ({
 
   useEffect(() => {
     if (isOpen) {
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") onClose();
+      };
+      window.addEventListener("keydown", handleKeyDown);
       fetchLineage();
+      return () => window.removeEventListener("keydown", handleKeyDown);
     }
-  }, [isOpen, requirementId, problemId]);
+  }, [isOpen, requirementId, problemId, onClose]);
 
   const fetchLineage = async () => {
     try {
@@ -44,7 +49,7 @@ export const TraceabilityDrawer: React.FC<TraceabilityDrawerProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm">
-      <div className="w-full max-w-2xl bg-slate-950 border-l border-slate-800 h-full overflow-y-auto p-6 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200">
+      <div role="dialog" aria-modal="true" aria-label="Traceability & Lineage Graph" tabIndex={-1} className="w-full max-w-2xl bg-slate-950 border-l border-slate-800 h-full overflow-y-auto p-6 flex flex-col justify-between shadow-2xl animate-in slide-in-from-right duration-200 focus-visible:outline-none">
         <div>
           {/* Header */}
           <div className="flex items-center justify-between pb-4 border-b border-slate-800">

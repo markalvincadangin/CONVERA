@@ -56,6 +56,10 @@ export const GateReviewModal: React.FC<GateReviewModalProps> = ({
 
   useEffect(() => {
     if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
     setLoading(true);
     fetchApi<GateStatus>(`/api/gates/status?gate_id=${gateId}&project_id=${projectId}`)
       .then((data: GateStatus) => {
@@ -72,7 +76,8 @@ export const GateReviewModal: React.FC<GateReviewModalProps> = ({
       })
       .catch((err: unknown) => console.error("Error fetching gate status:", err))
       .finally(() => setLoading(false));
-  }, [isOpen, gateId, projectId]);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, gateId, projectId, onClose]);
 
   if (!isOpen) return null;
 
@@ -115,7 +120,7 @@ export const GateReviewModal: React.FC<GateReviewModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+      <div role="dialog" aria-modal="true" aria-labelledby="gate-review-dialog-title" tabIndex={-1} className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh] focus-visible:outline-none">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
           <div className="flex items-center gap-3">
@@ -123,7 +128,7 @@ export const GateReviewModal: React.FC<GateReviewModalProps> = ({
               <ShieldCheck className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <h3 id="gate-review-dialog-title" className="text-lg font-bold text-white flex items-center gap-2">
                 {gateStatus?.gate_name || gateId}
                 {isPassed && (
                   <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
@@ -143,6 +148,7 @@ export const GateReviewModal: React.FC<GateReviewModalProps> = ({
           </div>
           <button
             onClick={onClose}
+            aria-label="Close gate review dialog"
             className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 transition"
           >
             <X className="w-5 h-5" />
@@ -165,9 +171,13 @@ export const GateReviewModal: React.FC<GateReviewModalProps> = ({
                     const isChecked = checkedCriteria.includes(c.id);
                     return (
                       <div
+                      role="checkbox"
+                      aria-checked={isChecked}
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleCriteria(c.id); } }}
                         key={c.id}
                         onClick={() => toggleCriteria(c.id)}
-                        className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition ${
+                        className={`p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 ${
                           isChecked
                             ? "bg-indigo-500/10 border-indigo-500/30 text-slate-200"
                             : "bg-slate-950/40 border-slate-800 text-slate-400 hover:border-slate-700"
