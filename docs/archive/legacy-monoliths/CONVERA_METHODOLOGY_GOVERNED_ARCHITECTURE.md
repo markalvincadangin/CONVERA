@@ -2,11 +2,11 @@
 > **SUPERSEDED / HISTORICAL BASELINE SPECIFICATION**
 > This document is an early concept draft of methodology governance and the `Knowledge ≠ Workflow` axiom.
 > It has been **fully superseded, formalized, and ratified** across the canonical modular layers:
-> - Constitutional Axiom: [`docs/00-foundation/CONSTITUTION.md`](00-foundation/CONSTITUTION.md) (Article I)
-> - Innovation Track (Venture Ratchet): [`docs/07-tracks/INNOVATION_TRACK.md`](07-tracks/INNOVATION_TRACK.md)
-> - Research Track (Computing & DSR): [`docs/07-tracks/RESEARCH_TRACK.md`](07-tracks/RESEARCH_TRACK.md)
-> - Track Interoperability: [`docs/07-tracks/TRACK_INTEROPERABILITY.md`](07-tracks/TRACK_INTEROPERABILITY.md)
-> - Track Governance & Precedence: [`docs/07-tracks/TRACK_GOVERNANCE.md`](07-tracks/TRACK_GOVERNANCE.md)
+> - Constitutional Axiom: [`docs/00-foundation/CONSTITUTION.md`](../../00-foundation/CONSTITUTION.md) (Article I)
+> - Innovation Track (Venture Ratchet): [`docs/07-tracks/INNOVATION_TRACK.md`](../../07-tracks/INNOVATION_TRACK.md)
+> - Research Track (Computing & DSR): [`docs/07-tracks/RESEARCH_TRACK.md`](../../07-tracks/RESEARCH_TRACK.md)
+> - Track Interoperability: [`docs/07-tracks/TRACK_INTEROPERABILITY.md`](../../07-tracks/TRACK_INTEROPERABILITY.md)
+> - Track Governance & Precedence: [`docs/07-tracks/TRACK_GOVERNANCE.md`](../../07-tracks/TRACK_GOVERNANCE.md)
 >
 > In accordance with **Constitution Article VII (Documentation Authority)**, the ratified modular documents take absolute precedence.
 

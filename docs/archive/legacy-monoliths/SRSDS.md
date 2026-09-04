@@ -2,10 +2,10 @@
 > **SUPERSEDED / HISTORICAL BASELINE SPECIFICATION**
 > This document is an early monolithic Software Requirements & System Design Specification.
 > It has been **fully superseded and expanded** by the canonical ratified modular suites:
-> - Product & Capabilities: [`docs/01-product/PRODUCT_DEFINITION.md`](01-product/PRODUCT_DEFINITION.md) & [`docs/01-product/CAPABILITIES.md`](01-product/CAPABILITIES.md)
-> - System & Domain Model: [`docs/02-system/SYSTEM_ARCHITECTURE.md`](02-system/SYSTEM_ARCHITECTURE.md) & [`docs/02-system/DOMAIN_MODEL.md`](02-system/DOMAIN_MODEL.md)
-> - CIIA & AI Architecture: [`docs/04-ai/CIIA.md`](04-ai/CIIA.md) & [`docs/04-ai/AI_ARCHITECTURE.md`](04-ai/AI_ARCHITECTURE.md)
-> - Database Schema: [`docs/05-data/DATABASE_SCHEMA.md`](05-data/DATABASE_SCHEMA.md)
+> - Product & Capabilities: [`docs/01-product/PRODUCT_DEFINITION.md`](../../01-product/PRODUCT_DEFINITION.md) & [`docs/01-product/CAPABILITIES.md`](../../01-product/CAPABILITIES.md)
+> - System & Domain Model: [`docs/02-system/SYSTEM_ARCHITECTURE.md`](../../02-system/SYSTEM_ARCHITECTURE.md) & [`docs/02-system/DOMAIN_MODEL.md`](../../02-system/DOMAIN_MODEL.md)
+> - CIIA & AI Architecture: [`docs/04-ai/CIIA.md`](../../04-ai/CIIA.md) & [`docs/04-ai/AI_ARCHITECTURE.md`](../../04-ai/AI_ARCHITECTURE.md)
+> - Database Schema: [`docs/05-data/DATABASE_SCHEMA.md`](../../05-data/DATABASE_SCHEMA.md)
 >
 > In accordance with **Constitution Article VII (Documentation Authority)**, the ratified modular documents take absolute precedence.
 

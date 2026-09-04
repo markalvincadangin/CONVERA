@@ -818,7 +818,7 @@ The system operates across four first-class frameworks:
 3. **Product Framework:** Product Discovery & UX Specification
 4. **Capstone Framework:** Academic Thesis & Technical SRS Blueprints
 
-For the exhaustive 49-section technical blueprint, refer to [CONVERA Master Architecture Specification (v1.0)](../../CONVERA_MASTER_ARCHITECTURE.md).
+For the exhaustive 49-section technical blueprint, refer to [CONVERA Master Architecture Specification (v1.0)](../archive/legacy-monoliths/CONVERA_MASTER_ARCHITECTURE.md).
 
 # 29. Current Technical Architecture
 
