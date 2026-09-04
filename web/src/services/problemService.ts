@@ -234,9 +234,14 @@ export const problemService = {
   },
 
   async queryResearch(query: string, engine: string = "ALL", limit: number = 5): Promise<any> {
-    return fetchApi<any>("/api/research/query", {
+    const connectorIds = engine && engine !== "ALL" ? [engine.toLowerCase()] : undefined;
+    return fetchApi<any>("/api/connectors/search", {
       method: "POST",
-      body: JSON.stringify({ query, engine, limit }),
+      body: JSON.stringify({
+        query,
+        limit_per_source: limit,
+        connector_ids: connectorIds,
+      }),
     });
   },
 

@@ -199,9 +199,13 @@ export const FrameworkSelectorModal: React.FC<FrameworkSelectorModalProps> = ({
 
               return (
                 <div
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`Select framework ${fw.name}`}
+                  onKeyDown={(e) => { if (!isSwitching && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); handleInitiateTransition(fw); } }}
                   key={fw.id}
                   onClick={() => !isSwitching && handleInitiateTransition(fw)}
-                  className={`relative p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group ${
+                  className={`relative p-4 rounded-xl border transition-all cursor-pointer flex flex-col justify-between group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                     isSelected
                       ? "bg-blue-950/30 border-blue-500/60 shadow-lg shadow-blue-950/40 ring-1 ring-blue-500/40"
                       : "bg-slate-900/60 border-slate-800 hover:border-slate-700 hover:bg-slate-900/90"

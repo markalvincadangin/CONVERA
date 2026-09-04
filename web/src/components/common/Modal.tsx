@@ -64,16 +64,20 @@ export const Modal: React.FC<ModalProps> = ({
 
           {/* Dialog container */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={title ? "modal-dialog-title" : undefined}
+            tabIndex={-1}
             initial={{ opacity: 0, scale: 0.95, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 8 }}
             transition={{ type: "spring", damping: 28, stiffness: 400 }}
-            className={`relative w-full ${maxWidths[maxWidth]} max-h-[92vh] flex flex-col bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/90 z-10 overflow-hidden my-auto`}
+            className={`relative w-full ${maxWidths[maxWidth]} max-h-[92vh] flex flex-col bg-slate-900 border border-slate-800 rounded-2xl sm:rounded-3xl shadow-2xl shadow-black/90 z-10 overflow-hidden my-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500`}
           >
             {/* Header */}
             {title && (
               <div className="flex items-center justify-between px-3.5 sm:px-6 py-3 sm:py-4 border-b border-slate-800/80 bg-slate-900/90 shrink-0">
-                <h3 className="text-sm sm:text-base font-bold text-white tracking-tight truncate pr-2">{title}</h3>
+                <h3 id="modal-dialog-title" className="text-sm sm:text-base font-bold text-white tracking-tight truncate pr-2">{title}</h3>
                 <button
                   onClick={onClose}
                   className="text-slate-400 hover:text-white p-1 rounded-xl hover:bg-slate-800 transition-colors shrink-0"
