@@ -174,19 +174,31 @@ The CIIA decouples high-level cognitive tasks from underlying AI model vendors v
 │                    LLM GATEWAY CASCADE TOPOLOGY                         │
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
-│   Primary Tier: Gemini Provider                                         │
+│   Tier 1: Google Gemini (gemini-3.5-flash-lite / flash-latest)          │
 │   ├── High-throughput synthesis, multi-paper analysis, schema extraction│
 │   └── Trigger: Standard active operation                                │
 │                                                                         │
-│   Secondary Tier: Groq Provider                                         │
-│   ├── Rapid epistemic scoring, fallback synthesis                       │
+│   Tier 2: Groq Cloud (openai/gpt-oss-20b / compound-mini)               │
+│   ├── Rapid epistemic scoring, sub-second fallback synthesis            │
 │   └── Trigger: Primary rate limit (429), quota exhaustion, or 5xx outage│
 │                                                                         │
-│   Tertiary Tier: Local Ollama Provider                                  │
-│   ├── Offline local inference, sovereign execution                      │
+│   Tier 3: Cerebras Cloud (llama-3.3-70b / llama3.1-8b)                  │
+│   ├── High-volume heavyweight safety buffer (14,400 requests/day free)  │
+│   └── Trigger: Tier 1-2 daily token limits / rate limits reached         │
+│                                                                         │
+│   Tier 4: GitHub Models (gpt-4o-mini / Meta-Llama-3.3-70B)              │
+│   ├── Free zero-card OpenAI/Llama inference via developer GitHub tokens │
+│   └── Trigger: Tiers 1-3 unavailable or rate-limited                    │
+│                                                                         │
+│   Tier 5: OpenRouter (nemotron-3.5-lightning:free / ling-3.0-flash-fin) │
+│   ├── Multi-model open weight proxy fallback pool                       │
+│   └── Trigger: Tiers 1-4 unavailable or rate-limited                    │
+│                                                                         │
+│   Tier 6: Local Sovereign Ollama (llama3.2 / deepseek-r1:8b)            │
+│   ├── Air-gapped offline local inference, 100% sovereign execution      │
 │   └── Trigger: Zero internet connectivity, offline mode requested       │
 │                                                                         │
-│   Quaternary Tier: Rule-Based Synthetic Fallback                        │
+│   Terminal Tier: Rule-Based Synthetic Fallback                          │
 │   ├── Heuristic claim extraction, deterministic template synthesis      │
 │   └── Trigger: Complete provider unavailability (is_degraded = True)    │
 │                                                                         │
@@ -194,8 +206,8 @@ The CIIA decouples high-level cognitive tasks from underlying AI model vendors v
 ```
 
 ### Cascade & Fallback Invariants
-1. **`[NORMATIVE]` Automatic Failover**: If an external provider encounters a network timeout, HTTP 429 (Rate Limit), or 5xx server error, the gateway automatically cascades to the next configured tier without crashing the user session. Specific model identifiers and token budgets are managed in `AI_ARCHITECTURE.md`.
-2. **`[NORMATIVE]` Explicit Degradation Signaling**: If the cascade reaches Tier 4 (Rule-Based Synthetic Fallback), the resulting response MUST set `is_degraded = True` and flag all generated claims as unverified.
+1. **`[NORMATIVE]` Automatic Failover**: If an external provider encounters a network timeout, HTTP 429 (Rate Limit), or 5xx server error, the gateway automatically cascades across all configured tiers without crashing the user session. Specific model identifiers and token budgets are managed in `AI_ARCHITECTURE.md`.
+2. **`[NORMATIVE]` Explicit Degradation Signaling**: If the cascade reaches the Terminal Tier (Rule-Based Synthetic Fallback), the resulting response MUST set `is_degraded = True` and flag all generated claims as unverified.
 3. **`[NORMATIVE]` Security Incident Isolation**: A detected malicious prompt-injection attempt or credential compromise is NOT treated as an ordinary provider failure. The suspicious payload is rejected and logged without executing automated provider fallback.
 
 ---

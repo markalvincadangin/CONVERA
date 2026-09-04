@@ -4,7 +4,7 @@
 **Classification**: SQLite WAL Backup, DR & RPO/RTO Procedures  
 **Authority Tier**: Tier 2 Operations Specification  
 **Document Status**: 🟢 RATIFIED  
-**Implementation Status**: 🟡 PARTIAL  
+**Implementation Status**: 🟢 IMPLEMENTED (LOCAL & SCRIPT)
 **Canonical Path**: `docs/08-operations/BACKUP_DISASTER_RECOVERY.md`  
 **Upstream Dependencies**: `05-data/DATA_ARCHITECTURE.md, 08-operations/DEPLOYMENT.md`  
 **Downstream Dependents**: `08-operations/SYSTEM_CERTIFICATION.md`  
@@ -94,6 +94,8 @@ fi
 gzip -9 "${BACKUP_FILE}"
 echo "[OK] CONVERA live backup completed and verified: ${BACKUP_FILE}.gz"
 ```
+
+> **Executable Implementation**: This procedure is codified and executable at [`scripts/backup.sh`](../../scripts/backup.sh). Run `./scripts/backup.sh` from the repository root to execute online backups with integrity verification.
 
 ---
 

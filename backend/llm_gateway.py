@@ -142,6 +142,20 @@ def format_model_display_name(provider: str, model: str) -> str:
         elif "qwen" in model:
             return "Groq \u00b7 Qwen 3.6 27B"
         return f"Groq \u00b7 {model.split('/')[-1]}"
+    elif provider == "cerebras":
+        clean_name = model.split("/")[-1]
+        if "70b" in clean_name.lower():
+            return "Cerebras · Llama 3.3 70B"
+        elif "8b" in clean_name.lower():
+            return "Cerebras · Llama 3.1 8B"
+        return f"Cerebras · {clean_name}"
+    elif provider == "github":
+        clean_name = model.split("/")[-1]
+        if "gpt-4o-mini" in clean_name.lower():
+            return "GitHub · GPT-4o-mini"
+        elif "70b" in clean_name.lower():
+            return "GitHub · Llama 3.3 70B"
+        return f"GitHub · {clean_name}"
     elif provider == "openrouter":
         return f"OpenRouter \u00b7 {model.split('/')[-1].replace(':free', '')}"
     elif provider == "ollama":
@@ -154,12 +168,16 @@ def reload_config():
     load_dotenv(ROOT_DIR / ".env", override=True)
     return {
         "provider": os.getenv("LLM_PROVIDER", "gemini").lower(),
-        "gemini_model": os.getenv("GEMINI_MODEL", "gemini-2.0-flash-lite"),
+        "gemini_model": os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
         "gemini_key": os.getenv("GEMINI_API_KEY", os.getenv("GOOGLE_API_KEY", "")),
         "groq_key": os.getenv("GROQ_API_KEY", ""),
-        "groq_model": os.getenv("GROQ_MODEL", "openai/gpt-oss-120b"),
+        "groq_model": os.getenv("GROQ_MODEL", "openai/gpt-oss-20b"),
+        "cerebras_key": os.getenv("CEREBRAS_API_KEY", ""),
+        "cerebras_model": os.getenv("CEREBRAS_MODEL", "llama-3.3-70b"),
+        "github_token": os.getenv("GITHUB_TOKEN", os.getenv("GITHUB_PAT", "")),
+        "github_model": os.getenv("GITHUB_MODEL", "gpt-4o-mini"),
         "openrouter_key": os.getenv("OPENROUTER_API_KEY", ""),
-        "openrouter_model": os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3.3-70b-instruct:free"),
+        "openrouter_model": os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3.5-lightning:free"),
         "ollama_base": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
         "ollama_model": os.getenv("OLLAMA_MODEL", "llama3.2"),
     }
@@ -306,35 +324,146 @@ async def generate_with_meta(
 
     cascade = []
 
-    # Priority 1: User's explicitly chosen provider
-    if provider == "gemini" and cfg["gemini_key"]:
-        cascade.append(("gemini", "gemini-3.6-flash"))
-        cascade.append(("gemini", "gemini-2.0-flash-lite"))
-        cascade.append(("gemini", "gemini-3.5-flash"))
-        cascade.append(("gemini", "gemini-2.0-flash"))
-    elif provider == "groq" and cfg["groq_key"]:
-        # GPT-OSS 120B first: it never leaks reasoning. Qwen last: it leaks CoT.
-        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
-        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
-    elif provider == "openrouter" and cfg["openrouter_key"]:
-        cascade.append(("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]))
-    elif provider == "ollama":
-        cascade.append(("ollama", cfg["ollama_base"], "ollama", cfg["ollama_model"]))
+    # Assemble provider-specific model pools in precedence order
+    gemini_candidates = []
+    if cfg["gemini_key"]:
+        for m in [
+            cfg.get("gemini_model"),
+            "gemini-3.5-flash-lite",
+            "gemini-flash-lite-latest",
+            "gemini-3.6-flash",
+            "gemini-3.5-flash",
+            "gemini-flash-latest",
+        ]:
+            if m and m not in gemini_candidates:
+                gemini_candidates.append(m)
 
-    # Priority 2: Fast secondary providers (non-reasoning models first)
-    if cfg["gemini_key"] and ("gemini", "gemini-3.6-flash") not in cascade:
-        cascade.append(("gemini", "gemini-3.6-flash"))
-    if cfg["gemini_key"] and ("gemini", "gemini-2.0-flash-lite") not in cascade:
-        cascade.append(("gemini", "gemini-2.0-flash-lite"))
-    if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b") not in cascade:
-        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "openai/gpt-oss-120b"))
-    if cfg["gemini_key"] and ("gemini", "gemini-3.5-flash") not in cascade:
-        cascade.append(("gemini", "gemini-3.5-flash"))
-    # Qwen is last resort due to its strong reasoning leak tendency
-    if cfg["groq_key"] and ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b") not in cascade:
-        cascade.append(("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], "qwen/qwen3.6-27b"))
-    if cfg["openrouter_key"] and ("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]) not in cascade:
-        cascade.append(("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], cfg["openrouter_model"]))
+    groq_candidates = []
+    if cfg["groq_key"]:
+        for m in [
+            cfg.get("groq_model"),
+            "openai/gpt-oss-20b",
+            "groq/compound-mini",
+            "openai/gpt-oss-120b",
+            "groq/compound",
+            "qwen/qwen3.8-27b",
+            "qwen/qwen3.6-27b",
+        ]:
+            if m and m not in groq_candidates:
+                groq_candidates.append(m)
+
+    cerebras_candidates = []
+    if cfg["cerebras_key"]:
+        for m in [
+            cfg.get("cerebras_model"),
+            "llama-3.3-70b",
+            "llama3.1-8b",
+        ]:
+            if m and m not in cerebras_candidates:
+                cerebras_candidates.append(m)
+
+    github_candidates = []
+    if cfg["github_token"]:
+        for m in [
+            cfg.get("github_model"),
+            "gpt-4o-mini",
+            "Meta-Llama-3.3-70B-Instruct",
+        ]:
+            if m and m not in github_candidates:
+                github_candidates.append(m)
+
+    def add_gemini():
+        for m in gemini_candidates:
+            item = ("gemini", m)
+            if item not in cascade:
+                cascade.append(item)
+
+    def add_groq():
+        for m in groq_candidates:
+            item = ("groq", "https://api.groq.com/openai/v1", cfg["groq_key"], m)
+            if item not in cascade:
+                cascade.append(item)
+
+    def add_cerebras():
+        for m in cerebras_candidates:
+            item = ("cerebras", "https://api.cerebras.ai/v1", cfg["cerebras_key"], m)
+            if item not in cascade:
+                cascade.append(item)
+
+    def add_github():
+        for m in github_candidates:
+            item = ("github", "https://models.inference.ai.azure.com", cfg["github_token"], m)
+            if item not in cascade:
+                cascade.append(item)
+
+    def add_openrouter():
+        if cfg["openrouter_key"]:
+            for m in [
+                cfg.get("openrouter_model"),
+                "nvidia/nemotron-3.5-lightning:free",
+                "inclusionai/ling-3.0-flash-fin:free",
+            ]:
+                if m:
+                    item = ("openrouter", "https://openrouter.ai/api/v1", cfg["openrouter_key"], m)
+                    if item not in cascade:
+                        cascade.append(item)
+
+    def add_ollama():
+        if cfg.get("ollama_base"):
+            item = ("ollama", cfg["ollama_base"], "ollama", cfg["ollama_model"])
+            if item not in cascade:
+                cascade.append(item)
+
+    # Assemble cascade based on user provider preference
+    if provider == "gemini":
+        add_gemini()
+        add_groq()
+        add_cerebras()
+        add_github()
+        add_openrouter()
+        add_ollama()
+    elif provider == "groq":
+        add_groq()
+        add_gemini()
+        add_cerebras()
+        add_github()
+        add_openrouter()
+        add_ollama()
+    elif provider == "cerebras":
+        add_cerebras()
+        add_gemini()
+        add_groq()
+        add_github()
+        add_openrouter()
+        add_ollama()
+    elif provider == "github":
+        add_github()
+        add_gemini()
+        add_groq()
+        add_cerebras()
+        add_openrouter()
+        add_ollama()
+    elif provider == "openrouter":
+        add_openrouter()
+        add_gemini()
+        add_groq()
+        add_cerebras()
+        add_github()
+        add_ollama()
+    elif provider == "ollama":
+        add_ollama()
+        add_gemini()
+        add_groq()
+        add_cerebras()
+        add_github()
+        add_openrouter()
+    else:
+        add_gemini()
+        add_groq()
+        add_cerebras()
+        add_github()
+        add_openrouter()
+        add_ollama()
 
     # Execute cascade
     for item in cascade:

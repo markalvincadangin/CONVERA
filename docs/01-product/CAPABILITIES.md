@@ -29,7 +29,7 @@
 │ 5. Computing Research (DSR)   │ Master Domains · Lit Matrix · Circumscription   │
 │ 6. Venture Innovation Track   │ Socratic Mom Test · 15 Mechanisms · MVP Audit   │
 │ 7. Quality Gate Governance    │ Gates 1–4 Rubrics · Committee Sign-off Records  │
-│ 8. CIIA & Interoperability    │ 3-Tier LLM Cascade · JSON-RPC 2.0 MCP Server    │
+│ 8. CIIA & Interoperability    │ 6-Tier LLM Cascade · JSON-RPC 2.0 MCP Server    │
 └───────────────────────────────┴─────────────────────────────────────────────────┘
 ```
 
@@ -219,12 +219,12 @@
 
 ## 9. Cluster 8: CIIA & Interoperability Architecture
 
-### Capability 9.1: 3-Tier Multi-Provider LLM Gateway
-* **User Value:** Provides resilient multi-provider execution without requiring a single paid AI provider.
+### Capability 9.1: Multi-Tier Resilient LLM Gateway (6-Tier Failover Cascade)
+* **User Value:** Provides enterprise-grade multi-provider execution without requiring a single paid AI subscription ($0.00 infrastructure cost).
 * **Domain Responsibility:** `llm_gateway.py`.
 * **Implementation Evidence:**
-  - Cascade: Primary (Google Gemini 2.5/3.x) $\to$ Secondary (Groq `llama-3.3-70b`) $\to$ Local Fallback (Ollama `localhost:11434`).
-  - Synthetic Fallback: Gracefully generates synthetic mock outputs if completely disconnected from network and local models.
+  - Cascade: Primary (Google Gemini 3.5-flash-lite) $\to$ Secondary (Groq `openai/gpt-oss-20b` / `groq/compound-mini`) $\to$ High-Volume Buffer (Cerebras Cloud `llama-3.3-70b` with 14,400 free req/day) $\to$ Developer Models (GitHub Models `gpt-4o-mini`) $\to$ Multi-Model Proxy (OpenRouter free tier) $\to$ Local Sovereign (Ollama `localhost:11434`).
+  - Synthetic Fallback: Gracefully generates synthetic mock outputs (`is_degraded = True`) if completely disconnected from network and local models.
 * **Limitations:** Quality of analysis will vary depending on model size and token context windows.
 
 ### Capability 9.2: Standalone JSON-RPC 2.0 MCP Server Daemon

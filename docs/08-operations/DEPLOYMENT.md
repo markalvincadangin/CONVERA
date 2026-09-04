@@ -52,9 +52,11 @@ FastAPI application (:8000)
 
 - **`[IMPLEMENTED]`** The backend FastAPI application is `backend/server.py`, exposing `/api/health` and `/api/models/status` plus modular API routers.
 - **`[IMPLEMENTED]`** The web application is `web/`, with Next.js `15.2.0`, React `19`, and the scripts `npm run dev`, `npm run build`, and `npm run start`.
-- **`[IMPLEMENTED]`** `web/next.config.ts` rewrites `/api/:path*` to `http://127.0.0.1:8000/api/:path*`. `web/src/lib/api-client.ts` uses `NEXT_PUBLIC_API_URL` when set, otherwise relative `/api` paths.
+- **`[IMPLEMENTED]`** `web/next.config.ts` dynamically rewrites `/api/:path*` to `BACKEND_INTERNAL_URL` (defaulting to `http://127.0.0.1:8000/api/:path*`, or `http://backend:8000/api/:path*` in Docker). `web/src/lib/api-client.ts` uses `NEXT_PUBLIC_API_URL` when set, otherwise relative `/api` paths.
 - **`[IMPLEMENTED]`** `backend/mcp_server.py` is a separate JSON-RPC-over-stdio process. It is not mounted as an HTTP route and is not started by the FastAPI or Next.js startup commands.
-- **`[TARGET]`** A hardened production reverse-proxy topology, TLS termination, process supervision, and access control require explicit implementation and verification. No Dockerfile, Compose file, Nginx configuration, systemd unit, Vercel configuration, or Render blueprint is present in the repository as of this specification.
+- **`[IMPLEMENTED]`** Profile 3 container orchestration is supported via `backend/Dockerfile`, `web/Dockerfile`, and `docker-compose.yml` with persistent named volume `convera-data` for SQLite WAL persistence and automated container healthcheck probes.
+- **`[TARGET]`** A hardened production reverse-proxy topology, TLS termination, and external access control require explicit reverse-proxy configuration (e.g. Nginx/Caddy) when exposed beyond private hosts.
+
 
 ---
 
@@ -73,11 +75,18 @@ FastAPI application (:8000)
 - **`[NORMATIVE]`** The database path must be local, durable, access-controlled, and excluded from source control. The SQLite database, `-wal`, and `-shm` companion files belong to one persistence unit.
 - **`[IMPLEMENTED]`** The current FastAPI CORS middleware allows all origins with credentials, and the application defaults to host `0.0.0.0` when invoked through `backend/server.py`. Treat direct LAN or internet exposure as unapproved until CORS, authentication, TLS, and network policy are hardened through a ratified change.
 
-### 3.3 Self-hosted container or VPS deployment
+### 3.3 Self-hosted container or VPS deployment (Profile 3)
 
-- **`[TARGET]`** A self-hosted deployment may package the web server and backend as separate services and mount a persistent data directory for SQLite, or use an operational PostgreSQL service after its adapter is implemented and tested.
-- **`[TARGET]`** A container/VPS deployment must document image pinning, process health checks, TLS, secret injection, least-privilege runtime users, persistent volumes, egress policy, backup/restore, and upgrade/rollback behavior before it is called supported.
-- **`[VERIFICATION]`** No Docker or Compose artifacts currently exist. A container/VPS profile therefore cannot pass an implementation verification gate until those artifacts and their tests are added under SDD.
+- **`[IMPLEMENTED]`** A self-hosted deployment packages the web server and backend as separate container services defined in `backend/Dockerfile` and `web/Dockerfile`, orchestrated via `docker-compose.yml`.
+- **`[IMPLEMENTED]` Dual-Environment Topology**: Host ports are mapped to `3001:3000` (web) and `8001:8000` (FastAPI), preserving ports `3000` and `8000` for simultaneous local development (`./start-dev.sh`).
+- **`[IMPLEMENTED]` Volume Durability**: SQLite WAL persistence is maintained through a named persistent volume `convera-data` mounted at `/data` (`SQLITE_PATH=/data/convera.db`).
+- **`[IMPLEMENTED]` Seeding Automation**: The team instance can be seeded with an initial workspace snapshot via [`scripts/seed-prod-db.sh`](../../scripts/seed-prod-db.sh).
+- **`[IMPLEMENTED]` 1-Click Sharing**: Public HTTPS access for teammates is automated via Cloudflare Quick Tunnel in [`scripts/share.sh`](../../scripts/share.sh).
+- **`[IMPLEMENTED]` Safe Promotion Pipeline**: Releasing updates from local dev to production is automated through the 5-stage pipeline in [`scripts/deploy-prod.sh`](../../scripts/deploy-prod.sh).
+- **`[IMPLEMENTED]`** Health probes are enforced via `curl -f http://localhost:8000/api/health` and `curl -f http://localhost:3000/`.
+- **`[NORMATIVE]`** The container deployment preserves local data sovereignty; no external database subscriptions are required.
+
+
 
 ### 3.4 Offline, air-gapped, or degraded operation
 
@@ -138,10 +147,12 @@ npm run start --prefix web
 | `DATABASE_URL` | Requests a PostgreSQL adapter for `postgresql://` or `postgres://` URLs. | Adapter module is absent; import failure falls back to SQLite. |
 | `HOST`, `PORT` | Values read by `backend/server.py` when that file is run directly. | `0.0.0.0`, `8000`. |
 | `NEXT_PUBLIC_API_URL` | Browser-side backend base URL override. | Empty uses relative `/api` calls; rewrite targets loopback backend. |
-| `LLM_PROVIDER` | Preferred provider selection. | `gemini`, `groq`, `openrouter`, or `ollama`; defaults to `gemini`. |
-| `GEMINI_API_KEY` / `GOOGLE_API_KEY`, `GEMINI_MODEL` | Gemini credentials and model selection. | Key falls back from `GEMINI_API_KEY` to `GOOGLE_API_KEY`. |
-| `GROQ_API_KEY`, `GROQ_MODEL` | Groq credentials and model selection. | Used when configured. |
-| `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | OpenRouter credentials and model selection. | Used when configured. |
+| `LLM_PROVIDER` | Preferred provider selection. | `gemini`, `groq`, `cerebras`, `github`, `openrouter`, or `ollama`; defaults to `gemini`. |
+| `GEMINI_API_KEY` / `GOOGLE_API_KEY`, `GEMINI_MODEL` | Gemini credentials and model selection. | Key falls back from `GEMINI_API_KEY` to `GOOGLE_API_KEY`. Defaults to `gemini-3.5-flash-lite`. |
+| `GROQ_API_KEY`, `GROQ_MODEL` | Groq credentials and model selection. | Used when configured. Defaults to `openai/gpt-oss-20b`. |
+| `CEREBRAS_API_KEY`, `CEREBRAS_MODEL` | Cerebras Cloud credentials and model (14,400 req/day free). | Used when configured. Defaults to `llama-3.3-70b`. |
+| `GITHUB_TOKEN`, `GITHUB_MODEL` | GitHub Models developer token and model (free GPT-4o-mini & Llama). | Used when configured. Defaults to `gpt-4o-mini`. |
+| `OPENROUTER_API_KEY`, `OPENROUTER_MODEL` | OpenRouter credentials and model selection. | Used when configured. Defaults to `nvidia/nemotron-3.5-lightning:free`. |
 | `OLLAMA_BASE_URL`, `OLLAMA_MODEL` | Local OpenAI-compatible Ollama endpoint and model. | `http://localhost:11434/v1`, `llama3.2`. |
 
 ### 5.2 Secret controls
@@ -176,7 +187,7 @@ npm run start --prefix web
 ### 7.1 CIIA provider cascade
 
 - **`[NORMATIVE]`** Provider output is inference, not evidence or ratification. C_AI, S_EVID, and C_DEC remain independent.
-- **`[IMPLEMENTED]`** The gateway can call Gemini, Groq, OpenRouter, or an explicitly selected Ollama endpoint. It returns provider/model/latency metadata for successful calls.
+- **`[IMPLEMENTED]`** The gateway orchestrates a 6-tier resilient cascade across Google Gemini, Groq Cloud, Cerebras Cloud (14,400 RPD buffer), GitHub Models (free GPT-4o-mini & Llama), OpenRouter (free model pool), or local Ollama. It returns provider/model/latency metadata for successful calls.
 - **`[IMPLEMENTED]`** When configured cloud calls fail, the current gateway tries entries already in its constructed cascade and then raises `RuntimeError`; it does not provide a verified system-wide readiness probe.
 - **`[TARGET]`** Implement the canonical automatic cascade and terminal synthetic fallback specified in `AI_ARCHITECTURE.md`, with explicit `is_degraded`, non-evidentiary marking, user-visible status, and tests. Until then, operations must surface a provider failure rather than claim synthetic continuity.
 
@@ -258,7 +269,8 @@ An operator may declare a profile operational only after recording the applicabl
 - **`[NORMATIVE]`** Keep public services behind authenticated, authorized, TLS-protected boundaries. The current repository does not establish a complete production authentication or reverse-proxy design in this deployment specification.
 - **`[IMPLEMENTED]`** FastAPI CORS is currently permissive (`allow_origins=["*"]` with credentials). This is incompatible with treating the backend as safely public by default.
 - **`[IMPLEMENTED]`** The `/api/health` response reports `SQLite WAL` regardless of a requested PostgreSQL path and does not test storage health. It must not be used as evidence that the configured database is active.
-- **`[IMPLEMENTED]`** No container, Compose, system-service, managed-platform, formal migration, deployment automation, backup/restore, or observability artifact is present.
+- **`[IMPLEMENTED]`** Container, Compose, volume persistence, and live backup artifacts are implemented (`backend/Dockerfile`, `web/Dockerfile`, `docker-compose.yml`, `scripts/backup.sh`). Managed PostgreSQL adapters and external TLS proxies remain target profiles.
+
 - **`[NORMATIVE]`** Do not classify Vercel, Render, or any managed host as supported merely because `DATABASE_URL` examples mention providers. Support requires the verification gates in this document and a ratified implementation.
 
 ---

@@ -71,3 +71,12 @@ async def get_traceability_graph(
         "count": len(hydrated_lineage),
         "traceability_records": hydrated_lineage
     }
+
+
+@router.get("/lineage/{requirement_id}")
+async def get_traceability_lineage(requirement_id: str):
+    """
+    Epistemic Traceability Lineage Endpoint (CONVERA-OPS-002 / MONITORING.md Section 4).
+    Audits bidirectional lineage integrity from requirement to evidence.
+    """
+    return await get_traceability_graph(requirement_id=requirement_id)

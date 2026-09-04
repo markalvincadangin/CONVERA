@@ -1,0 +1,47 @@
+# CONVERA Operational Deployment Topology (Profile 3: Self-Hosted Docker / VPS)
+# Reference: docs/08-operations/DEPLOYMENT.md (CONVERA-OPS-001)
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: convera-backend
+    restart: unless-stopped
+    ports:
+      - "${PROD_BACKEND_PORT:-8001}:8000"
+    env_file:
+      - path: ./backend/.env
+        required: false
+      - path: ./.env
+        required: false
+    environment:
+      - SQLITE_PATH=/data/convera.db
+    volumes:
+      - convera-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+  web:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+    container_name: convera-web
+    restart: unless-stopped
+    ports:
+      - "${PROD_WEB_PORT:-3001}:3000"
+    environment:
+      - BACKEND_INTERNAL_URL=http://backend:8000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+    depends_on:
+      backend:
+        condition: service_healthy
+
+
+volumes:
+  convera-data:
+    name: convera-data

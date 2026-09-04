@@ -40,9 +40,12 @@ htmlcov/
 *.db-journal
 *.db-wal
 *.db-shm
+*.db.gz
 backend/*.db
 backend/*.db-wal
 backend/*.db-shm
+backups/
+
 
 # Secrets & Environment
 .env

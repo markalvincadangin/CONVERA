@@ -71,17 +71,17 @@ Following the governance standards established across Phases 1–3, all specific
 The gateway enforces an Inversion-of-Control (IoC) architecture where high-level domain services depend exclusively on a provider-neutral abstraction, isolating Domain Engine services (Area 3) from third-party vendor SDKs:
 
 ```text
-                           ┌───────────────────────────┐
-                           │    Provider Abstraction   │
-                           │  (Provider-Neutral Contract│
-                           └─────────────┬─────────────┘
-                                         │
-                 ┌───────────────────────┼───────────────────────┐
-                 │                       │                       │
-   ┌─────────────▼─────────────┐   ┌─────▼───────────────┐   ┌───▼───────────────────────┐
-   │      Gemini Provider      │   │     Groq Provider   │   │      Ollama Provider      │
-   │  (Primary Cloud Tier)     │   │ (Secondary Fallback)│   │ (Sovereign Local Tier)    │
-   └───────────────────────────┘   └─────────────────────┘   └───────────────────────────┘
+                               ┌───────────────────────────┐
+                               │    Provider Abstraction   │
+                               │  (Provider-Neutral Contract│
+                               └─────────────┬─────────────┘
+                                             │
+      ┌───────────────────────┬──────────────┼──────────────┬───────────────────────┐
+      │                       │              │              │                       │
+┌─────▼───────────────┐ ┌─────▼────────┐ ┌───▼────────────┐ ┌▼────────────────┐ ┌───▼───────────────────────┐
+│   Gemini Provider   │ │Groq Provider │ │Cerebras Cloud  │ │GitHub / OpenRouter│ │      Ollama Provider      │
+│(Primary Intelligence│ │ (Fast Burst) │ │(14.4K Quota/Day│ │(Model Diversity) │ │ (Sovereign Local Tier)    │
+└─────────────────────┘ └──────────────┘ └────────────────┘ └───────────────────┘ └───────────────────────────┘
 ```
 
 ### 3.1 Provider Contract Requirements
@@ -129,25 +129,37 @@ When a cognitive operation is requested, the `LLMGateway` evaluates providers ac
                │
                ▼
    ┌───────────────────────┐
-   │ Check Primary Tier    │────── Available ──────► [Invoke Primary Provider]
-   │ (Gemini)              │                                │
+   │ Check Tier 1: Gemini  │────── Available ──────► [Invoke Google Gemini]
    └───────────┬───────────┘                                │
-               │ Unavailable / Cascade Trigger              ▼
+               │ Rate-Limit (429) / Outage                  ▼
                ▼                                    Success: Normalize & Validate
    ┌───────────────────────┐                        Cascade Trigger: Log & Failover
-   │ Check Secondary Tier  │────── Available ──────► [Invoke Secondary Provider]
-   │ (Groq)                │                                │
+   │ Check Tier 2: Groq    │────── Available ──────► [Invoke Groq Cloud]
    └───────────┬───────────┘                                │
-               │ Unavailable / Cascade Trigger              ▼
+               │ Token Quota Exhausted                      ▼
                ▼                                    Success: Normalize & Validate
    ┌───────────────────────┐                        Cascade Trigger: Log & Failover
-   │ Check Tertiary Tier   │────── Available ──────► [Invoke Tertiary Provider]
-   │ (Local Ollama)        │                                │
+   │ Check Tier 3: Cerebras│────── Available ──────► [Invoke Cerebras Cloud (14.4K/Day)]
+   └───────────┬───────────┘                                │
+               │ Unavailable / Rate-Limit                   ▼
+               ▼                                    Success: Normalize & Validate
+   ┌───────────────────────┐                        Cascade Trigger: Log & Failover
+   │ Check Tier 4: GitHub  │────── Available ──────► [Invoke GitHub Models (GPT/Llama)]
+   └───────────┬───────────┘                                │
+               │ Unavailable / Rate-Limit                   ▼
+               ▼                                    Success: Normalize & Validate
+   ┌───────────────────────┐                        Cascade Trigger: Log & Failover
+   │ Check Tier 5: O-Router│────── Available ──────► [Invoke OpenRouter Free Pool]
    └───────────┬───────────┘                                │
                │ Unavailable / Offline                      ▼
                ▼                                    Success: Normalize & Validate
    ┌───────────────────────┐                        Cascade Trigger: Log & Failover
-   │ Quaternary Tier:      │
+   │ Check Tier 6: Ollama  │────── Available ──────► [Invoke Local Sovereign Ollama]
+   └───────────┬───────────┘                                │
+               │ Offline / Unreachable                      ▼
+               ▼                                    Success: Normalize & Validate
+   ┌───────────────────────┐                        Cascade Trigger: Log & Failover
+   │ Terminal Fallback:    │
    │ Deterministic         │───────────────────────► [Execute Synthetic Fallback]
    │ Synthetic Fallback    │                                │
    └───────────────────────┘                                ▼
@@ -159,10 +171,13 @@ When a cognitive operation is requested, the `LLMGateway` evaluates providers ac
 
 | Tier | Provider Identifier | Provider Role | Selection Condition |
 | :--- | :--- | :--- | :--- |
-| **Primary** | `gemini` | Multi-source synthesis, complex extraction | Standard operation with valid credentials |
-| **Secondary** | `groq` | Fast epistemic evaluation, secondary fallback | Primary unavailable, rate-limited, or 5xx outage |
-| **Tertiary** | `ollama` | Sovereign offline inference | Offline operation, zero-network mode, or cloud failure |
-| **Fallback** | `synthetic` | Deterministic heuristic continuity | All external & local providers unreachable (`is_degraded = True`) |
+| **Tier 1 (Primary)** | `gemini` | Deep multimodal context, complex extraction | Standard operation with valid credentials |
+| **Tier 2 (Secondary)** | `groq` | Ultra-fast burst inference, quick JSON extraction | Tier 1 unavailable, rate-limited (429), or 5xx outage |
+| **Tier 3 (Buffer)** | `cerebras` | High-volume heavyweight buffer (14,400 req/day) | Tiers 1-2 exhausted; high throughput batch needs |
+| **Tier 4 (Developer)** | `github` | Free GPT-4o-mini and Llama 3.3 70B inference | Tiers 1-3 unavailable; zero-card GitHub developer token |
+| **Tier 5 (Multi-Model)**| `openrouter` | Dynamic fallback across free open models | Tiers 1-4 unavailable; model diversity safety net |
+| **Tier 6 (Sovereign)** | `ollama` | Air-gapped local offline inference | Offline operation, zero-network mode, or cloud failure |
+| **Terminal Fallback** | `synthetic` | Deterministic heuristic continuity | All external & local providers unreachable (`is_degraded = True`) |
 
 ### 5.2 Failure Action Matrix
 * **`[NORMATIVE]` Action Dispatch**:

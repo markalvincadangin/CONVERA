@@ -216,7 +216,7 @@ To preserve the documentation consistency invariant, this table categorizes the 
 | **Knowledge $\neq$ Workflow Separation** | `RATIFIED_INVARIANT` | Core constitutional law governing data persistence across frameworks. |
 | **Tri-Part Confidence Decoupling** | `RATIFIED_INVARIANT` | Mathematical and conceptual rule isolating AI, evidence, and decision confidence. |
 | **SQLite WAL Persistence (23 Tables)** | `CURRENT_IMPLEMENTATION` | Implemented in `sqlite_adapter.py` and validated by test suite. |
-| **3-Tier LLM Cascade + Synthetic Fallback** | `CURRENT_IMPLEMENTATION` | Implemented in `llm_gateway.py` with multi-provider fallbacks. |
+| **6-Tier LLM Cascade + Synthetic Fallback** | `CURRENT_IMPLEMENTATION` | Implemented in `llm_gateway.py` with multi-provider fallbacks. |
 | **Federated Scholarly Connector Hub** | `CURRENT_IMPLEMENTATION` | Implemented in `connectors/` (OpenAlex, CrossRef, PubMed, Europe PMC, Semantic Scholar). |
 | **Standalone JSON-RPC MCP Server** | `CURRENT_IMPLEMENTATION` | Implemented in `backend/mcp_server.py` exposing 7 tools. |
 | **Quality Gates 1–4 Engine** | `CURRENT_IMPLEMENTATION` | Implemented in `gate_engine.py` and `GateReviewModal.tsx`. |
