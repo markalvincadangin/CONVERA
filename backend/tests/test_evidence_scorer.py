@@ -1,5 +1,8 @@
 from engines.evidence_scorer import calculate_score_breakdown
 
+
+import pytest
+pytestmark = pytest.mark.unit
 def test_evidence_scorer_high_confidence():
     problem = {
         "id": "HW-001",

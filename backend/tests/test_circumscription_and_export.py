@@ -5,6 +5,8 @@ from storage import get_storage
 from engines.circumscription_engine import CircumscriptionEngine
 from engines.proposal_exporter import ProposalExporter
 
+
+pytestmark = pytest.mark.integration
 client = TestClient(app)
 storage = get_storage()
 

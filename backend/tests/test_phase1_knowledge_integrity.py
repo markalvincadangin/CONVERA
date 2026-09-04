@@ -7,6 +7,8 @@ from engines.freshness_engine import FreshnessEngine
 from engines.contradiction_engine import ContradictionEngine
 from engines.unknowns_engine import UnknownsEngine
 
+
+pytestmark = pytest.mark.integration
 client = TestClient(app)
 storage = get_storage()
 

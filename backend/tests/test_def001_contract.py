@@ -16,6 +16,7 @@ def client():
     return TestClient(app)
 
 
+@pytest.mark.integration
 def test_def001_no_stale_research_query_in_frontend():
     """Verify problemService.ts has no /api/research/query calls."""
     project_root = pathlib.Path(__file__).resolve().parent.parent.parent
@@ -27,6 +28,7 @@ def test_def001_no_stale_research_query_in_frontend():
     assert "/api/connectors/search" in ps_text, "Missing canonical /api/connectors/search in problemService.ts"
 
 
+@pytest.mark.live
 def test_def001_federated_search_all_connectors(client):
     """Verify POST /api/connectors/search handles engine=ALL (connector_ids=None)."""
     resp = client.post(
@@ -41,6 +43,7 @@ def test_def001_federated_search_all_connectors(client):
     assert isinstance(data["results"], list)
 
 
+@pytest.mark.live
 def test_def001_federated_search_specific_engine(client):
     """Verify POST /api/connectors/search handles specific connector_ids."""
     resp = client.post(
@@ -53,6 +56,7 @@ def test_def001_federated_search_specific_engine(client):
     assert isinstance(data["results"], list)
 
 
+@pytest.mark.integration
 def test_def001_empty_query_validation(client):
     """Verify empty query returns HTTP 400 with descriptive error detail."""
     resp = client.post(
@@ -63,6 +67,7 @@ def test_def001_empty_query_validation(client):
     assert "Search query cannot be empty" in resp.json()["detail"]
 
 
+@pytest.mark.integration
 def test_def001_no_alias_route(client):
     """Verify no unauthorized alias route exists at /api/research/query."""
     resp = client.post("/api/research/query", json={"query": "test"})

@@ -3,6 +3,7 @@ import asyncio
 from engines.document_parser import chunk_text, parse_and_extract_document, IngestedDocumentResult
 
 
+@pytest.mark.unit
 def test_chunk_text():
     sample_text = (
         "Paragraph 1: Transportation in rural Iloilo is irregular and expensive for university students.\n\n"
@@ -16,6 +17,7 @@ def test_chunk_text():
         assert len(c) > 0
 
 
+@pytest.mark.live
 def test_parse_and_extract_document():
     raw_transcript = (
         "Interview with Sarah (3rd Year CS Student, CPU Iloilo):\n"

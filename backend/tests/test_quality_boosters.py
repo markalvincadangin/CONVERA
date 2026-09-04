@@ -3,6 +3,8 @@ from unittest.mock import patch, AsyncMock
 from engines.devils_advocate import challenge_problem_with_agent
 from engines.blind_spot_detector import detect_portfolio_blind_spots
 
+
+pytestmark = pytest.mark.unit
 @pytest.mark.asyncio
 async def test_challenge_problem_with_agent():
     mock_llm_json = """

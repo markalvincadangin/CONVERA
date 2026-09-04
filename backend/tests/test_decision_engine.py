@@ -28,6 +28,7 @@ client = TestClient(app)
 # 1. Baseline Preservation Tests
 # ===========================================================================
 
+@pytest.mark.integration
 def test_decision_records_storage():
     storage = get_storage()
     
@@ -51,17 +52,29 @@ def test_decision_records_storage():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_decision_room_synthesis():
     storage = get_storage()
     hou = storage.get_problem("HOU-001") or {"id": "HOU-001", "problem_statement": "Flood risk", "score": 90}
     agr = storage.get_problem("AGR-003") or {"id": "AGR-003", "problem_statement": "Onion spoilage", "score": 95}
     
-    res = await synthesize_decision_room([agr, hou])
-    assert "recommended_winner_id" in res
-    assert "recommendation_summary" in res
-    assert len(res["candidate_breakdowns"]) == 2
+    mock_llm_json = json.dumps({
+        "recommended_winner_id": "AGR-003",
+        "recommendation_summary": "Onion spoilage shows higher empirical proof.",
+        "candidate_breakdowns": [
+            {"problem_id": "AGR-003", "rank": 1, "verdict": "RECOMMENDED", "pros": ["Empirical data"], "risks": []},
+            {"problem_id": "HOU-001", "rank": 2, "verdict": "VIABLE_ALTERNATIVE", "pros": ["High impact"], "risks": []}
+        ]
+    })
+    with patch("engines.decision_engine.generate_response_with_fallback", new=AsyncMock(return_value=mock_llm_json)):
+        res = await synthesize_decision_room([agr, hou])
+        assert "recommended_winner_id" in res
+        assert "recommendation_summary" in res
+        assert len(res["candidate_breakdowns"]) == 2
 
 
+
+@pytest.mark.integration
 def test_pivot_loop_execution():
     storage = get_storage()
     # Create test session
@@ -93,6 +106,7 @@ def test_pivot_loop_execution():
 # 2. Deterministic Scoring & Formula Tests (TASK-004-01)
 # ===========================================================================
 
+@pytest.mark.unit
 def test_composite_formula_values():
     """Verify that composite scoring matches the ratified formula and weights."""
     candidate = {
@@ -142,6 +156,7 @@ def test_composite_formula_values():
     assert scores["composite_score"] == expected_composite
 
 
+@pytest.mark.unit
 def test_zero_claims_neutral_epistemic_baseline():
     """Candidate with zero claims receives neutral 50.0 epistemic score."""
     cand = {"id": "ZERO-01", "problem_statement": "Test problem", "claims": []}
@@ -149,6 +164,7 @@ def test_zero_claims_neutral_epistemic_baseline():
     assert scores["epistemic_score"] == 50.0
 
 
+@pytest.mark.unit
 def test_risk_penalty_maximum_cap():
     """Verify that assumption risk penalties are strictly capped at 50.0 points."""
     cand = {
@@ -170,6 +186,7 @@ def test_risk_penalty_maximum_cap():
 # 3. Deterministic Ranking & 4-Tier Tie-Breaking Tests (TASK-004-02)
 # ===========================================================================
 
+@pytest.mark.unit
 def test_deterministic_ranking_ordering():
     """Candidates must be ordered strictly by composite score."""
     c1 = {
@@ -203,6 +220,7 @@ def test_deterministic_ranking_ordering():
     assert ranked[1].rank == 2
 
 
+@pytest.mark.unit
 def test_tie_breaking_hierarchy():
     """
     Ties broken by:
@@ -235,12 +253,14 @@ def test_tie_breaking_hierarchy():
     assert ranked_lex[1].problem_id == "P-02"
 
 
+@pytest.mark.unit
 def test_empty_candidate_set():
     """Empty candidate set returns empty list without raising IndexError (no candidates[0])."""
     ranked = rank_candidates_deterministically([])
     assert ranked == []
 
 
+@pytest.mark.unit
 def test_single_candidate():
     """Single candidate receives rank = 1 and RECOMMENDED verdict."""
     cand = {"id": "SOLO-01", "problem_statement": "Only candidate"}
@@ -256,6 +276,7 @@ def test_single_candidate():
 # ===========================================================================
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_llm_cannot_override_winner():
     """When an LLM attempts to crown a loser as winner, invariant assertion overrides it."""
     c_winner = {
@@ -293,6 +314,7 @@ async def test_llm_cannot_override_winner():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_degraded_fallback_synthesis():
     """When LLM gateway throws an exception, engine returns deterministic summary with is_degraded = True."""
     cand1 = {"id": "P-01", "problem_statement": "Test problem 1", "score": 80}
@@ -307,6 +329,7 @@ async def test_degraded_fallback_synthesis():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_empty_candidates_synthesize_endpoint():
     """Empty candidate list returns neutral response without error."""
     res = await synthesize_decision_room([])
@@ -319,6 +342,7 @@ async def test_empty_candidates_synthesize_endpoint():
 # 5. Session Router Contract Tests (TASK-004-05, DEF-AI-008)
 # ===========================================================================
 
+@pytest.mark.unit
 def test_session_router_synthesize_contract():
     """Test POST /api/decision-room/synthesize executes without TypeError."""
     storage = get_storage()
@@ -328,13 +352,35 @@ def test_session_router_synthesize_contract():
         "state_data": {"candidate_ids": ["HOU-001", "AGR-003"]}
     })
 
-    resp = client.post("/api/decision-room/synthesize", json={"session_id": "sess-test-synth"})
-    assert resp.status_code == 200
-    data = resp.json()
-    assert "recommended_winner_id" in data
-    assert "candidate_breakdowns" in data
+    mock_synth_response = json.dumps({
+        "recommendation_summary": "Candidate HOU-001 demonstrates superior empirical backing.",
+        "candidate_breakdowns": [
+            {
+                "problem_id": "HOU-001",
+                "rank": 1,
+                "pros": ["Strong evidence", "Validated loss"],
+                "risks": ["Permit delays"],
+                "verdict": "STRONG_CANDIDATE"
+            },
+            {
+                "problem_id": "AGR-003",
+                "rank": 2,
+                "pros": ["Clear user need"],
+                "risks": ["High capex"],
+                "verdict": "FEASIBLE_CANDIDATE"
+            }
+        ]
+    })
+
+    with patch("engines.decision_engine.generate_response_with_fallback", new=AsyncMock(return_value=mock_synth_response)):
+        resp = client.post("/api/decision-room/synthesize", json={"session_id": "sess-test-synth"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "recommended_winner_id" in data
+        assert "candidate_breakdowns" in data
 
 
+@pytest.mark.unit
 def test_session_router_pivot_contract_and_semantic_separation():
     """Test POST /api/decision-room/pivot executes without TypeError and preserves semantic separation."""
     storage = get_storage()
@@ -367,6 +413,7 @@ def test_session_router_pivot_contract_and_semantic_separation():
 # ===========================================================================
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_verifier_agent_verdict_taxonomy():
     """Verifier agent cannot autonomously assert VERIFIED_EMPIRICAL."""
     mock_resp = json.dumps({
@@ -389,6 +436,7 @@ async def test_verifier_agent_verdict_taxonomy():
 
 
 @pytest.mark.asyncio
+@pytest.mark.unit
 async def test_assumption_claim_initial_hypothesis():
     """Newly generated friction reality claims initialize with status HYPOTHESIS."""
     # Test deterministic fallback of assumption engine
@@ -415,6 +463,7 @@ async def test_assumption_claim_initial_hypothesis():
 # 7. Performance & Reproducibility Tests (NFR-001, NFR-002)
 # ===========================================================================
 
+@pytest.mark.unit
 def test_deterministic_latency_benchmark():
     """
     Pure deterministic ranking calculation for 4 candidates must execute in < 10ms
@@ -447,6 +496,7 @@ def test_deterministic_latency_benchmark():
     assert duration_ms < 10.0, f"Ranking latency {duration_ms:.2f}ms exceeds 10ms threshold"
 
 
+@pytest.mark.unit
 def test_reproducibility_across_iterations():
     """50 consecutive runs produce bit-identical ranks and floating-point scores."""
     candidates = [

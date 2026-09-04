@@ -16,10 +16,12 @@ from schemas import (
     SolutionConcept,
     Assumption,
     ExperimentCard,
-    Phase5Output,
     ExperimentAuditResult,
     PivotAnalysis,
 )
+
+pytestmark = pytest.mark.unit
+
 
 
 

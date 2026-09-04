@@ -3,6 +3,7 @@ import pytest_asyncio
 from engines.srs_generator import generate_project_srs, format_srs_markdown
 
 @pytest.mark.asyncio
+@pytest.mark.integration
 async def test_srs_generator_flow():
     session_data = {
         "project_name": "AgriCool Iloilo",
@@ -26,6 +27,7 @@ async def test_srs_generator_flow():
     assert "markdown_document" in res
     assert "# Software Requirements Specification" in res["markdown_document"]
 
+@pytest.mark.unit
 def test_srs_markdown_formatter():
     mock_srs = {
         "project_title": "Test System",

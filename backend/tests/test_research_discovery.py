@@ -9,6 +9,8 @@ async def client():
         yield c
 
 @pytest.mark.asyncio
+@pytest.mark.live
+@pytest.mark.smoke
 async def test_stage_a_discover_endpoint(client: AsyncClient):
     payload = {
         "domains": ["Precision Agriculture & Edge AI", "Disaster Mesh Networks"],
@@ -24,6 +26,7 @@ async def test_stage_a_discover_endpoint(client: AsyncClient):
     assert data.get("domains") == ["Precision Agriculture & Edge AI", "Disaster Mesh Networks"]
 
 @pytest.mark.asyncio
+@pytest.mark.live
 async def test_stage_a_discover_empty_domains(client: AsyncClient):
     payload = {
         "domains": [],
