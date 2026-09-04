@@ -83,8 +83,17 @@ export const ProblemComparisonMatrix: React.FC<ProblemComparisonMatrixProps> = (
           return (
             <div
               key={cand.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`Select comparison candidate ${cand.id}`}
               onClick={() => setSelectedId(cand.id)}
-              className={`cursor-pointer transition-all duration-200 rounded-3xl p-5 flex flex-col justify-between border space-y-4 relative ${
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setSelectedId(cand.id);
+                }
+              }}
+              className={`cursor-pointer transition-all duration-200 rounded-3xl p-5 flex flex-col justify-between border space-y-4 relative focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                 isSelected
                   ? "bg-slate-900 border-cyan-500/60 shadow-xl shadow-cyan-500/10 ring-1 ring-cyan-500/30"
                   : "bg-slate-950/70 border-slate-800/80 hover:border-slate-700 hover:bg-slate-900/40"

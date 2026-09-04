@@ -44,9 +44,14 @@ export const IntelligenceScorecardDrawer: React.FC<IntelligenceScorecardDrawerPr
 
   useEffect(() => {
     if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
     loadScorecard();
     runCalibration(aiConfidence, evidenceCount);
-  }, [isOpen, projectId]);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, projectId, onClose]);
 
   const loadScorecard = async () => {
     try {
@@ -120,7 +125,7 @@ export const IntelligenceScorecardDrawer: React.FC<IntelligenceScorecardDrawerPr
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border-l border-slate-800 w-full max-w-xl h-full flex flex-col shadow-2xl overflow-hidden">
+      <div role="dialog" aria-modal="true" aria-label="Intelligence Scorecard" tabIndex={-1} className="bg-slate-900 border-l border-slate-800 w-full max-w-xl h-full flex flex-col shadow-2xl overflow-hidden focus-visible:outline-none">
         {/* Header */}
         <div className="px-6 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/80">
           <div className="flex items-center gap-3">

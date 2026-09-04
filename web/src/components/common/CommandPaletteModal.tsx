@@ -446,6 +446,10 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
 
           {/* Palette Dialog */}
           <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Command Palette"
+            tabIndex={-1}
             initial={{ opacity: 0, scale: 0.96, y: -10 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -10 }}
@@ -477,10 +481,14 @@ export const CommandPaletteModal: React.FC<CommandPaletteModalProps> = ({
                   const Icon = cmd.icon;
                   return (
                     <div
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Execute command ${cmd.title}`}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cmd.action(); } }}
                       key={cmd.id}
                       onClick={() => cmd.action()}
                       onMouseEnter={() => setSelectedIndex(idx)}
-                      className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-all duration-150 ${
+                      className={`flex items-center justify-between gap-3 px-3.5 py-2.5 rounded-xl cursor-pointer transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 ${
                         isSelected
                           ? "bg-gradient-to-r from-cyan-950/70 to-blue-950/50 border border-cyan-500/40 text-white shadow-sm"
                           : "text-slate-300 hover:bg-slate-800/40 border border-transparent"

@@ -718,8 +718,12 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left max-w-4xl mx-auto">
             {/* Pathway 1: AI Note Structuring */}
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Open AI Note Structuring Ingest Modal"
               onClick={() => setIsRawIngestOpen(true)}
-              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsRawIngestOpen(true); } }}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
             >
               <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
                 <Sparkles className="w-4 h-4" />
@@ -739,8 +743,12 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
             {/* Pathway 2: Blind Spot Scanner */}
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Open Blind Spot Scanner Modal"
               onClick={() => setIsBlindSpotModalOpen(true)}
-              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsBlindSpotModalOpen(true); } }}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
             >
               <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
                 <Radar className="w-4 h-4" />
@@ -760,8 +768,12 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
             {/* Pathway 3: Manual 5-Anchor Entry */}
             <div
+              role="button"
+              tabIndex={0}
+              aria-label="Open Manual 5-Anchor Entry Modal"
               onClick={() => setIsAddModalOpen(true)}
-              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group"
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsAddModalOpen(true); } }}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
                 <Plus className="w-4 h-4" />

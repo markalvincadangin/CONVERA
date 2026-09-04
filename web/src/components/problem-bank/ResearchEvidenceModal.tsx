@@ -17,6 +17,8 @@ import {
   Search,
   Check,
   CheckCircle2,
+  AlertTriangle,
+  X as CloseIcon,
   Plus,
   RefreshCw,
   Award,
@@ -44,6 +46,7 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
   const [selectedSources, setSelectedSources] = useState<Record<number, boolean>>({});
   const [isAttaching, setIsAttaching] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Auto-fetch on open
   useEffect(() => {
@@ -53,6 +56,7 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
       handleAutoResearch();
       setSelectedSources({});
       setSuccessMessage(null);
+      setErrorMessage(null);
     }
   }, [isOpen, problem?.id]);
 
@@ -73,6 +77,7 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
       setSelectedSources(initialSelected);
     } catch (err: any) {
       console.error("Auto research error:", err);
+      setErrorMessage(err?.message || "Automated literature synthesis failed. You can search manually below.");
     } finally {
       setIsLoading(false);
     }
@@ -89,6 +94,7 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
       setSelectedSources({});
     } catch (err: any) {
       console.error("Search query error:", err);
+      setErrorMessage(err?.message || "Scholarly search failed. Please check connector connectivity or try different search keywords.");
     } finally {
       setIsLoading(false);
     }
@@ -210,6 +216,27 @@ export const ResearchEvidenceModal: React.FC<ResearchEvidenceModalProps> = ({
             Auto-Match
           </Button>
         </div>
+
+                {/* Error Feedback Banner */}
+        {errorMessage && (
+          <div
+            role="alert"
+            className="p-3 bg-rose-500/15 border border-rose-500/30 rounded-xl text-xs text-rose-300 font-sans flex items-start justify-between gap-2 animate-in fade-in"
+          >
+            <div className="flex items-start gap-2 min-w-0">
+              <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <span className="leading-relaxed">{errorMessage}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setErrorMessage(null)}
+              className="p-1 rounded-lg hover:bg-rose-500/20 text-rose-400 hover:text-rose-200 transition-colors shrink-0"
+              aria-label="Dismiss error message"
+            >
+              <CloseIcon className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* Success Feedback Banner */}
         {successMessage && (
