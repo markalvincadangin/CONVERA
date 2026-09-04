@@ -23,7 +23,7 @@ class RecordTraceabilityLinkRequest(BaseModel):
 @router.post("/link")
 async def add_traceability_link(req: RecordTraceabilityLinkRequest):
     storage = get_storage()
-    record = storage.add_traceability_link(req.dict())
+    record = storage.add_traceability_link(req.model_dump())
     return {"status": "linked", "traceability_record": record}
 
 @router.get("/graph")

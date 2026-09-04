@@ -147,7 +147,7 @@ async def handle_tool_call(name: str, arguments: Dict[str, Any]) -> Any:
         q = arguments.get("query", "")
         lim = int(arguments.get("limit", 5))
         papers = await RESEARCH_CLIENT.search_all_async(q, limit=lim)
-        return {"query": q, "total_results": len(papers), "papers": [p.dict() for p in papers]}
+        return {"query": q, "total_results": len(papers), "papers": [p.model_dump() if hasattr(p, "model_dump") else p.dict() for p in papers]}
 
     else:
         raise ValueError(f"Unknown MCP tool: {name}")

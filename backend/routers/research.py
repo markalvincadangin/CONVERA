@@ -1,4 +1,4 @@
-﻿"""
+"""
 Research Intelligence Router for CONVERA.
 Endpoints for generating the Literature Matrix, identifying research gaps,
 and formulating DSR problem briefs for computing capstones.
@@ -243,7 +243,7 @@ async def get_research_domain(domain_id: str):
 async def create_research_domain(req: ResearchDomainCreateRequest):
     """Create and persist a new custom research domain."""
     storage = get_storage()
-    created = storage.create_research_domain(req.dict())
+    created = storage.create_research_domain(req.model_dump())
     return {"status": "success", "domain": created}
 
 
@@ -251,7 +251,7 @@ async def create_research_domain(req: ResearchDomainCreateRequest):
 async def update_research_domain(domain_id: str, req: ResearchDomainUpdateRequest):
     """Update an existing research domain."""
     storage = get_storage()
-    updates = {k: v for k, v in req.dict().items() if v is not None}
+    updates = {k: v for k, v in req.model_dump().items() if v is not None}
     updated = storage.update_research_domain(domain_id, updates)
     if not updated:
         raise HTTPException(status_code=404, detail=f"Research domain '{domain_id}' not found")

@@ -2734,7 +2734,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
 
     def create_research_domain(self, domain_data: Dict[str, Any]) -> Dict[str, Any]:
         """Create a new research domain (custom or project-specific)."""
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         domain_id = domain_data.get("id")
         if not domain_id:
             import uuid
@@ -2773,7 +2773,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
 
     def update_research_domain(self, domain_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Update an existing research domain."""
-        now = datetime.utcnow().isoformat()
+        now = datetime.now(timezone.utc).isoformat()
         allowed = [
             "title", "domain_type", "description", "scope_boundary",
             "related_domain_ids", "why_explore", "context_setting",
@@ -3664,10 +3664,14 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         now = datetime.now(timezone.utc).isoformat()
         with self._get_connection() as conn:
             # Ensure project exists
-            conn.execute("""
-                INSERT OR IGNORE INTO projects (id, name, share_code, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?)
-            """, (project_id, f"Project {project_id}", project_id[:8].upper(), now, now))
+            cur_proj = conn.execute("SELECT id FROM projects WHERE id = ?", (project_id,))
+            if not cur_proj.fetchone():
+                import uuid
+                share_code = f"SC-{uuid.uuid4().hex[:8].upper()}"
+                conn.execute("""
+                    INSERT INTO projects (id, share_code, name, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (project_id, share_code, f"Project {project_id}", now, now))
             for p in MASTER_RESEARCH_PROBLEMS:
                 prob_id = p['id'] if project_id in ('default_proj', None) else f"{p['id']}-{project_id[-6:]}"
                 # Insert or ignore if problem already exists
