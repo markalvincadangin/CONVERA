@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "convera": {
+      "command": "python",
+      "args": ["backend/mcp_server.py"],
+      "description": "CONVERA Internal Intelligence & Knowledge Graph MCP Server"
+    }
+  }
+}
