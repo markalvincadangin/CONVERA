@@ -2,6 +2,8 @@ import pytest
 import asyncio
 from mcp_server import handle_tool_call, MCP_TOOLS
 
+
+pytestmark = pytest.mark.unit
 @pytest.mark.asyncio
 async def test_mcp_tools_list():
     assert len(MCP_TOOLS) >= 6

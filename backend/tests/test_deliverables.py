@@ -2,6 +2,8 @@ import pytest
 from unittest.mock import patch, AsyncMock
 from engines.deliverables_generator import generate_lean_canvas, generate_swot_analysis, generate_pitch_deck
 
+
+pytestmark = pytest.mark.unit
 @pytest.mark.asyncio
 async def test_generate_lean_canvas():
     mock_canvas = """

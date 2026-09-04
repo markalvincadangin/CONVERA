@@ -3,6 +3,8 @@ from fastapi.testclient import TestClient
 from server import app
 from storage.sqlite_adapter import SQLiteStorageAdapter
 
+
+pytestmark = pytest.mark.integration
 @pytest.fixture
 def client():
     return TestClient(app)

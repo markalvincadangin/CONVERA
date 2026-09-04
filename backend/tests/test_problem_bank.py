@@ -5,6 +5,8 @@ import tempfile
 from storage.sqlite_adapter import SQLiteStorageAdapter
 from engines.evidence_scorer import calculate_score_breakdown
 
+
+pytestmark = pytest.mark.integration
 @pytest.fixture
 def temp_storage():
     fd, path = tempfile.mkstemp(suffix=".db")

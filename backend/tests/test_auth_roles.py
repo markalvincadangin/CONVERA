@@ -3,6 +3,8 @@ import os
 import tempfile
 from storage.sqlite_adapter import SQLiteStorageAdapter
 
+
+pytestmark = pytest.mark.integration
 @pytest.fixture
 def storage():
     fd, path = tempfile.mkstemp(suffix=".db")

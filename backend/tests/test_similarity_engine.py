@@ -1,6 +1,8 @@
 import pytest
 from engines.similarity_engine import calculate_similarity, check_portfolio_similarity
 
+
+pytestmark = pytest.mark.unit
 def test_similarity_identical_and_close_statements():
     s1 = "Post-harvest fish spoilage in Concepcion Iloilo due to lack of ice plants and cold chain."
     s2 = "Post-harvest fish spoilage in Northern Iloilo caused by lack of cold chain infrastructure."

@@ -1,5 +1,8 @@
 from engines.problem_parser import parse_phase1_markdown
 
+
+import pytest
+pytestmark = pytest.mark.unit
 SAMPLE_MD = """# Phase 1 Startup Problem Discovery: Health & Wellness (Iloilo, Philippines)
 
 **Prepared by:** Phase 1 Discovery Advisor

@@ -10,6 +10,7 @@ from engines.framework_engine import (
 from storage.sqlite_adapter import SQLiteStorageAdapter
 
 
+@pytest.mark.unit
 def test_list_frameworks():
     fws = list_frameworks()
     assert len(fws) == 2
@@ -18,6 +19,7 @@ def test_list_frameworks():
     assert "RESEARCH" in ids
 
 
+@pytest.mark.unit
 def test_get_innovation_framework():
     fw = get_framework("INNOVATION")
     assert fw is not None
@@ -28,6 +30,7 @@ def test_get_innovation_framework():
     assert "Decision Records" in fw.required_artifacts
 
 
+@pytest.mark.unit
 def test_get_research_framework():
     fw = get_framework("RESEARCH")
     assert fw is not None
@@ -45,6 +48,7 @@ def test_get_research_framework():
     assert "research_gate_4" in gate_ids
 
 
+@pytest.mark.integration
 def test_sqlite_framework_persistence_and_switch(tmp_path):
     db_path = str(tmp_path / "test_framework.db")
     adapter = SQLiteStorageAdapter(db_path=db_path)

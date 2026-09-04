@@ -14,6 +14,8 @@ from engines.evaluation_engine import ConveraEvaluationEngine
 from engines.knowledge_lifecycle import compute_claim_epistemic_balance
 from engines.impact_engine import propagate_evidence_change
 
+
+pytestmark = pytest.mark.integration
 client = TestClient(app)
 storage = get_storage()
 

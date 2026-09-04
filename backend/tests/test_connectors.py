@@ -8,6 +8,7 @@ from connectors.pubmed_connector import PubMedConnector
 from connectors.hub import ConnectorHub, connector_hub
 
 
+@pytest.mark.unit
 def test_connector_hub_registry():
     hub = ConnectorHub()
     conn_list = asyncio.run(hub.list_connectors())
@@ -19,6 +20,7 @@ def test_connector_hub_registry():
     assert "pubmed" in ids
 
 
+@pytest.mark.unit
 def test_openalex_normalization():
     conn = OpenAlexConnector()
     mock_data = {
@@ -57,6 +59,7 @@ def test_openalex_normalization():
     assert work.provenance.source_name == "OpenAlex Scholarly Graph"
 
 
+@pytest.mark.unit
 def test_crossref_normalization():
     conn = CrossrefConnector()
     mock_item = {
@@ -80,6 +83,7 @@ def test_crossref_normalization():
     assert work.citation_count == 18
 
 
+@pytest.mark.live
 def test_federated_search_deduplication():
     hub = ConnectorHub()
     
@@ -141,6 +145,7 @@ def test_federated_search_deduplication():
     assert results[1].doi == "10.1109/test.001"  # 50 citations
 
 
+@pytest.mark.unit
 def test_pubmed_normalization():
     conn = PubMedConnector()
     mock_summary = {
