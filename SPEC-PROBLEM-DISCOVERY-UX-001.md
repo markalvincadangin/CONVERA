@@ -6,7 +6,8 @@
 **Authoritative Evidence Base**:
 - `CONVERA_RUNTIME_FEATURE_AUDIT.md` (Committed at `ac3584c`)
 - `CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md` (Committed at `ac3584c`)  
-**Status**: `RATIFIED — IMPLEMENTATION NOT AUTHORIZED`
+**Status**: `SUPERSEDED & REFRAMED — INCORPORATED AS UX-BATCH-001 UNDER SPEC-UX-ITERATION-001`  
+**Governing Specification**: [`SPEC-UX-ITERATION-001.md`](file:///home/markc/projects/active/CONVERA/SPEC-UX-ITERATION-001.md)
 
 ---
 

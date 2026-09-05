@@ -10,11 +10,10 @@ import { problemService } from "@/services/problemService";
 import { researchService } from "@/services/researchService";
 import { ALL_SECTORS } from "@/lib/constants";
 import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
-import { ManualProblemModal } from "./ManualProblemModal";
+import { ProblemIntakeModal } from "./ProblemIntakeModal";
 import { ProblemDetailModal } from "./ProblemDetailModal";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
 import { BlindSpotModal } from "./BlindSpotModal";
-import { RawBrainstormIngestModal } from "./RawBrainstormIngestModal";
 import { ResearchEvidenceModal } from "./ResearchEvidenceModal";
 import { ResearchInboxDrawer } from "@/components/common/ResearchInboxDrawer";
 import { ImpactAlertBanner } from "./ImpactAlertBanner";
@@ -133,14 +132,14 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null);
 
   // Modals
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isProblemIntakeOpen, setIsProblemIntakeOpen] = useState(false);
+  const [intakeInitialMode, setIntakeInitialMode] = useState<"manual" | "notes">("manual");
   const [selectedProblem, setSelectedProblem] = useState<ProblemRecord | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isBlindSpotModalOpen, setIsBlindSpotModalOpen] = useState(false);
   const [challengeTargetProblem, setChallengeTargetProblem] = useState<ProblemRecord | null>(null);
   const [isDevilsAdvocateOpen, setIsDevilsAdvocateOpen] = useState(false);
   const [isResearchEvidenceOpen, setIsResearchEvidenceOpen] = useState(false);
-  const [isRawIngestOpen, setIsRawIngestOpen] = useState(false);
   const [isInboxDrawerOpen, setIsInboxDrawerOpen] = useState(false);
 
   const fetchProblems = async () => {
@@ -386,7 +385,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
       return (
         <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 whitespace-nowrap shadow-sm">
           <ShieldCheck className="w-3.5 h-3.5 shrink-0 text-emerald-400" />
-          <span>Strongly Documented</span>
+          <span>Strongly Verified</span>
         </span>
       );
     }
@@ -401,7 +400,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
     return (
       <span className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold px-2.5 py-1 rounded-lg bg-amber-500/15 text-amber-400 border border-amber-500/30 whitespace-nowrap shadow-sm">
         <Radio className="w-3.5 h-3.5 shrink-0 text-amber-400" />
-        <span>Signal</span>
+        <span>Initial Observation</span>
       </span>
     );
   };
@@ -460,20 +459,13 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
           </Button>
 
           <Button
-            variant="secondary"
-            size="sm"
-            className="w-full sm:w-auto justify-center text-xs bg-slate-900 border-cyan-500/30 text-cyan-300 hover:bg-cyan-500/10"
-            onClick={() => setIsRawIngestOpen(true)}
-            leftIcon={<Sparkles className="w-3.5 h-3.5 text-cyan-400" />}
-          >
-            Ingest AI / GC Notes
-          </Button>
-
-          <Button
             variant="primary"
             size="sm"
             className="w-full sm:w-auto justify-center text-xs"
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              setIntakeInitialMode("manual");
+              setIsProblemIntakeOpen(true);
+            }}
             leftIcon={<Plus className="w-3.5 h-3.5" />}
           >
             Add Problem
@@ -528,9 +520,9 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
               className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-cyan-500/50 shadow-inner"
             >
               <option value="All">All Evidence Tiers</option>
-              <option value="STRONGLY_DOCUMENTED">Strongly Documented</option>
+              <option value="STRONGLY_DOCUMENTED">Strongly Verified</option>
               <option value="DOCUMENTED">Documented</option>
-              <option value="SIGNAL">Signal</option>
+              <option value="SIGNAL">Initial Observation</option>
             </select>
           </div>
 
@@ -598,7 +590,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
             }`}
           >
             <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            <span>Strongly Documented</span>
+            <span>Strongly Verified</span>
           </button>
           <button
             onClick={() => setQuickFilter("VOTED")}
@@ -716,39 +708,38 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
 
           {/* 3 Socratic Pathways Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left max-w-4xl mx-auto">
-            {/* Pathway 1: AI Note Structuring */}
-            <div
-              role="button"
-              tabIndex={0}
-              aria-label="Open AI Note Structuring Ingest Modal"
-              onClick={() => setIsRawIngestOpen(true)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsRawIngestOpen(true); } }}
-              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
+            {/* Pathway 1: Import from Notes */}
+            <button
+              type="button"
+              aria-label="Import from Notes or Chat"
+              onClick={() => {
+                setIntakeInitialMode("notes");
+                setIsProblemIntakeOpen(true);
+              }}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500 text-left"
             >
               <div className="w-9 h-9 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-105 transition-transform">
                 <Sparkles className="w-4 h-4" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-white group-hover:text-cyan-300 transition-colors">
-                  AI Note Structuring
+                  Import from Notes
                 </h4>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Paste raw interview transcripts, GC messages, or field observations. AI extracts 5 core grounding anchors.
+                  Paste interview notes, transcripts, or field observations. AI extracts core problem details for human review.
                 </p>
               </div>
               <span className="text-[11px] font-bold text-cyan-400 flex items-center gap-1 font-mono">
-                Ingest Notes <ArrowRight className="w-3 h-3" />
+                Extract from Raw Notes <ArrowRight className="w-3 h-3" />
               </span>
-            </div>
+            </button>
 
             {/* Pathway 2: Blind Spot Scanner */}
-            <div
-              role="button"
-              tabIndex={0}
+            <button
+              type="button"
               aria-label="Open Blind Spot Scanner Modal"
               onClick={() => setIsBlindSpotModalOpen(true)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsBlindSpotModalOpen(true); } }}
-              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500"
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-purple-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-500 text-left"
             >
               <div className="w-9 h-9 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 group-hover:scale-105 transition-transform">
                 <Radar className="w-4 h-4" />
@@ -764,32 +755,33 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
               <span className="text-[11px] font-bold text-purple-400 flex items-center gap-1 font-mono">
                 Scan Sectors <ArrowRight className="w-3 h-3" />
               </span>
-            </div>
+            </button>
 
-            {/* Pathway 3: Manual 5-Anchor Entry */}
-            <div
-              role="button"
-              tabIndex={0}
-              aria-label="Open Manual 5-Anchor Entry Modal"
-              onClick={() => setIsAddModalOpen(true)}
-              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setIsAddModalOpen(true); } }}
-              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
+            {/* Pathway 3: Manual Entry */}
+            <button
+              type="button"
+              aria-label="Enter Problem Details Manually"
+              onClick={() => {
+                setIntakeInitialMode("manual");
+                setIsProblemIntakeOpen(true);
+              }}
+              className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-emerald-500/50 hover:bg-slate-900 transition-all cursor-pointer space-y-3 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 text-left"
             >
               <div className="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-105 transition-transform">
                 <Plus className="w-4 h-4" />
               </div>
               <div>
                 <h4 className="text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">
-                  Manual 5-Anchor Entry
+                  Enter Details Manually
                 </h4>
                 <p className="text-xs text-slate-400 mt-1 leading-relaxed">
-                  Directly log Sufferer, Location, Root Cause, Workaround, and Quantified Loss in structured fields.
+                  Directly log Problem Statement, Affected Persona, Location, and Workaround in structured fields.
                 </p>
               </div>
               <span className="text-[11px] font-bold text-emerald-400 flex items-center gap-1 font-mono">
                 Add Statement <ArrowRight className="w-3 h-3" />
               </span>
-            </div>
+            </button>
           </div>
         </div>
       ) : filteredProblems.length === 0 ? (
@@ -944,7 +936,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                             }}
                             className="px-2.5 py-1 rounded-lg text-[11px] font-semibold text-cyan-400 hover:text-cyan-300 bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 transition-all flex items-center gap-1"
                           >
-                            <span>Dossier</span>
+                            <span>View Details</span>
                             <ArrowRight className="w-3 h-3" />
                           </button>
                         </div>
@@ -1087,7 +1079,7 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
                       }}
                       className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold hover:underline"
                     >
-                      <span>Dossier</span>
+                      <span>View Details</span>
                       <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
@@ -1098,13 +1090,14 @@ export const ProblemBankView: React.FC<ProblemBankViewProps> = ({
         </div>
       )}
 
-      {/* Modals */}
-      <ManualProblemModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+      {/* Canonical Problem Intake Modal */}
+      <ProblemIntakeModal
+        isOpen={isProblemIntakeOpen}
+        onClose={() => setIsProblemIntakeOpen(false)}
         onProblemSaved={(newProb) => {
           setProblems((prev) => [newProb, ...prev]);
         }}
+        initialMode={intakeInitialMode}
         projectId={session?.project_id || undefined}
         sessionId={session?.session_id || undefined}
       />

@@ -95,7 +95,7 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
           <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs">
             <div className="font-bold font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" /> Mechanical Ratchet: Preview Mode (Read Only)
+              <Lock className="w-3.5 h-3.5" /> Stage Locked: Review Only
             </div>
             <p className="text-slate-300 leading-relaxed">
               Prerequisites for Phase 4 (Solution Ideation & SVB Canvas) are not yet satisfied. Complete all 6 validation levels in Phase 3 (Mom Test Defense) to clear the empirical validation gate before generating solution concepts. All execution actions in this phase are currently locked.

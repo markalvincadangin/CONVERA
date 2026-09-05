@@ -11,6 +11,7 @@ import { ProblemRecord, SessionState } from "@/lib/types";
 import { sanitizeText, sanitizeProblemId } from "@/lib/sanitize";
 import { problemService } from "@/services/problemService";
 import { DevilsAdvocateModal } from "./DevilsAdvocateModal";
+import { ArchiveProblemModal } from "./ArchiveProblemModal";
 import { SocraticCriticModal } from "./SocraticCriticModal";
 import { CitationVerifierModal } from "./CitationVerifierModal";
 import { ResearchEvidenceModal } from "./ResearchEvidenceModal";
@@ -79,6 +80,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   const [isCriticOpen, setIsCriticOpen] = useState(false);
   const [isVerifierOpen, setIsVerifierOpen] = useState(false);
   const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isVoting, setIsVoting] = useState(false);
 
   useEffect(() => {
@@ -182,18 +184,8 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
     }
   };
 
-  const handleArchive = async () => {
-    const reason = window.prompt("Enter the reason for archiving / rejecting this idea (e.g. 'Failed Mom Test validation / High Capex'):");
-    if (!reason || !reason.trim()) return;
-
-    try {
-      const author = authService.getCurrentUser()?.name || "Team Member";
-      const res = await problemService.archiveProblem(problem.id, reason.trim(), author);
-      onProblemUpdated(res.problem);
-      onClose();
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to archive problem", "Archive Error");
-    }
+  const handleArchive = () => {
+    setIsArchiveModalOpen(true);
   };
 
   const handleRestore = async () => {
@@ -228,9 +220,9 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
   };
 
   const tierLabels: Record<string, string> = {
-    STRONGLY_DOCUMENTED: "Strongly Documented",
+    STRONGLY_DOCUMENTED: "Strongly Verified",
     DOCUMENTED: "Documented",
-    SIGNAL: "Field Signal",
+    SIGNAL: "Initial Observation",
   };
 
   const formatTierBadge = (tier?: string) => {
@@ -299,7 +291,7 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
                 leftIcon={<Flame className="w-3.5 h-3.5 text-rose-400" />}
                 className="text-xs bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border-rose-500/30"
               >
-                Devil&apos;s Advocate
+                Stress Test Assumptions
               </Button>
             </div>
           </div>
@@ -656,8 +648,8 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
                 Restore Problem
               </Button>
             ) : (
-              <Button variant="ghost" size="sm" onClick={handleArchive} className="text-xs text-slate-400 hover:text-amber-400">
-                Reject / Archive
+              <Button variant="ghost" size="sm" onClick={() => setIsArchiveModalOpen(true)} className="text-xs text-slate-400 hover:text-amber-400">
+                Archive Problem
               </Button>
             )}
           </div>
@@ -697,6 +689,17 @@ export const ProblemDetailModal: React.FC<ProblemDetailModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* In-App Archival Modal */}
+      <ArchiveProblemModal
+        isOpen={isArchiveModalOpen}
+        onClose={() => setIsArchiveModalOpen(false)}
+        problem={problem}
+        onProblemArchived={(archived) => {
+          onProblemUpdated(archived);
+          onClose();
+        }}
+      />
 
       {/* Devil's Advocate Modal */}
       <DevilsAdvocateModal
