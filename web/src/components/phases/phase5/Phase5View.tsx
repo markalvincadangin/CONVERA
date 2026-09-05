@@ -80,7 +80,7 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
           <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs">
             <div className="font-bold font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" /> Mechanical Ratchet: Preview Mode (Read Only)
+              <Lock className="w-3.5 h-3.5" /> Stage Locked: Review Only
             </div>
             <p className="text-slate-300 leading-relaxed">
               Prerequisites for Phase 5 (MVP Testing & Skin-in-the-Game Audit) are not yet satisfied. Complete concept ideation and experiment mapping in Phase 4 first to unlock commitment auditing and skin-in-the-game scoring. All execution actions in this phase are currently locked.

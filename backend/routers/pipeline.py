@@ -99,6 +99,12 @@ async def phase1_discover(req: Phase1DiscoverRequest):
         if extracted_problems:
             upsert_res = storage.bulk_upsert_problems(extracted_problems)
             state["problem_candidates"] = upsert_res.get("problems", extracted_problems)
+            state["phase1_ingestion_summary"] = {
+                "new_created_count": upsert_res.get("new_created_count", 0),
+                "created_ids": upsert_res.get("created_ids", []),
+                "merged_count": upsert_res.get("merged_count", 0),
+                "merged_ids": upsert_res.get("merged_ids", []),
+            }
     except Exception as e:
         print(f"[!] Warning: Auto-extraction failed ({e})")
 

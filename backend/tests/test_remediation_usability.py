@@ -232,3 +232,34 @@ def test_full_api_persistence_lifecycle(temp_adapter, monkeypatch):
     assert restored["phase2_complete"] is True
     assert restored["phase2_response"] == "Ice slurry cooling network"
     assert restored["phase3_problem"] == "Estancia fishermen lack rapid slush-ice cooling"
+
+
+def test_phase1_ingestion_summary_persistence(temp_adapter):
+    """
+    Verify DEF-PB-005 (FR-010):
+    Phase 1 ingestion summary (new_created_count, created_ids, merged_count, merged_ids)
+    persists in session state across save and reload.
+    """
+    session_id = "sess_ingestion_summary_001"
+    summary_data = {
+        "new_created_count": 3,
+        "created_ids": ["AGR-001", "AGR-002", "HLT-001"],
+        "merged_count": 1,
+        "merged_ids": ["AGR-003"],
+    }
+    initial_state = {
+        "session_id": session_id,
+        "project_name": "Agri Intake",
+        "phase1_complete": True,
+        "phase1_ingestion_summary": summary_data,
+    }
+    temp_adapter.save_session(session_id, initial_state)
+
+    reloaded = temp_adapter.get_session(session_id)
+    assert reloaded is not None
+    assert "phase1_ingestion_summary" in reloaded
+    assert reloaded["phase1_ingestion_summary"]["new_created_count"] == 3
+    assert reloaded["phase1_ingestion_summary"]["created_ids"] == ["AGR-001", "AGR-002", "HLT-001"]
+    assert reloaded["phase1_ingestion_summary"]["merged_count"] == 1
+    assert reloaded["phase1_ingestion_summary"]["merged_ids"] == ["AGR-003"]
+

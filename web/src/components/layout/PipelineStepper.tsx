@@ -99,7 +99,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       icon: ShieldCheck,
       isComplete: Boolean(session?.phase3_complete),
       isAvailable: Boolean(session?.phase1_complete || session?.phase2_complete || session?.phase3_problem),
-      lockReason: "Locked by Mechanical Ratchet. Complete Phase 1 or Phase 2 problem screening first.",
+      lockReason: "Prerequisites Incomplete. Complete Phase 1 or Phase 2 problem screening first.",
       isBank: false,
     },
     {
@@ -110,7 +110,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       icon: Lightbulb,
       isComplete: Boolean(session?.phase4_complete),
       isAvailable: Boolean(session?.phase3_complete),
-      lockReason: "Locked by Mechanical Ratchet. Complete all 6 Mom Test levels in Phase 3 first.",
+      lockReason: "Prerequisites Incomplete. Complete all 6 Mom Test levels in Phase 3 first.",
       isBank: false,
     },
     {
@@ -121,7 +121,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       icon: Activity,
       isComplete: Boolean(session?.phase5_complete),
       isAvailable: Boolean(session?.phase4_complete),
-      lockReason: "Locked by Mechanical Ratchet. Map mechanism & SVB in Phase 4 first.",
+      lockReason: "Prerequisites Incomplete. Map mechanism & SVB in Phase 4 first.",
       isBank: false,
     },
     {

@@ -132,7 +132,7 @@ export const DevilsAdvocateModal: React.FC<DevilsAdvocateModalProps> = ({
               leftIcon={<Flame className="w-4 h-4" />}
               className="shadow-lg shadow-red-500/20"
             >
-              Unleash Devil's Advocate
+              Run Stress Test
             </Button>
           </div>
         ) : isLoading ? (
