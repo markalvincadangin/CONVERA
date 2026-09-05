@@ -78,10 +78,15 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
       onUpdateSession(res.state);
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(
-        err.message ||
-          "Google Gemini servers are temporarily experiencing high demand (503). Click 'Retry' to re-evaluate."
-      );
+      const msg = err.message || "";
+      if (msg.includes("Network") || msg.includes("Failed to fetch") || msg.includes("CONVERA backend")) {
+        setErrorMessage("Cannot reach the CONVERA backend. Check your connection or server status and try again.");
+      } else {
+        setErrorMessage(
+          msg ||
+            "The upstream AI provider is temporarily unavailable or experiencing high demand. Click 'Retry' to re-evaluate."
+        );
+      }
     } finally {
       setIsScreening(false);
     }

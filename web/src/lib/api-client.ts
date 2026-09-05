@@ -37,6 +37,6 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
     return await res.json();
   } catch (err: any) {
     if (err instanceof ApiError) throw err;
-    throw new ApiError(500, err.message || "Network connection to RatchetAI backend failed.");
+    throw new ApiError(500, err.message || "Network connection to CONVERA backend failed.");
   }
 }

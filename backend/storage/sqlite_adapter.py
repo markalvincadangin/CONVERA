@@ -37,8 +37,8 @@ def clean_problem_id(val: str) -> str:
     return s
 
 
-def generate_share_code(prefix: str = "RATCH") -> str:
-    """Generate a clean 6-character room share code like RATCH-7K9."""
+def generate_share_code(prefix: str = "CONV") -> str:
+    """Generate a clean room share code like CONV-7K9."""
     chars = "".join(random.choices(string.ascii_uppercase + "23456789", k=4))
     return f"{prefix}-{chars}"
 
@@ -953,30 +953,45 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             except Exception:
                 return None
 
-    def save_session(self, session_id: str, state: Dict[str, Any]) -> Dict[str, Any]:
-        project_name = state.get("project_name") or "Venture Project"
-        project_id = state.get("project_id")
-
-        p1 = 1 if state.get("phase1_complete") or state.get("phase1_response") else 0
-        p2 = 1 if state.get("phase2_complete") or state.get("phase2_response") else 0
-        p3 = 1 if state.get("phase3_complete") or (state.get("completed_levels") and len(state.get("completed_levels", [])) >= 6) else 0
-        p4 = 1 if state.get("phase4_complete") or state.get("phase4_response") else 0
-        p5 = 1 if state.get("phase5_complete") or state.get("phase5_response") else 0
+    def save_session(self, session_id: str, state: Optional[Dict[str, Any]] = None, **kwargs) -> Dict[str, Any]:
+        if state is None:
+            state = kwargs.get("state_data", {})
+        if not isinstance(state, dict):
+            state = dict(state) if state else {}
+        for k, v in kwargs.items():
+            if k != "state_data" and k not in state:
+                state[k] = v
 
         now = datetime.now(timezone.utc).isoformat()
 
         with self._get_connection() as conn:
+            existing_sess = conn.execute(
+                "SELECT project_id, project_name, state_data FROM sessions WHERE session_id = ?",
+                (session_id,)
+            ).fetchone()
+
+            existing_state = {}
+            if existing_sess and existing_sess["state_data"]:
+                try:
+                    loaded = json.loads(existing_sess["state_data"])
+                    if isinstance(loaded, dict):
+                        existing_state = loaded
+                except Exception:
+                    existing_state = {}
+
+            # Merge: preserve prior session state while applying incoming updates
+            merged_state = {**existing_state, **state}
+
+            project_name = merged_state.get("project_name") or (existing_sess["project_name"] if existing_sess else None) or "Venture Project"
+            project_id = merged_state.get("project_id") or (existing_sess["project_id"] if existing_sess else None)
+
             if not project_id:
-                existing_sess = conn.execute("SELECT project_id FROM sessions WHERE session_id = ?", (session_id,)).fetchone()
-                if existing_sess and existing_sess["project_id"]:
-                    project_id = existing_sess["project_id"]
-                else:
-                    project_id = f"proj_{uuid.uuid4().hex[:8]}"
-                    code = generate_share_code()
-                    conn.execute(
-                        "INSERT INTO projects (id, share_code, name) VALUES (?, ?, ?)",
-                        (project_id, code, project_name)
-                    )
+                project_id = f"proj_{uuid.uuid4().hex[:8]}"
+                code = generate_share_code()
+                conn.execute(
+                    "INSERT INTO projects (id, share_code, name) VALUES (?, ?, ?)",
+                    (project_id, code, project_name)
+                )
             else:
                 proj = conn.execute("SELECT id FROM projects WHERE id = ?", (project_id,)).fetchone()
                 if not proj:
@@ -986,9 +1001,16 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                         (project_id, code, project_name)
                     )
 
-            state["project_id"] = project_id
-            state["session_id"] = session_id
-            state_json = json.dumps(state)
+            merged_state["project_id"] = project_id
+            merged_state["session_id"] = session_id
+
+            p1 = 1 if merged_state.get("phase1_complete") or merged_state.get("phase1_response") else 0
+            p2 = 1 if merged_state.get("phase2_complete") or merged_state.get("phase2_response") else 0
+            p3 = 1 if merged_state.get("phase3_complete") or (merged_state.get("completed_levels") and len(merged_state.get("completed_levels", [])) >= 6) else 0
+            p4 = 1 if merged_state.get("phase4_complete") or merged_state.get("phase4_response") else 0
+            p5 = 1 if merged_state.get("phase5_complete") or merged_state.get("phase5_response") else 0
+
+            state_json = json.dumps(merged_state)
 
             conn.execute("""
                 INSERT INTO sessions (
@@ -1007,7 +1029,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     updated_at = excluded.updated_at
             """, (session_id, project_id, project_name, state_json, p1, p2, p3, p4, p5, now))
 
-        return state
+        return merged_state
 
     def list_sessions(self, limit: int = 50) -> List[Dict[str, Any]]:
         with self._get_connection() as conn:

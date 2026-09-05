@@ -82,6 +82,24 @@ export default function Home() {
       }
       setSession(activeSess);
 
+      // Restore active phase from localStorage or session progress
+      if (typeof window !== "undefined") {
+        try {
+          const savedPhase = localStorage.getItem(`convera_active_phase_${activeSess.session_id}`);
+          if (savedPhase !== null && !isNaN(Number(savedPhase))) {
+            setActivePhase(Number(savedPhase));
+          } else if (activeSess.phase4_complete) {
+            setActivePhase(5);
+          } else if (activeSess.phase3_complete) {
+            setActivePhase(4);
+          } else if (activeSess.phase2_complete || activeSess.phase3_problem) {
+            setActivePhase(3);
+          } else if (activeSess.phase1_complete) {
+            setActivePhase(2);
+          }
+        } catch {}
+      }
+
       // Fetch problems for health meter and AI hints
       try {
         const probList = await problemService.listProblems({
@@ -115,8 +133,22 @@ export default function Home() {
     initApp();
   }, []);
 
+  const handleSelectPhase = (phase: number) => {
+    setActivePhase(phase);
+    if (session?.session_id && typeof window !== "undefined") {
+      try {
+        localStorage.setItem(`convera_active_phase_${session.session_id}`, String(phase));
+      } catch {}
+    }
+  };
+
   const handleUpdateSession = (newState: SessionState) => {
     setSession(newState);
+    if (newState?.session_id && !newState.session_id.startsWith("offline_")) {
+      sessionService.updateSession(newState.session_id, newState).catch((err) => {
+        console.warn("Failed to persist session update to backend:", err);
+      });
+    }
   };
 
   const handleSelectSession = async (selectedSessionId: string) => {
@@ -128,7 +160,21 @@ export default function Home() {
         project_id: fullState.project_id || undefined,
       });
       setProblems(probList);
-      setActivePhase(0);
+
+      if (typeof window !== "undefined") {
+        try {
+          const savedPhase = localStorage.getItem(`convera_active_phase_${selectedSessionId}`);
+          if (savedPhase !== null && !isNaN(Number(savedPhase))) {
+            setActivePhase(Number(savedPhase));
+          } else {
+            setActivePhase(0);
+          }
+        } catch {
+          setActivePhase(0);
+        }
+      } else {
+        setActivePhase(0);
+      }
       setIsSessionManagerOpen(false);
     } catch (err) {
       console.error("Failed to load selected session:", err);
@@ -243,7 +289,7 @@ export default function Home() {
       {/* Interactive Pipeline Timeline Stepper & Integrated Command Deck */}
       <PipelineStepper
         activePhase={activePhase}
-        onSelectPhase={(phase) => setActivePhase(phase)}
+        onSelectPhase={handleSelectPhase}
         session={session}
         problems={problems}
       />
@@ -266,16 +312,7 @@ export default function Home() {
                   Backend Connecting or Offline
                 </h3>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  The frontend cannot reach the FastAPI server at <code className="text-cyan-300">http://localhost:8000</code>.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 text-left space-y-1">
-                <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 block">
-                  Quick Fix:
-                </span>
-                <p className="text-xs font-mono text-slate-300">
-                  cd pipeline &amp;&amp; python -m uvicorn server:app --reload --port 8000
+                  Cannot reach the CONVERA backend. Check your connection or server status and try again.
                 </p>
               </div>
 
@@ -332,7 +369,7 @@ export default function Home() {
                   <Phase1View
                     session={session}
                     onUpdateSession={handleUpdateSession}
-                    onAdvanceToNextPhase={() => setActivePhase(2)}
+                    onAdvanceToNextPhase={() => handleSelectPhase(2)}
                   />
                 )}
 
@@ -343,11 +380,11 @@ export default function Home() {
                     selectedProblemIds={phase2SelectedIds}
                     onAdvanceToNextPhase={(problem) => {
                       if (problem) {
-                        setSession({ ...session, phase3_problem: problem });
+                        handleUpdateSession({ ...session, phase3_problem: problem });
                       }
-                      setActivePhase(3);
+                      handleSelectPhase(3);
                     }}
-                    onGoBack={() => setActivePhase(1)}
+                    onGoBack={() => handleSelectPhase(1)}
                   />
                 )}
 
@@ -355,8 +392,8 @@ export default function Home() {
                   <Phase3View
                     session={session}
                     onUpdateSession={handleUpdateSession}
-                    onAdvanceToNextPhase={() => setActivePhase(4)}
-                    onGoBack={() => setActivePhase(2)}
+                    onAdvanceToNextPhase={() => handleSelectPhase(4)}
+                    onGoBack={() => handleSelectPhase(2)}
                     initialProblemStatement={session.phase3_problem}
                   />
                 )}
@@ -365,8 +402,8 @@ export default function Home() {
                   <Phase4View
                     session={session}
                     onUpdateSession={handleUpdateSession}
-                    onAdvanceToNextPhase={() => setActivePhase(5)}
-                    onGoBack={() => setActivePhase(3)}
+                    onAdvanceToNextPhase={() => handleSelectPhase(5)}
+                    onGoBack={() => handleSelectPhase(3)}
                   />
                 )}
 
@@ -374,7 +411,7 @@ export default function Home() {
                   <Phase5View
                     session={session}
                     onUpdateSession={handleUpdateSession}
-                    onGoBack={() => setActivePhase(4)}
+                    onGoBack={() => handleSelectPhase(4)}
                     onExportDossier={handleExportDossier}
                   />
                 )}
@@ -383,7 +420,7 @@ export default function Home() {
                   <DeliverablesStudio
                     session={session}
                     onExportDossier={handleExportDossier}
-                    onNavigatePhase={(p) => setActivePhase(p)}
+                    onNavigatePhase={(p) => handleSelectPhase(p)}
                   />
                 )}
               </>
