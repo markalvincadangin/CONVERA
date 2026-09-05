@@ -148,6 +148,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     source_tier TEXT DEFAULT 'B',
                     evidence_type TEXT,
                     quote_or_summary TEXT,
+                    scholarly_work_id TEXT REFERENCES scholarly_works(id) ON DELETE SET NULL,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
                 );
@@ -919,6 +920,16 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             except sqlite3.OperationalError:
                 pass
 
+            # SDD-007 Additive Schema Migration: problem_sources.scholarly_work_id
+            try:
+                col_cursor = conn.execute("PRAGMA table_info(problem_sources);")
+                existing_cols = [row["name"] if isinstance(row, sqlite3.Row) else row[1] for row in col_cursor.fetchall()]
+                if "scholarly_work_id" not in existing_cols:
+                    conn.execute("ALTER TABLE problem_sources ADD COLUMN scholarly_work_id TEXT REFERENCES scholarly_works(id) ON DELETE SET NULL;")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_problem_sources_sw ON problem_sources(scholarly_work_id);")
+            except Exception:
+                pass
+
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute(
@@ -1494,15 +1505,16 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             for s in sources:
                 conn.execute("""
                     INSERT INTO problem_sources (
-                        problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
-                    ) VALUES (?, ?, ?, ?, ?, ?)
+                        problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary, scholarly_work_id
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?)
                 """, (
                     problem_id,
                     s.get("source_name") or s.get("description") or "Source",
                     s.get("source_url") or s.get("url"),
                     s.get("source_tier") or "B",
                     s.get("evidence_type") or "Reference",
-                    s.get("quote_or_summary") or ""
+                    s.get("quote_or_summary") or "",
+                    s.get("scholarly_work_id")
                 ))
         p = self.get_problem(problem_id)
         return p.get("sources", []) if p else []
@@ -1653,7 +1665,12 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 results.append(p)
             return results
 
-    def update_problem(self, problem_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update_problem(
+        self,
+        problem_id: str,
+        updates: Dict[str, Any],
+        cascade_confirmed: bool = False
+    ) -> Optional[Dict[str, Any]]:
         existing = self.get_problem(problem_id)
         if not existing:
             return None
@@ -1677,22 +1694,116 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 params.append(val)
 
         if "sources" in updates:
-            sources = updates["sources"]
+            sources = updates["sources"] or []
             with self._get_connection() as conn:
-                conn.execute("DELETE FROM problem_sources WHERE problem_id = ?", (problem_id,))
+                cur_existing = conn.execute(
+                    "SELECT * FROM problem_sources WHERE problem_id = ?",
+                    (problem_id,)
+                ).fetchall()
+                existing_rows = [dict(r) for r in cur_existing]
+                remaining_existing = {r["id"]: r for r in existing_rows}
+
                 for s in sources:
-                    conn.execute("""
-                        INSERT INTO problem_sources (
-                            problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary
-                        ) VALUES (?, ?, ?, ?, ?, ?)
-                    """, (
-                        problem_id,
-                        s.get("source_name") or s.get("description") or "Source",
-                        s.get("source_url") or s.get("url"),
-                        s.get("source_tier") or "B",
-                        s.get("evidence_type") or "Reference",
-                        s.get("quote_or_summary") or ""
-                    ))
+                    s_name = (s.get("source_name") or s.get("description") or "Source").strip()
+                    s_url_raw = s.get("source_url") or s.get("url")
+                    s_url = s_url_raw.strip().rstrip("/").lower() if (s_url_raw and s_url_raw.strip()) else None
+                    s_tier = s.get("source_tier") or "B"
+                    s_ev_type = s.get("evidence_type") or "Reference"
+                    s_quote = s.get("quote_or_summary") or ""
+                    s_quote_norm = s_quote[:60].strip().lower()
+                    s_sw_id = s.get("scholarly_work_id")
+
+                    matched_id = None
+                    is_ambiguous = False
+
+                    # Precedence 1: Match by explicit id (INTEGER) if provided
+                    explicit_id = s.get("id")
+                    if explicit_id is not None:
+                        try:
+                            explicit_int = int(explicit_id)
+                            if explicit_int in remaining_existing:
+                                matched_id = explicit_int
+                        except (ValueError, TypeError):
+                            pass
+
+                    # Precedence 2: Else match by scholarly_work_id if present on incoming source
+                    if matched_id is None and s_sw_id:
+                        sw_matches = [
+                            eid for eid, erow in remaining_existing.items()
+                            if erow.get("scholarly_work_id") == s_sw_id
+                        ]
+                        if len(sw_matches) == 1:
+                            matched_id = sw_matches[0]
+                        elif len(sw_matches) > 1:
+                            is_ambiguous = True
+
+                    # Precedence 3: Else match by normalized source_url (case-insensitive, trailing slash stripped) when URL is non-empty
+                    if matched_id is None and not is_ambiguous and s_url:
+                        url_matches = []
+                        for eid, erow in remaining_existing.items():
+                            erow_url_raw = erow.get("source_url")
+                            erow_url = erow_url_raw.strip().rstrip("/").lower() if (erow_url_raw and erow_url_raw.strip()) else None
+                            if erow_url and erow_url == s_url:
+                                url_matches.append(eid)
+                        if len(url_matches) == 1:
+                            matched_id = url_matches[0]
+                        elif len(url_matches) > 1:
+                            is_ambiguous = True
+
+                    # Precedence 4: Else match by composite key: source_name + quote_or_summary[:60] when source_url is NULL
+                    if matched_id is None and not is_ambiguous and s_url is None:
+                        comp_key = (s_name.lower(), s_quote_norm)
+                        comp_matches = []
+                        for eid, erow in remaining_existing.items():
+                            erow_url_raw = erow.get("source_url")
+                            if not erow_url_raw or not erow_url_raw.strip():
+                                erow_name = (erow.get("source_name") or "").strip().lower()
+                                erow_quote = (erow.get("quote_or_summary") or "")[:60].strip().lower()
+                                if (erow_name, erow_quote) == comp_key:
+                                    comp_matches.append(eid)
+                        if len(comp_matches) == 1:
+                            matched_id = comp_matches[0]
+                        elif len(comp_matches) > 1:
+                            is_ambiguous = True
+
+                    # Precedence 5: If multiple existing rows match fallback criteria, do not update any row;
+                    # INSERT the incoming source as a new source to prevent ambiguous cross-linking.
+                    if matched_id is not None:
+                        conn.execute("""
+                            UPDATE problem_sources SET
+                                source_name = ?,
+                                source_url = ?,
+                                source_tier = ?,
+                                evidence_type = ?,
+                                quote_or_summary = ?,
+                                scholarly_work_id = ?
+                            WHERE id = ?
+                        """, (s_name, s_url_raw, s_tier, s_ev_type, s_quote, s_sw_id, matched_id))
+                        del remaining_existing[matched_id]
+                    else:
+                        conn.execute("""
+                            INSERT INTO problem_sources (
+                                problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary, scholarly_work_id
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?)
+                        """, (problem_id, s_name, s_url_raw, s_tier, s_ev_type, s_quote, s_sw_id))
+
+                # Check omitted sources for active claim_evidence_links references
+                omitted_source_ids = list(remaining_existing.keys())
+                for oid in omitted_source_ids:
+                    link_count = conn.execute(
+                        "SELECT COUNT(*) FROM claim_evidence_links WHERE source_id = ?",
+                        (oid,)
+                    ).fetchone()[0]
+                    if link_count > 0:
+                        if not cascade_confirmed:
+                            raise ValueError(
+                                "Cannot delete problem source referenced by active claim evidence links without cascade_confirmed=True"
+                            )
+                        else:
+                            conn.execute("DELETE FROM problem_sources WHERE id = ?", (oid,))
+                    else:
+                        conn.execute("DELETE FROM problem_sources WHERE id = ?", (oid,))
+
             merged = {**existing, **updates}
             breakdown = calculate_score_breakdown(merged, sources)
             set_clauses.append("score = ?")
@@ -2241,9 +2352,14 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             if claim_id:
                 rows = conn.execute(
                     """
-                    SELECT l.*, s.source_name, s.source_url, s.source_tier, s.quote_or_summary
+                    SELECT l.*, s.source_name, s.source_url, s.source_tier, s.quote_or_summary,
+                           s.scholarly_work_id,
+                           sw.title AS scholarly_title, sw.doi AS scholarly_doi,
+                           sw.authors AS scholarly_authors, sw.year AS scholarly_year,
+                           sw.venue AS scholarly_venue
                     FROM claim_evidence_links l
                     LEFT JOIN problem_sources s ON l.source_id = s.id
+                    LEFT JOIN scholarly_works sw ON s.scholarly_work_id = sw.id
                     WHERE l.claim_id = ?
                     ORDER BY l.created_at DESC
                     """,
@@ -2252,10 +2368,16 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             elif problem_id:
                 rows = conn.execute(
                     """
-                    SELECT l.*, s.source_name, s.source_url, s.source_tier, s.quote_or_summary, c.claim_text, c.claim_type
+                    SELECT l.*, s.source_name, s.source_url, s.source_tier, s.quote_or_summary,
+                           s.scholarly_work_id,
+                           sw.title AS scholarly_title, sw.doi AS scholarly_doi,
+                           sw.authors AS scholarly_authors, sw.year AS scholarly_year,
+                           sw.venue AS scholarly_venue,
+                           c.claim_text, c.claim_type
                     FROM claim_evidence_links l
                     JOIN problem_claims c ON l.claim_id = c.id
                     LEFT JOIN problem_sources s ON l.source_id = s.id
+                    LEFT JOIN scholarly_works sw ON s.scholarly_work_id = sw.id
                     WHERE c.problem_id = ?
                     ORDER BY l.created_at DESC
                     """,
@@ -2263,9 +2385,14 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 ).fetchall()
             else:
                 rows = conn.execute("""
-                    SELECT l.*, s.source_name, s.source_url, s.source_tier
+                    SELECT l.*, s.source_name, s.source_url, s.source_tier,
+                           s.scholarly_work_id,
+                           sw.title AS scholarly_title, sw.doi AS scholarly_doi,
+                           sw.authors AS scholarly_authors, sw.year AS scholarly_year,
+                           sw.venue AS scholarly_venue
                     FROM claim_evidence_links l
                     LEFT JOIN problem_sources s ON l.source_id = s.id
+                    LEFT JOIN scholarly_works sw ON s.scholarly_work_id = sw.id
                     ORDER BY l.created_at DESC
                 """).fetchall()
             return [dict(r) for r in rows]
