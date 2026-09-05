@@ -133,7 +133,7 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
           <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
           <div className="space-y-1 text-xs">
             <div className="font-bold font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
-              <Lock className="w-3.5 h-3.5" /> Mechanical Ratchet: Preview Mode (Read Only)
+              <Lock className="w-3.5 h-3.5" /> Stage Locked: Review Only
             </div>
             <p className="text-slate-300 leading-relaxed">
               Prerequisites for Phase 3 (Mom Test Socratic Clinic) are not yet satisfied. Complete problem discovery (Phase 1) or candidate screening (Phase 2) to select an active problem hypothesis before initiating live validation. All execution actions in this phase are currently locked.
