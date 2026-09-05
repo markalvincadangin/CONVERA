@@ -45,8 +45,6 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
 
   const frameworkId = session?.framework_id?.toUpperCase() || "INNOVATION";
   const isResearch = frameworkId.includes("RESEARCH") || frameworkId.includes("CRCDP");
-  const isCapstone = frameworkId.includes("CAPSTONE");
-  const isProduct = frameworkId.includes("PRODUCT");
 
   const completedCount = [
     session?.phase1_complete,
@@ -320,7 +318,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
         <div className="flex items-center justify-between px-1 text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <span className="font-bold uppercase tracking-wider text-[10px] text-slate-300 font-mono">
-              {isResearch ? "Research Framework (CCDS v1.0)" : isCapstone ? "Capstone Framework (IEEE 830)" : isProduct ? "Product Discovery (Agile)" : "Venture Ratchet Pipeline (CCDS v1.0)"}
+              {isResearch ? "Computing Research Track (CRCDP)" : "Venture Innovation Track (Ratchet)"}
             </span>
             <span className="text-slate-600">•</span>
             <span className="text-slate-400 font-mono text-[11px]">
@@ -351,7 +349,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
         </div>
 
         {/* Row 2: Stepper Pills (7 Tabs) */}
-        <div className={`grid grid-cols-2 sm:grid-cols-4 ${isResearch ? "lg:grid-cols-8" : "lg:grid-cols-7"} gap-1.5`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-4 ${isResearch ? "md:grid-cols-8 lg:grid-cols-8" : "md:grid-cols-7 lg:grid-cols-7"} gap-1.5`}>
           {phases.map((phase) => {
             const Icon = phase.icon;
             const isActive = activePhase === phase.id;
@@ -359,15 +357,21 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
             const isLocked = !phase.isAvailable;
 
             return (
-              <Tooltip key={phase.id} content={isLocked ? phase.lockReason : phase.desc} position="bottom">
+              <Tooltip
+                key={phase.id}
+                content={isLocked ? `${phase.lockReason} (Preview Mode: execution locked)` : phase.desc}
+                position="bottom"
+              >
                 <button
-                  onClick={() => !isLocked && onSelectPhase(phase.id)}
-                  disabled={isLocked}
-                  className={`w-full text-left p-2 rounded-xl border transition-all duration-200 flex flex-col justify-between min-h-[56px] relative overflow-hidden group ${
-                    isActive
+                  type="button"
+                  onClick={() => onSelectPhase(phase.id)}
+                  className={`w-full text-left p-2 rounded-xl border transition-all duration-200 flex flex-col justify-between min-h-[56px] relative overflow-hidden group cursor-pointer ${
+                    isActive && isLocked
+                      ? "bg-gradient-to-b from-amber-500/15 to-slate-900 border-amber-500/60 shadow-md shadow-amber-950/40 ring-1 ring-amber-500/30"
+                      : isActive
                       ? "bg-gradient-to-b from-cyan-500/15 to-blue-600/10 border-cyan-500/60 shadow-md shadow-cyan-950/40 ring-1 ring-cyan-500/30"
                       : isLocked
-                      ? "bg-slate-950/40 border-slate-850 opacity-50 cursor-not-allowed"
+                      ? "bg-slate-950/50 border-slate-800 border-dashed hover:border-amber-500/40 hover:bg-slate-900/60"
                       : isComplete
                       ? "bg-emerald-950/20 border-emerald-500/30 hover:border-emerald-500/50"
                       : "bg-slate-900/70 border-slate-800 hover:border-slate-700 hover:bg-slate-850"
@@ -376,12 +380,14 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
                   <div className="flex items-center justify-between w-full">
                     <span
                       className={`text-[9px] font-bold font-mono tracking-wider ${
-                        isActive
+                        isActive && isLocked
+                          ? "text-amber-300"
+                          : isActive
                           ? "text-cyan-300"
                           : isComplete
                           ? "text-emerald-400"
                           : isLocked
-                          ? "text-slate-600"
+                          ? "text-amber-400/80"
                           : "text-slate-400"
                       }`}
                     >
@@ -389,7 +395,10 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
                     </span>
 
                     {isLocked ? (
-                      <Lock className="w-3 h-3 text-slate-600" />
+                      <span className="flex items-center gap-1">
+                        <span className="text-[8px] font-mono uppercase px-1 py-0.5 rounded bg-amber-950/60 text-amber-300/80 border border-amber-500/30 leading-none">Preview</span>
+                        <Lock className="w-3 h-3 text-amber-400/70" />
+                      </span>
                     ) : isComplete ? (
                       <CheckCircle2 className="w-3 h-3 text-emerald-400" />
                     ) : (
@@ -406,10 +415,12 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
                   <div className="mt-0.5">
                     <div
                       className={`text-xs font-bold truncate leading-tight ${
-                        isActive
+                        isActive && isLocked
+                          ? "text-amber-100"
+                          : isActive
                           ? "text-white"
                           : isLocked
-                          ? "text-slate-600"
+                          ? "text-slate-400 group-hover:text-slate-200"
                           : "text-slate-200 group-hover:text-white"
                       }`}
                     >
@@ -453,8 +464,11 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
                 <span className="text-[10px] font-mono font-bold text-cyan-300 truncate">{activeGateName}</span>
               </div>
               <button
+                type="button"
                 onClick={() => onSelectPhase(recommendedTargetPhase)}
                 className="text-[10px] font-bold text-white hover:text-cyan-300 flex items-center gap-0.5 bg-cyan-500/20 hover:bg-cyan-500/30 px-2 py-0.5 rounded border border-cyan-500/40 transition shrink-0 font-mono"
+                title={`Go to active prerequisite: ${recommendedActionText}`}
+                aria-label={`Go to active phase: ${recommendedActionText}`}
               >
                 <span>Action</span>
                 <ArrowRight className="w-3 h-3 text-cyan-400" />

@@ -18,10 +18,8 @@ import {
   Gauge,
   Inbox,
   GitMerge,
-  Compass,
   Zap,
   BookOpen,
-  GraduationCap,
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { VentureHealthBar } from "@/components/common/VentureHealthBar";
@@ -84,10 +82,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       case "RESEARCH":
       case "RESEARCH_CRCDP":
         return { label: "Research", icon: <BookOpen className="w-3.5 h-3.5 text-emerald-400" />, border: "border-emerald-500/40 text-emerald-300 bg-emerald-950/40 hover:bg-emerald-900/40" };
-      case "CAPSTONE":
-        return { label: "Capstone", icon: <GraduationCap className="w-3.5 h-3.5 text-indigo-400" />, border: "border-indigo-500/40 text-indigo-300 bg-indigo-950/40 hover:bg-indigo-900/40" };
-      case "PRODUCT":
-        return { label: "Product", icon: <Compass className="w-3.5 h-3.5 text-amber-400" />, border: "border-amber-500/40 text-amber-300 bg-amber-950/40 hover:bg-amber-900/40" };
       default:
         return { label: "Innovation", icon: <Zap className="w-3.5 h-3.5 text-blue-400" />, border: "border-blue-500/40 text-blue-300 bg-blue-950/40 hover:bg-blue-900/40" };
     }
