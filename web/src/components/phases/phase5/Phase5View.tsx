@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { Activity, Sparkles, CheckCircle2, AlertTriangle, ArrowLeft, Download, Award, ShieldAlert, TrendingUp } from "lucide-react";
+import { Activity, Sparkles, CheckCircle2, AlertTriangle, ArrowLeft, Download, Award, ShieldAlert, TrendingUp, Lock } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
@@ -43,7 +43,10 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
   );
   const [isAuditing, setIsAuditing] = useState(false);
 
+  const isPreviewMode = !Boolean(session.phase4_complete);
+
   const handleRunAudit = async () => {
+    if (isPreviewMode) return;
     setIsAuditing(true);
     try {
       const res = await phaseService.auditPhase5(session.session_id, {
@@ -71,6 +74,21 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Mechanical Ratchet Advisory Banner for Preview Mode */}
+      {isPreviewMode && (
+        <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/50 flex items-start gap-3 text-amber-200">
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-xs">
+            <div className="font-bold font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5" /> Mechanical Ratchet: Preview Mode (Read Only)
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              Prerequisites for Phase 5 (MVP Testing & Skin-in-the-Game Audit) are not yet satisfied. Complete concept ideation and experiment mapping in Phase 4 first to unlock commitment auditing and skin-in-the-game scoring. All execution actions in this phase are currently locked.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header Card */}
       <Card variant="glow" className="p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -92,9 +110,11 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
               variant="emerald"
               onClick={handleRunAudit}
               isLoading={isAuditing}
-              leftIcon={<Sparkles className="w-4 h-4" />}
+              disabled={isPreviewMode || isAuditing}
+              leftIcon={isPreviewMode ? <Lock className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+              title={isPreviewMode ? "Prerequisites incomplete; execution locked in Preview Mode." : undefined}
             >
-              {session.phase5_response ? "Re-Audit Experiment" : "Run MVP Audit & Pivot Analysis"}
+              {isPreviewMode ? "Preview: Audit Locked" : session.phase5_response ? "Re-Audit Experiment" : "Run MVP Audit & Pivot Analysis"}
             </Button>
           </div>
         </div>
@@ -240,9 +260,11 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
             size="md"
             onClick={handleRunAudit}
             isLoading={isAuditing}
-            leftIcon={<Sparkles className="w-4 h-4" />}
+            disabled={isPreviewMode || isAuditing}
+            leftIcon={isPreviewMode ? <Lock className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+            title={isPreviewMode ? "Prerequisites incomplete; execution locked in Preview Mode." : undefined}
           >
-            Run Empirical Validation Audit
+            {isPreviewMode ? "Preview Mode: Audit Locked" : "Run Empirical Validation Audit"}
           </Button>
         </div>
       </Card>

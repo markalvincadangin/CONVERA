@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { ShieldCheck, Send, RotateCcw, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, Sparkles, User, Bot, Award, Lightbulb, MapPin, DollarSign, Clock } from "lucide-react";
+import { ShieldCheck, Send, RotateCcw, CheckCircle2, ArrowRight, ArrowLeft, AlertCircle, AlertTriangle, Sparkles, User, Bot, Award, Lightbulb, MapPin, DollarSign, Clock, Lock } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
 import { Badge } from "@/components/common/Badge";
 import { ModelAttributionBadge } from "@/components/common/ModelAttributionBadge";
+import { PivotLoopModal } from "./PivotLoopModal";
 import { LEVEL_ORDER, LEVEL_LABELS } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { problemService } from "@/services/problemService";
@@ -54,6 +55,9 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
   const [studentAnswer, setStudentAnswer] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [critiqueMessage, setCritiqueMessage] = useState<string | null>(null);
+  const [isPivotModalOpen, setIsPivotModalOpen] = useState(false);
+
+  const isPreviewMode = !Boolean(session.phase1_complete || session.phase2_complete || session.phase3_problem);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -69,6 +73,7 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
   }, [history, critiqueMessage]);
 
   const handleStartClinic = async () => {
+    if (isPreviewMode) return;
     if (!problemStatement.trim()) {
       toast.warning("Please enter a shortlisted problem statement to validate.", "Problem Required");
       return;
@@ -85,23 +90,14 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
     }
   };
 
-  const handlePivotLoop = async () => {
-    const reason = window.prompt(
-      "Enter the reason for executing a Pivot Loop back to Phase 2 (e.g. 'Mom Test interview refuted Willingness-to-Pay / Sufferer lacks purchasing authority'):"
-    );
-    if (!reason || !reason.trim()) return;
-
-    try {
-      const res = await problemService.executePivot({
-        session_id: session.session_id,
-        current_problem_id: problemStatement,
-        pivot_reason: reason.trim(),
-      });
-      toast.info(res.message, "Pivot Alert");
-      onGoBack();
-    } catch (err: any) {
-      toast.error(err?.message || "Failed to execute pivot loop", "Pivot Error");
-    }
+  const handleConfirmPivot = async (reason: string) => {
+    const res = await problemService.executePivot({
+      session_id: session.session_id,
+      current_problem_id: problemStatement,
+      pivot_reason: reason.trim(),
+    });
+    toast.info(res.message, "Pivot Alert");
+    onGoBack();
   };
 
   const handleAnswerSubmit = async () => {
@@ -131,6 +127,21 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
 
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Mechanical Ratchet Advisory Banner for Preview Mode */}
+      {isPreviewMode && (
+        <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/50 flex items-start gap-3 text-amber-200">
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-xs">
+            <div className="font-bold font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5" /> Mechanical Ratchet: Preview Mode (Read Only)
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              Prerequisites for Phase 3 (Mom Test Socratic Clinic) are not yet satisfied. Complete problem discovery (Phase 1) or candidate screening (Phase 2) to select an active problem hypothesis before initiating live validation. All execution actions in this phase are currently locked.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header Card */}
       <Card variant="glow" className="p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -148,6 +159,17 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsPivotModalOpen(true)}
+              disabled={isPreviewMode}
+              leftIcon={<RotateCcw className="w-3.5 h-3.5 text-amber-400" />}
+              className="border-amber-500/30 hover:border-amber-500/60 text-amber-300 hover:bg-amber-950/30"
+              title={isPreviewMode ? "Prerequisites incomplete; actions locked in Preview Mode." : "Execute Pivot Loop back to Phase 2 based on invalidated assumptions."}
+            >
+              Pivot Loop
+            </Button>
             <Button variant="outline" size="sm" onClick={onGoBack} leftIcon={<ArrowLeft className="w-4 h-4" />}>
               Back to Phase 2
             </Button>
@@ -289,8 +311,9 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
                   variant="primary"
                   onClick={handleAnswerSubmit}
                   isLoading={isSubmitting}
-                  disabled={!studentAnswer.trim()}
+                  disabled={isPreviewMode || !studentAnswer.trim() || isSubmitting}
                   rightIcon={<Send className="w-4 h-4" />}
+                  title={isPreviewMode ? "Actions are locked in Preview Mode." : undefined}
                 >
                   Submit Evidence
                 </Button>
@@ -314,7 +337,9 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
                 variant="emerald"
                 size="lg"
                 onClick={onAdvanceToNextPhase}
+                disabled={isPreviewMode}
                 rightIcon={<ArrowRight className="w-4 h-4" />}
+                title={isPreviewMode ? "Prerequisites incomplete; advance is locked." : undefined}
               >
                 Advance to Phase 4: Solution Ideation & SVB Canvas
               </Button>
@@ -327,9 +352,13 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
             <Sparkles className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-white">Begin Socratic Mom Test Defense</h3>
+            <h3 className="text-base font-bold text-white">
+              {isPreviewMode ? "Phase 3 Preview: Socratic Mom Test Defense" : "Begin Socratic Mom Test Defense"}
+            </h3>
             <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
-              The AI validation advisor will examine Level 1 (Specific Sufferer) to begin testing your problem foundation.
+              {isPreviewMode
+                ? "Complete problem discovery (Phase 1) or candidate screening (Phase 2) to select an active problem hypothesis before initiating live validation."
+                : "The AI validation advisor will examine Level 1 (Specific Sufferer) to begin testing your problem foundation."}
             </p>
           </div>
 
@@ -337,12 +366,22 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
             variant="primary"
             onClick={handleStartClinic}
             isLoading={isInitializing}
-            leftIcon={<ShieldCheck className="w-4 h-4" />}
+            disabled={isPreviewMode || isInitializing}
+            leftIcon={isPreviewMode ? <Lock className="w-4 h-4" /> : <ShieldCheck className="w-4 h-4" />}
+            title={isPreviewMode ? "Prerequisites incomplete. Select a problem candidate in Phase 1 or 2 first." : undefined}
           >
-            Start Socratic Defense Clinic
+            {isPreviewMode ? "Preview Mode: Validation Locked" : "Start Socratic Defense Clinic"}
           </Button>
         </Card>
       )}
+
+      {/* Pivot Loop Modal (CCDS v2.0) */}
+      <PivotLoopModal
+        isOpen={isPivotModalOpen}
+        onClose={() => setIsPivotModalOpen(false)}
+        onConfirm={handleConfirmPivot}
+        problemStatement={problemStatement}
+      />
     </div>
   );
 };

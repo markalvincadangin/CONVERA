@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { Lightbulb, Sparkles, ArrowRight, ArrowLeft, CheckCircle2, Plus, LayoutGrid, AlertCircle, Layers } from "lucide-react";
+import { Lightbulb, Sparkles, ArrowRight, ArrowLeft, CheckCircle2, Plus, LayoutGrid, AlertCircle, AlertTriangle, Layers, Lock } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
@@ -31,6 +31,8 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
   const [userInput, setUserInput] = useState("");
   const [concepts, setConcepts] = useState<SolutionConcept[]>(session.phase4_concepts || []);
 
+  const isPreviewMode = !Boolean(session.phase3_complete);
+
   // New concept form
   const [newLabel, setNewLabel] = useState("");
   const [newFamily, setNewFamily] = useState(MECHANISM_FAMILIES[0].name);
@@ -39,6 +41,7 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
   const [newDelivery, setNewDelivery] = useState("Digital / Mobile Web");
 
   const runStep = async (stepName: string, input?: string, customConcepts?: SolutionConcept[]) => {
+    if (isPreviewMode) return;
     setIsLoading(true);
     try {
       const res = await phaseService.executePhase4Step(
@@ -58,6 +61,7 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
   };
 
   const handleAddConcept = () => {
+    if (isPreviewMode) return;
     if (!newLabel.trim() || !newMechanism.trim()) {
       toast.warning("Please fill in the concept label and mechanism description.", "Fields Required");
       return;
@@ -85,6 +89,21 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Mechanical Ratchet Advisory Banner for Preview Mode */}
+      {isPreviewMode && (
+        <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-500/50 flex items-start gap-3 text-amber-200">
+          <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          <div className="space-y-1 text-xs">
+            <div className="font-bold font-mono uppercase tracking-wider text-amber-300 flex items-center gap-1.5">
+              <Lock className="w-3.5 h-3.5" /> Mechanical Ratchet: Preview Mode (Read Only)
+            </div>
+            <p className="text-slate-300 leading-relaxed">
+              Prerequisites for Phase 4 (Solution Ideation & SVB Canvas) are not yet satisfied. Complete all 6 validation levels in Phase 3 (Mom Test Defense) to clear the empirical validation gate before generating solution concepts. All execution actions in this phase are currently locked.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Header Card */}
       <Card variant="glow" className="p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -107,9 +126,11 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
                 variant="primary"
                 onClick={() => runStep("solution_brief")}
                 isLoading={isLoading}
-                leftIcon={<Sparkles className="w-4 h-4" />}
+                disabled={isPreviewMode || isLoading}
+                leftIcon={isPreviewMode ? <Lock className="w-4 h-4" /> : <Sparkles className="w-4 h-4" />}
+                title={isPreviewMode ? "Prerequisites incomplete; execution locked in Preview Mode." : undefined}
               >
-                Start Ideation Steps
+                {isPreviewMode ? "Preview: Ideation Locked" : "Start Ideation Steps"}
               </Button>
             )}
           </div>
@@ -147,50 +168,60 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
         <Button
           variant={currentStep === "solution_brief" ? "primary" : "secondary"}
           size="sm"
+          disabled={isPreviewMode}
           onClick={() => runStep("solution_brief")}
           isLoading={isLoading && currentStep === "solution_brief"}
+          title={isPreviewMode ? "Actions locked in Preview Mode." : undefined}
         >
           1. Solution Brief
         </Button>
         <Button
           variant={currentStep === "opportunity_question" ? "primary" : "secondary"}
           size="sm"
+          disabled={isPreviewMode}
           onClick={() => runStep("opportunity_question", userInput)}
           isLoading={isLoading && currentStep === "opportunity_question"}
+          title={isPreviewMode ? "Actions locked in Preview Mode." : undefined}
         >
           2. Opportunity Question (HMW)
         </Button>
         <Button
           variant={currentStep === "decomposition" ? "primary" : "secondary"}
           size="sm"
+          disabled={isPreviewMode}
           onClick={() => runStep("decomposition", userInput)}
           isLoading={isLoading && currentStep === "decomposition"}
+          title={isPreviewMode ? "Actions locked in Preview Mode." : undefined}
         >
           3. Causal Chain
         </Button>
         <Button
           variant={currentStep === "divergent_ideation" ? "primary" : "secondary"}
           size="sm"
+          disabled={isPreviewMode}
           onClick={() => runStep("divergent_ideation")}
           isLoading={isLoading && currentStep === "divergent_ideation"}
+          title={isPreviewMode ? "Actions locked in Preview Mode." : undefined}
         >
           4. Brainstorm Solutions (15 Families)
         </Button>
         <Button
           variant={currentStep === "screening" ? "primary" : "secondary"}
           size="sm"
-          disabled={!isMinimumMet}
+          disabled={isPreviewMode || !isMinimumMet}
           onClick={() => runStep("screening")}
           isLoading={isLoading && currentStep === "screening"}
+          title={isPreviewMode ? "Actions locked in Preview Mode." : undefined}
         >
           5. Screen Concepts
         </Button>
         <Button
           variant={currentStep === "assumptions_svb" ? "emerald" : "secondary"}
           size="sm"
-          disabled={!isMinimumMet}
+          disabled={isPreviewMode || !isMinimumMet}
           onClick={() => runStep("assumptions_svb")}
           isLoading={isLoading && currentStep === "assumptions_svb"}
+          title={isPreviewMode ? "Actions locked in Preview Mode." : undefined}
         >
           6. SVB & Experiments
         </Button>
@@ -253,7 +284,14 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
         </div>
 
         <div className="flex justify-end">
-          <Button variant="primary" size="sm" onClick={handleAddConcept} leftIcon={<Plus className="w-4 h-4" />}>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleAddConcept}
+            disabled={isPreviewMode}
+            leftIcon={<Plus className="w-4 h-4" />}
+            title={isPreviewMode ? "Actions locked in Preview Mode." : undefined}
+          >
             Add Concept to List
           </Button>
         </div>
@@ -304,8 +342,9 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
               variant="emerald"
               size="lg"
               onClick={onAdvanceToNextPhase}
-              disabled={!isReadyToTest}
+              disabled={isPreviewMode || !isReadyToTest}
               rightIcon={<ArrowRight className="w-4 h-4" />}
+              title={isPreviewMode ? "Prerequisites incomplete; advance is locked." : undefined}
             >
               Advance to Phase 5: MVP Testing & Audit
             </Button>

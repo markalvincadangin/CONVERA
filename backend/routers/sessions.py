@@ -152,15 +152,13 @@ async def update_session(session_id: str, request: Request):
     payload = await request.json()
     
     state_data = payload.get("state_data", payload)
-    updated = storage.save_session(
-        session_id=session_id,
-        state_data=state_data,
-        phase1_complete=payload.get("phase1_complete", False),
-        phase2_complete=payload.get("phase2_complete", False),
-        phase3_complete=payload.get("phase3_complete", False),
-        phase4_complete=payload.get("phase4_complete", False),
-        phase5_complete=payload.get("phase5_complete", False)
-    )
+    if not isinstance(state_data, dict):
+        state_data = {}
+    for flag in ["phase1_complete", "phase2_complete", "phase3_complete", "phase4_complete", "phase5_complete"]:
+        if flag in payload and flag not in state_data:
+            state_data[flag] = payload[flag]
+
+    updated = storage.save_session(session_id=session_id, state=state_data)
     return {"session_id": session_id, "state": state_data, "session": updated}
 
 
