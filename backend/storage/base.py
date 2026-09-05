@@ -79,7 +79,7 @@ class BaseStorageAdapter(ABC):
         pass
 
     @abstractmethod
-    def update_problem(self, problem_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    def update_problem(self, problem_id: str, updates: Dict[str, Any], cascade_confirmed: bool = False) -> Optional[Dict[str, Any]]:
         """Update problem fields, notes, tags, or status."""
         pass
 
