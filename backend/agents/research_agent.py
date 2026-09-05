@@ -75,11 +75,12 @@ async def execute_research_agent(
         })
         dossier_lines.append(
             f"Paper #{idx}:\n"
+            f"Work ID: {w.id or 'N/A'}\n"
             f"Title: {w.title}\n"
             f"DOI: {w.doi or 'N/A'}\n"
             f"Year: {w.year or 'N/A'}\n"
             f"Venue: {w.venue or 'N/A'}\n"
-            f"Abstract: {w.abstract[:400] if w.abstract else 'No abstract provided.'}\n"
+            f"Abstract: {w.abstract[:2000] if w.abstract else 'No abstract provided.'}\n"
             f"Source: {w.provenance.source_name}\n"
         )
 
