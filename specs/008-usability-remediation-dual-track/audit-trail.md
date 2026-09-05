@@ -22,7 +22,8 @@
 | **Implementation Gate**| 2026-09-05 | Implementation Authorization | Human Leadership | Prompt 8 (Explicit Task Authorization) | AUTHORIZED |
 | **Implementation** | 2026-09-05 | Execution of TASK-REM-01 through 18 | Antigravity AI | 11 modified files, 3 new files | EXECUTED |
 | **Pre-Merge Review** | 2026-09-05 | Hold-Merge Verification Pass | Human Mandate (Prompt 9) | `walkthrough.md`<br>`test_remediation_usability.py` | VERIFIED |
-| **Merge Authorization**| 2026-09-05 | Merge into `develop` | Human Leadership (Prompt 10) | This Audit Trail Record | AUTHORIZED |
+| **Merge Authorization**| 2026-09-05 | Merge into `develop` | Human Leadership (Prompt 10) | `merge: integrate SPEC-REMEDIATION-USABILITY-001` | AUTHORIZED |
+| **Promotion Gate** | 2026-09-05 | Promotion `develop` → `main` | Human Leadership (Prompt 11) | `merge: promote SPEC-REMEDIATION-USABILITY-001 to main` | AUTHORIZED |
 
 ---
 
@@ -39,7 +40,7 @@ The following constraints were strictly observed throughout implementation and p
 7. **Preservation of Mechanical Ratchet Gating**: Downstream tabs allow preview inspection only; execution actions, level submissions, and stage advances remain locked until prerequisites clear.
 8. **Historical Share-Code Backward Compatibility**: Historical `RATCH-*` codes remain 100% resolvable; default new share-codes use `CONV-*`.
 9. **Zero Opportunistic Refactoring**: Code changes confined strictly to tasks required by `SPEC-REMEDIATION-USABILITY-001`.
-10. **Target Branch Restriction**: Authorized to merge into `develop` only. Promotion to `main`, release, and deployment are **NOT** authorized at this stage.
+10. **Target Branch Restriction**: Authorized to promote `develop` → `main`. Release and deployment remain separate human decisions.
 
 ---
 
@@ -48,12 +49,12 @@ The following constraints were strictly observed throughout implementation and p
 - **TypeScript Typecheck**: `tsc --noEmit` passed (0 errors).
 - **Usability Test Suite**: `pytest backend/tests/test_remediation_usability.py` (6/6 tests passing).
 - **Complete Offline Pytest Suite**: `pytest backend/tests/ -m "not live"` (150/150 tests passing).
-- **AST Knowledge Graph**: `graphify update .` synced (4,748 nodes, 6,822 edges, 375 communities).
+- **AST Knowledge Graph**: `graphify update .` synced (4,791 nodes, 6,863 edges, 356 communities).
 
 ---
 
 ## 4. Authorization Sign-Off
 
-- **Merge Action:** `feature/remediation-usability-001` $\to$ `develop`
-- **Promotion to `main`:** HOLD / NOT AUTHORIZED
+- **Merge Action:** `feature/remediation-usability-001` → `develop` (COMPLETE)
+- **Promotion to `main`:** AUTHORIZED (Executing)
 - **Release / Deploy:** HOLD / NOT AUTHORIZED
