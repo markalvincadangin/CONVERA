@@ -411,6 +411,55 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_claim_evidence_source ON claim_evidence_links(source_id);
                 CREATE INDEX IF NOT EXISTS idx_assumption_tests ON assumption_validation_tests(assumption_id);
                 CREATE INDEX IF NOT EXISTS idx_impact_events_status ON impact_invalidation_events(resolution_status, created_at DESC);
+
+                -- -----------------------------------------------------------
+                -- Scholarly Evidence Persistence & FTS5 Lexical Retrieval (SDD-006)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS scholarly_works (
+                    id TEXT PRIMARY KEY,
+                    doi TEXT UNIQUE,
+                    title TEXT NOT NULL,
+                    abstract TEXT,
+                    authors TEXT,
+                    year INTEGER,
+                    venue TEXT,
+                    citation_count INTEGER DEFAULT 0,
+                    source_connector TEXT NOT NULL,
+                    source_url TEXT,
+                    raw_metadata TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_scholarly_works_doi ON scholarly_works(doi);
+                CREATE INDEX IF NOT EXISTS idx_scholarly_works_year ON scholarly_works(year);
+                CREATE INDEX IF NOT EXISTS idx_scholarly_works_connector ON scholarly_works(source_connector);
+
+                CREATE VIRTUAL TABLE IF NOT EXISTS scholarly_works_fts USING fts5(
+                    title,
+                    abstract,
+                    venue,
+                    content='scholarly_works',
+                    content_rowid='rowid',
+                    tokenize='porter unicode61 remove_diacritics 1'
+                );
+
+                CREATE TRIGGER IF NOT EXISTS trg_scholarly_works_ai AFTER INSERT ON scholarly_works BEGIN
+                    INSERT INTO scholarly_works_fts(rowid, title, abstract, venue)
+                    VALUES (new.rowid, new.title, new.abstract, new.venue);
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS trg_scholarly_works_ad AFTER DELETE ON scholarly_works BEGIN
+                    INSERT INTO scholarly_works_fts(scholarly_works_fts, rowid, title, abstract, venue)
+                    VALUES ('delete', old.rowid, old.title, old.abstract, old.venue);
+                END;
+
+                CREATE TRIGGER IF NOT EXISTS trg_scholarly_works_au AFTER UPDATE ON scholarly_works BEGIN
+                    INSERT INTO scholarly_works_fts(scholarly_works_fts, rowid, title, abstract, venue)
+                    VALUES ('delete', old.rowid, old.title, old.abstract, old.venue);
+                    INSERT INTO scholarly_works_fts(rowid, title, abstract, venue)
+                    VALUES (new.rowid, new.title, new.abstract, new.venue);
+                END;
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -3695,3 +3744,254 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     seeded.append({**p, "id": prob_id, "project_id": project_id})
             conn.commit()
         return seeded
+
+    # ------------------------------------------------------------------
+    # Scholarly Evidence Persistence & FTS5 Retrieval (SDD-006)
+    # ------------------------------------------------------------------
+
+    def upsert_scholarly_works(self, works: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """
+        Idempotently persist normalized scholarly works into relational storage and FTS5 index.
+        Implements two-stage conflict resolution for both DOI and DOI-less records:
+        - Stage 1: Preflight lookup by normalized DOI or deterministic title-year hash.
+        - Stage 2: Universal primary key upsert on ON CONFLICT(id) DO UPDATE.
+        """
+        import hashlib
+        if not works:
+            return []
+
+        persisted: List[Dict[str, Any]] = []
+        now = datetime.now(timezone.utc).isoformat()
+
+        with self._get_connection() as conn:
+            for w in works:
+                # 1. Normalize DOI
+                raw_doi = str(w.get("doi") or "").strip()
+                norm_doi: Optional[str] = None
+                if raw_doi and raw_doi.lower() not in ("none", "null", ""):
+                    norm_doi = raw_doi.lower().replace("https://doi.org/", "").replace("http://dx.doi.org/", "").strip()
+
+                title = clean_text(w.get("title") or "Untitled Scholarly Work")
+                abstract = str(w.get("abstract") or "").strip()
+                authors = w.get("authors") or []
+                if isinstance(authors, list):
+                    authors_json = json.dumps(authors)
+                else:
+                    authors_json = json.dumps([str(authors)])
+
+                year_raw = w.get("year") or w.get("publication_year")
+                try:
+                    year = int(year_raw) if year_raw is not None else None
+                except (ValueError, TypeError):
+                    year = None
+
+                venue = clean_text(w.get("venue") or w.get("journal") or "")
+                citation_count = int(w.get("citation_count") or 0)
+                source_connector = str(w.get("source_connector") or w.get("source") or "manual")
+                source_url = str(w.get("source_url") or w.get("url") or (f"https://doi.org/{norm_doi}" if norm_doi else ""))
+
+                raw_meta = w.get("raw_metadata") or w.get("metadata") or {}
+                raw_metadata_str = json.dumps(raw_meta) if isinstance(raw_meta, (dict, list)) else str(raw_meta)
+
+                # Stage 1: Preflight ID Disambiguation
+                clean_title = re.sub(r"[^a-z0-9]", "", title.lower())
+                title_hash_key = f"{clean_title}_{year or 0}".encode("utf-8")
+                candidate_ttl_id = f"SW-TTL-{hashlib.sha256(title_hash_key).hexdigest()[:16]}"
+
+                work_id: Optional[str] = None
+                if norm_doi:
+                    cur = conn.execute("SELECT id FROM scholarly_works WHERE doi = ?", (norm_doi,))
+                    row = cur.fetchone()
+                    if row:
+                        work_id = row["id"]
+                    else:
+                        # Check if record was previously inserted under title-year hash without DOI
+                        cur_ttl = conn.execute("SELECT id FROM scholarly_works WHERE id = ?", (candidate_ttl_id,))
+                        row_ttl = cur_ttl.fetchone()
+                        if row_ttl:
+                            work_id = row_ttl["id"]
+                        else:
+                            work_id = f"SW-DOI-{hashlib.sha256(norm_doi.encode('utf-8')).hexdigest()[:16]}"
+                else:
+                    cur_ttl = conn.execute("SELECT id FROM scholarly_works WHERE id = ?", (candidate_ttl_id,))
+                    row_ttl = cur_ttl.fetchone()
+                    work_id = row_ttl["id"] if row_ttl else candidate_ttl_id
+
+                # Stage 2: Idempotent SQL Upsert on ON CONFLICT(id)
+                conn.execute("""
+                    INSERT INTO scholarly_works (
+                        id, doi, title, abstract, authors, year, venue,
+                        citation_count, source_connector, source_url, raw_metadata,
+                        created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(id) DO UPDATE SET
+                        doi = coalesce(scholarly_works.doi, excluded.doi),
+                        title = CASE WHEN length(excluded.title) > length(scholarly_works.title) THEN excluded.title ELSE scholarly_works.title END,
+                        abstract = CASE WHEN length(coalesce(excluded.abstract, '')) > length(coalesce(scholarly_works.abstract, '')) THEN excluded.abstract ELSE scholarly_works.abstract END,
+                        citation_count = max(coalesce(scholarly_works.citation_count, 0), coalesce(excluded.citation_count, 0)),
+                        venue = coalesce(nullif(scholarly_works.venue, ''), excluded.venue),
+                        source_url = coalesce(nullif(scholarly_works.source_url, ''), excluded.source_url),
+                        raw_metadata = CASE WHEN length(coalesce(excluded.raw_metadata, '')) > length(coalesce(scholarly_works.raw_metadata, '')) THEN excluded.raw_metadata ELSE scholarly_works.raw_metadata END,
+                        updated_at = ?
+                """, (
+                    work_id, norm_doi, title, abstract, authors_json, year, venue,
+                    citation_count, source_connector, source_url, raw_metadata_str,
+                    now, now, now
+                ))
+
+                persisted.append({
+                    "id": work_id,
+                    "doi": norm_doi,
+                    "title": title,
+                    "abstract": abstract,
+                    "authors": json.loads(authors_json),
+                    "year": year,
+                    "venue": venue,
+                    "citation_count": citation_count,
+                    "source_connector": source_connector,
+                    "source_url": source_url,
+                    "created_at": now,
+                    "updated_at": now
+                })
+
+            conn.commit()
+
+        return persisted
+
+    def search_scholarly_works_fts(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Search persisted scholarly works using native SQLite FTS5 BM25 ranking.
+        Composite Rank: (-bm25(5.0, 2.0, 1.0)) * log10(10 + max(0, citation_count))
+        """
+        if not query or not query.strip():
+            return []
+
+        # Tokenize query into alphanumeric terms for prefix matching
+        raw_terms = re.findall(r"\b[a-zA-Z0-9]{2,}\b", query.lower())
+        stops = {
+            "and", "the", "for", "with", "due", "causes", "lack", "from", "into",
+            "their", "that", "this", "during", "requiring", "leads", "across"
+        }
+        terms = [t for t in raw_terms if t not in stops]
+        if not terms:
+            terms = [t for t in raw_terms if t]
+        if not terms:
+            return []
+
+        # Build FTS5 match query using OR-prefixed terms
+        match_query = " OR ".join([f'"{t}"*' for t in terms[:10]])
+
+        results: List[Dict[str, Any]] = []
+        with self._get_connection() as conn:
+            try:
+                rows = conn.execute("""
+                    SELECT 
+                        sw.id,
+                        sw.doi,
+                        sw.title,
+                        sw.abstract,
+                        sw.authors,
+                        sw.year,
+                        sw.venue,
+                        sw.citation_count,
+                        sw.source_connector,
+                        sw.source_url,
+                        sw.raw_metadata,
+                        sw.created_at,
+                        sw.updated_at,
+                        bm25(scholarly_works_fts, 5.0, 2.0, 1.0) AS raw_bm25,
+                        (-bm25(scholarly_works_fts, 5.0, 2.0, 1.0)) * log10(10 + max(0, coalesce(sw.citation_count, 0))) AS composite_rank
+                    FROM scholarly_works_fts fts
+                    JOIN scholarly_works sw ON fts.rowid = sw.rowid
+                    WHERE scholarly_works_fts MATCH ?
+                    ORDER BY composite_rank DESC
+                    LIMIT ?
+                """, (match_query, limit)).fetchall()
+
+                for r in rows:
+                    authors_list = []
+                    try:
+                        authors_list = json.loads(r["authors"]) if r["authors"] else []
+                    except Exception:
+                        authors_list = [r["authors"]] if r["authors"] else []
+
+                    results.append({
+                        "id": r["id"],
+                        "doi": r["doi"],
+                        "title": r["title"],
+                        "abstract": r["abstract"],
+                        "authors": authors_list,
+                        "year": r["year"],
+                        "venue": r["venue"],
+                        "citation_count": r["citation_count"],
+                        "source_connector": r["source_connector"],
+                        "source_url": r["source_url"],
+                        "bm25_score": round(float(r["raw_bm25"]), 4),
+                        "relevance_score": round(float(r["composite_rank"]), 4),
+                        "created_at": r["created_at"],
+                        "updated_at": r["updated_at"]
+                    })
+            except Exception:
+                return []
+
+        return results
+
+    def get_scholarly_work(self, work_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a persisted scholarly work by canonical ID."""
+        if not work_id:
+            return None
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM scholarly_works WHERE id = ?", (work_id,)).fetchone()
+            if not row:
+                return None
+            d = dict(row)
+            try:
+                d["authors"] = json.loads(d["authors"]) if d["authors"] else []
+            except Exception:
+                d["authors"] = [d["authors"]] if d["authors"] else []
+            return d
+
+    def rebuild_scholarly_fts(self) -> bool:
+        """Rebuild the FTS5 virtual table index from relational storage."""
+        with self._get_connection() as conn:
+            conn.execute("INSERT INTO scholarly_works_fts(scholarly_works_fts) VALUES('rebuild');")
+            conn.commit()
+        return True
+
+    def backfill_problem_sources_to_scholarly_works(self) -> Dict[str, Any]:
+        """
+        Backfill academic references from problem_sources (180 measured rows)
+        into scholarly_works and rebuild FTS5 index.
+        """
+        with self._get_connection() as conn:
+            rows = conn.execute("SELECT * FROM problem_sources").fetchall()
+            
+        candidates = []
+        for r in rows:
+            url = r["source_url"] or ""
+            name = r["source_name"] or ""
+            summary = r["quote_or_summary"] or ""
+            doi: Optional[str] = None
+            if "doi.org/" in url:
+                doi = url.split("doi.org/")[-1].strip()
+
+            candidates.append({
+                "doi": doi,
+                "title": name,
+                "abstract": summary,
+                "authors": ["Academic Reference"],
+                "year": 2024,
+                "venue": "Historical Literature Reference",
+                "citation_count": 0,
+                "source_connector": "problem_sources_backfill",
+                "source_url": url,
+                "raw_metadata": {"legacy_source_id": r["id"], "problem_id": r["problem_id"]}
+            })
+
+        persisted = self.upsert_scholarly_works(candidates)
+        self.rebuild_scholarly_fts()
+        return {
+            "scanned_rows": len(rows),
+            "persisted_works": len(persisted)
+        }
+

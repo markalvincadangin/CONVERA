@@ -230,3 +230,28 @@ class BaseStorageAdapter(ABC):
     def list_circumscription_iterations(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
         """List all recorded circumscription iterations."""
         pass
+
+    # ------------------------------------------------------------------
+    # Scholarly Evidence Persistence & FTS5 Retrieval (SDD-006)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def upsert_scholarly_works(self, works: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Idempotently persist normalized scholarly works into relational storage."""
+        pass
+
+    @abstractmethod
+    def search_scholarly_works_fts(self, query: str, limit: int = 10) -> List[Dict[str, Any]]:
+        """Search persisted scholarly works using native SQLite FTS5 BM25 ranking."""
+        pass
+
+    @abstractmethod
+    def get_scholarly_work(self, work_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a persisted scholarly work by its canonical ID."""
+        pass
+
+    @abstractmethod
+    def rebuild_scholarly_fts(self) -> bool:
+        """Rebuild the FTS5 virtual table index from relational storage."""
+        pass
+

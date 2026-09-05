@@ -6,7 +6,7 @@
 **Status**: 🟢 RATIFIED  
 **Canonical Path**: `docs/04-ai/AI_ARCHITECTURE.md`  
 **Upstream Dependencies**: `CONSTITUTION.md` (Articles I, II, VI, VII), `SYSTEM_ARCHITECTURE.md` (Area 5), `DOMAIN_MODEL.md`, `KNOWLEDGE_MODEL.md`, `EVIDENCE_MODEL.md`, `DECISION_MODEL.md`, `ENGINEERING_PRINCIPLES.md`, `SECURITY.md`, `CIIA.md`  
-**Downstream Dependents**: `docs/04-ai/AI_GOVERNANCE.md`, `docs/04-ai/CONNECTOR_ARCHITECTURE.md`, `docs/04-ai/MCP.md`, `backend/llm_gateway.py`  
+**Downstream Dependents**: `docs/04-ai/AI_GOVERNANCE.md`, `docs/04-ai/CONNECTOR_ARCHITECTURE.md`, `docs/04-ai/MCP.md`, `docs/04-ai/AI_EVOLUTION_ROADMAP.md`, `backend/llm_gateway.py`  
 
 ---
 
