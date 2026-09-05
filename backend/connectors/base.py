@@ -24,6 +24,7 @@ class ProvenanceMetadata(BaseModel):
 
 
 class NormalizedScholarlyWork(BaseModel):
+    id: Optional[str] = None
     doi: Optional[str] = None
     title: str
     authors: List[str] = Field(default_factory=list)
@@ -36,6 +37,8 @@ class NormalizedScholarlyWork(BaseModel):
     open_access_pdf_url: Optional[str] = None
     topics: List[str] = Field(default_factory=list)
     provenance: ProvenanceMetadata
+    is_offline: bool = False
+    is_cached: bool = False
 
 
 class EvidenceCandidate(BaseModel):
