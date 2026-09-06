@@ -11,12 +11,12 @@ import {
   PresentationModal,
 } from "@/components/layout";
 import {
-  Phase1View,
-  Phase2View,
-  Phase3View,
-  Phase4View,
-  Phase5View,
-} from "@/components/phases";
+  ProblemDiscoveryView,
+  ProblemScreeningView,
+  ProblemValidationView,
+  SolutionConceptView,
+  EconomicsTestingView,
+} from "@/components/frameworks/innovation";
 import { ProblemBankView } from "@/components/problem-bank/ProblemBankView";
 import { DeliverablesStudio } from "@/components/deliverables/DeliverablesStudio";
 import { ResearchWorkspaceView } from "@/components/frameworks/research/ResearchWorkspaceView";
@@ -372,7 +372,7 @@ export default function Home() {
             ) : (
               <>
                 {activePhase === 1 && (
-                  <Phase1View
+                  <ProblemDiscoveryView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onAdvanceToNextPhase={() => handleSelectPhase(2)}
@@ -380,7 +380,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 2 && (
-                  <Phase2View
+                  <ProblemScreeningView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     selectedProblemIds={phase2SelectedIds}
@@ -395,7 +395,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 3 && (
-                  <Phase3View
+                  <ProblemValidationView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onAdvanceToNextPhase={() => handleSelectPhase(4)}
@@ -405,7 +405,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 4 && (
-                  <Phase4View
+                  <SolutionConceptView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onAdvanceToNextPhase={() => handleSelectPhase(5)}
@@ -414,7 +414,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 5 && (
-                  <Phase5View
+                  <EconomicsTestingView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onGoBack={() => handleSelectPhase(4)}

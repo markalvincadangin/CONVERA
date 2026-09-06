@@ -12,14 +12,16 @@ import { MECHANISM_FAMILIES } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { SessionState, SolutionConcept } from "@/lib/types";
 
-interface Phase4ViewProps {
+interface SolutionConceptViewProps {
   session: SessionState;
   onUpdateSession: (newState: SessionState) => void;
   onAdvanceToNextPhase: () => void;
   onGoBack: () => void;
 }
 
-export const Phase4View: React.FC<Phase4ViewProps> = ({
+export type Phase4ViewProps = SolutionConceptViewProps;
+
+export const SolutionConceptView: React.FC<SolutionConceptViewProps> = ({
   session,
   onUpdateSession,
   onAdvanceToNextPhase,
@@ -354,3 +356,6 @@ export const Phase4View: React.FC<Phase4ViewProps> = ({
     </div>
   );
 };
+
+export const Phase4View = SolutionConceptView;
+

@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, X, Sparkles, Award, Presentation, Target, Sh
 import { Button } from "@/components/common/Button";
 import { Badge } from "@/components/common/Badge";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { ScreeningScorecardGrid } from "@/components/phases/phase2/ScreeningScorecardGrid";
+import { ScreeningScorecardGrid } from "@/components/frameworks/innovation/ScreeningScorecardGrid";
 import { SessionState } from "@/lib/types";
 
 interface PresentationModalProps {

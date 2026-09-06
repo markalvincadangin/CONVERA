@@ -14,11 +14,13 @@ import { ALL_SECTORS } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { SessionState } from "@/lib/types";
 
-interface Phase1ViewProps {
+interface ProblemDiscoveryViewProps {
   session: SessionState;
   onUpdateSession: (newState: SessionState) => void;
   onAdvanceToNextPhase: () => void;
 }
+
+export type Phase1ViewProps = ProblemDiscoveryViewProps;
 
 const SAMPLE_FIELD_OBSERVATIONS = [
   {
@@ -35,7 +37,7 @@ const SAMPLE_FIELD_OBSERVATIONS = [
   },
 ];
 
-export const Phase1View: React.FC<Phase1ViewProps> = ({
+export const ProblemDiscoveryView: React.FC<ProblemDiscoveryViewProps> = ({
   session,
   onUpdateSession,
   onAdvanceToNextPhase,
@@ -390,3 +392,5 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
     </div>
   );
 };
+
+export const Phase1View = ProblemDiscoveryView;
