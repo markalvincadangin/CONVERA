@@ -10,12 +10,12 @@
 **Baseline Git Revision**: `main @ ac3584c`  
 **Active Feature Branch**: `feature/problem-discovery-ux-001`  
 **Authoritative Evidence Base**:
-- `CONSTITUTION.md` (`CONVERA-FND-001`, Articles I through VIII)
-- `DEVELOPMENT_WORKFLOW.md` (`CONVERA-ENG-002`, Section 2 "Change Classification Matrix")
-- `SDD_WORKFLOW.md` (`CONVERA-ENG-003`, 8-Stage SDD Lifecycle)
-- `ENGINEERING_PRINCIPLES.md` (`CONVERA-ENG-001`, Invariants 1, 4, 5, 6, 8, 9, 10)
-- `CONVERA_RUNTIME_FEATURE_AUDIT.md` (Committed at `ac3584c`)
-- `CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md` (Committed at `ac3584c`)
+- `docs/00-foundation/CONSTITUTION.md` (`CONVERA-FND-001`, Articles I through VIII)
+- `docs/03-engineering/DEVELOPMENT_WORKFLOW.md` (`CONVERA-ENG-002`, Section 2 "Change Classification Matrix")
+- `docs/03-engineering/SDD_WORKFLOW.md` (`CONVERA-ENG-003`, 8-Stage SDD Lifecycle)
+- `docs/03-engineering/ENGINEERING_PRINCIPLES.md` (`CONVERA-ENG-001`, Invariants 1, 4, 5, 6, 8, 9, 10)
+- `audits/2026-09-problem-discovery-ux/CONVERA_RUNTIME_FEATURE_AUDIT.md` (Committed at `ac3584c`)
+- `audits/2026-09-problem-discovery-ux/CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md` (Committed at `ac3584c`)
 
 ---
 
@@ -559,7 +559,7 @@ This framework strictly enforces CONVERA's constitutional AI boundaries (`CONSTI
 Every accepted UX Iteration Batch maintains auditable end-to-end traceability:
 
 ```text
-  [ UX Audit / Observation ]  (e.g., CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md)
+  [ UX Audit / Observation ]  (e.g., audits/2026-09-problem-discovery-ux/CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md)
               │
               ▼
   [ Defect / Finding ID ]     (e.g., DEF-PB-001, DEF-PB-004)
@@ -604,10 +604,10 @@ Target Surface:       Phase 1: Problem Discovery / Problem Bank / Problem Intake
 Intent:               Eliminate orphaned intake actions, unify manual & notes
                       workflows, replace window.prompt() archival, normalize
                       jargon, and establish clear card visual hierarchy.
-Empirical Baseline:   CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md (main @ ac3584c)
+Empirical Baseline:   audits/2026-09-problem-discovery-ux/CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md (main @ ac3584c)
 Governing Baseline:   main @ ac3584c
 Feature Branch:       feature/problem-discovery-ux-001
-Batch Status:         🟢 HUMAN ACCEPTED — AWAITING MERGE AUTHORIZATION
+Batch Status:         🟢 PROMOTED TO MAIN & VERIFIED (`bb6e52c`)
 ===============================================================================
 ```
 

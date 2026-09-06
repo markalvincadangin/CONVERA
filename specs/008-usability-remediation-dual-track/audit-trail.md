@@ -15,7 +15,7 @@
 
 | Stage | Date | Event / Gate | Authorized By | Evidence Artifacts | Status |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **Audit Phase** | 2026-09-04 | System Usability & Methodology Audit | Human Mandate | `CONVERA_SYSTEM_USABILITY_AUDIT_PLAN.md`<br>`CONVERA_CURRENT_UIUX_AUDIT.md` | COMPLETE |
+| **Audit Phase** | 2026-09-04 | System Usability & Methodology Audit | Human Mandate | `audits/2026-09-system-usability/CONVERA_SYSTEM_USABILITY_AUDIT_PLAN.md`<br>`audits/2026-09-system-usability/CONVERA_CURRENT_UIUX_AUDIT.md` | COMPLETE |
 | **Decision Phase** | 2026-09-05 | Remediation Decision Pass | Human Mandate | `architectural_decision_package_gap_know_01.md` | RATIFIED |
 | **Specification** | 2026-09-05 | Drafting of `SPEC-REMEDIATION-USABILITY-001` | Human Working Direction | `specs/008-usability-remediation-dual-track/spec.md` | RATIFIED |
 | **Ratification Gate** | 2026-09-05 | Formal Human Ratification | Human Leadership | Prompts 5, 6, 7 (Formal Ratification) | APPROVED |

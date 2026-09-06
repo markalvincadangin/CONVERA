@@ -5,7 +5,7 @@
 
 ## 1. Problem Statement
 
-A comprehensive, read-only system audit of CONVERA against `CONVERA_SYSTEM_USABILITY_AUDIT_PLAN.md` resulted in a **Conditional Pass** (85.05 / 100), prevented from achieving a Full Pass by Hard Gate 2 (Mechanical Ratchet navigation desynchronization) and Hard Gate 11 (audit score < 90.00).
+A comprehensive, read-only system audit of CONVERA against `audits/2026-09-system-usability/CONVERA_SYSTEM_USABILITY_AUDIT_PLAN.md` resulted in a **Conditional Pass** (85.05 / 100), prevented from achieving a Full Pass by Hard Gate 2 (Mechanical Ratchet navigation desynchronization) and Hard Gate 11 (audit score < 90.00).
 
 Subsequent architectural and usability reconciliation confirmed that CONVERA's core engine, deterministic scoring, scholarly evidence persistence (FTS5), and source-mediated epistemic bridges (SDD-001 through SDD-007) are mathematically sound and operational. However, critical usability, interaction, and reliability defects in the presentation layer and session state lifecycle impede workflow completion:
 
