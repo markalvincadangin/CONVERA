@@ -7,7 +7,7 @@
 **Ratification Date:** 2026-09-06  
 **Dedicated Working Branch:** `feature/011-methodology-contract-slice-1`  
 **Target Branch:** `develop`  
-**Document Status:** 🟢 MERGED TO DEVELOP — PENDING PROMOTION AUTHORIZATION  
+**Document Status:** 🟢 PROMOTED TO MAIN — PENDING DEPLOYMENT AUTHORIZATION  
 
 ---
 
@@ -25,7 +25,8 @@
 | **Automated Verification** | 2026-09-06 20:23:30+08:00 | Pytest Suite & Web Typecheck/Build | Antigravity AI | Pytest (187 passed, 0 failures), Next.js build (0 errors) | **PASSED** |
 | **Human Acceptance Gate** | 2026-09-06 20:26:10+08:00 | Human Acceptance Review | Human Leadership | Formal human acceptance of Slice 1 implementation & verification evidence | **ACCEPTED** |
 | **Merge Gate** | 2026-09-06 20:30:00+08:00 | Merge to develop | Human Leadership | Commit `bb1b228` (clean merge `--no-ff` from `feature/011-methodology-contract-slice-1`) | **MERGED** |
-| **Promotion Gate** | Pending | Promotion to main | Human Leadership | Pending explicit Promotion Authorization | **AWAITING AUTHORIZATION** |
+| **Promotion Gate** | 2026-09-06 20:34:40+08:00 | Promotion to main | Human Leadership | Commit `33ad9e9` (clean merge `--no-ff` of `develop` into `main`) | **PROMOTED** |
+| **Deployment Gate** | Pending | Production Deployment | Human Leadership | Pending explicit Deployment Authorization | **AWAITING AUTHORIZATION** |
 
 ---
 
