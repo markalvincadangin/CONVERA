@@ -5,7 +5,7 @@
 **Authority Tier**: Tier 2 (Architectural Roadmap & Current-State Tracking)  
 **Status**: 🟢 RATIFIED DRAFT / PENDING HUMAN RATIFICATION  
 **Canonical Path**: `docs/04-ai/AI_EVOLUTION_ROADMAP.md`  
-**Strategic Upstream**: `CONVERA_UPGRADE.md` (Strategic Evolution Charter)  
+**Strategic Upstream**: `docs/01-product/CONVERA_UPGRADE_CHARTER.md` (Strategic Evolution Charter)  
 **Canonical Upstream**:  
 - `docs/00-foundation/CONSTITUTION.md` (Articles I, II, V, VI, VII, VIII)  
 - `docs/04-ai/AI_ARCHITECTURE.md` (`CONVERA-AI-002`)  
@@ -20,10 +20,10 @@
 
 This document serves as the canonical tracking baseline for evolving CONVERA from an LLM-centric inquiry platform into a governed **Multi-Engine Research Intelligence System**.
 
-It operationalizes the strategic vision defined in `CONVERA_UPGRADE.md` while reconciling it with the actual verified state of the codebase.
+It operationalizes the strategic vision defined in `docs/01-product/CONVERA_UPGRADE_CHARTER.md` while reconciling it with the actual verified state of the codebase.
 
 ```text
-CONVERA_UPGRADE.md (Root Strategic Evolution Charter)
+docs/01-product/CONVERA_UPGRADE_CHARTER.md (Strategic Evolution Charter)
          │
          ▼
 docs/04-ai/AI_ARCHITECTURE.md (Canonical AI Architecture & LLM Gateway)
@@ -157,7 +157,7 @@ To clearly answer the governance question:
 ## 5. Architectural Alignment & Governance Constraints
 
 1. **Hierarchy Integrity**:
-   - `CONVERA_UPGRADE.md` remains the strategic evolution charter at the workspace root.
+   - `docs/01-product/CONVERA_UPGRADE_CHARTER.md` remains the strategic evolution charter in Layer 01.
    - `docs/04-ai/AI_EVOLUTION_ROADMAP.md` is the canonical current-state tracking artifact.
    - SDD specifications are created only when a specific milestone is authorized for discovery and implementation.
 2. **No Automatic SDD Number Assignment**:

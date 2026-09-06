@@ -4,10 +4,10 @@
 **Target Milestone**: CONVERA Stabilization / Problem Bank UX  
 **Baseline Git Revision**: `main @ ac3584c`  
 **Authoritative Evidence Base**:
-- `CONVERA_RUNTIME_FEATURE_AUDIT.md` (Committed at `ac3584c`)
-- `CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md` (Committed at `ac3584c`)  
+- `audits/2026-09-problem-discovery-ux/CONVERA_RUNTIME_FEATURE_AUDIT.md` (Committed at `ac3584c`)
+- `audits/2026-09-problem-discovery-ux/CONVERA_PROBLEM_DISCOVERY_UX_AUDIT.md` (Committed at `ac3584c`)  
 **Status**: `SUPERSEDED & REFRAMED — INCORPORATED AS UX-BATCH-001 UNDER SPEC-UX-ITERATION-001`  
-**Governing Specification**: [`SPEC-UX-ITERATION-001.md`](file:///home/markc/projects/active/CONVERA/SPEC-UX-ITERATION-001.md)
+**Governing Specification**: [`spec.md`](spec.md) (`SPEC-UX-ITERATION-001`)
 
 ---
 
