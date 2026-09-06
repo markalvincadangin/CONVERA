@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
-import { Compass, Sparkles, Plus, RefreshCw, Layers, ArrowRight, CheckCircle2, RotateCcw, Lightbulb, MapPin, FolderOpen } from "lucide-react";
+import { Compass, Sparkles, Plus, RefreshCw, Layers, ArrowRight, CheckCircle2, Check, RotateCcw, Lightbulb, MapPin, FolderOpen } from "lucide-react";
 import { Card } from "@/components/common/Card";
 import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
@@ -178,14 +178,26 @@ export const Phase1View: React.FC<Phase1ViewProps> = ({
             return (
               <button
                 key={sector}
+                type="button"
                 onClick={() => toggleSector(sector)}
-                className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all ${
+                aria-pressed={isSelected}
+                className={`p-3 rounded-xl border text-left text-xs font-semibold transition-all cursor-pointer select-none flex items-center justify-between gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-950 ${
                   isSelected
-                    ? "bg-cyan-500/15 border-cyan-500/50 text-cyan-300 shadow-sm shadow-cyan-500/10 scale-[1.01]"
-                    : "bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                    ? "bg-cyan-500/15 border-cyan-500/60 text-cyan-200 shadow-sm shadow-cyan-500/15 scale-[1.01]"
+                    : "bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:bg-slate-900 hover:text-slate-200 active:scale-[0.99]"
                 }`}
               >
-                {sector}
+                <span className="truncate">{sector}</span>
+                <span
+                  className={`w-4 h-4 rounded-md border flex items-center justify-center shrink-0 transition-colors ${
+                    isSelected
+                      ? "bg-cyan-500 border-cyan-400 text-slate-950"
+                      : "border-slate-700 bg-slate-950/60"
+                  }`}
+                  aria-hidden="true"
+                >
+                  {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                </span>
               </button>
             );
           })}
