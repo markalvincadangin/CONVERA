@@ -20,6 +20,7 @@ from engines.deliverables_generator import (
 )
 from engines.srs_generator import generate_project_srs, format_srs_markdown
 from engines.decision_engine import synthesize_decision_room, execute_pivot_loop
+from services.workflow_transition_service import WorkflowTransitionService
 
 router = APIRouter(tags=["Sessions, Phases & Deliverables"])
 
@@ -433,3 +434,32 @@ async def add_mentor_signoff(project_id: str, req: SignoffCreateRequest):
         notes=req.notes or ""
     )
     return {"status": "success", "signoff": signoff}
+
+
+class WorkflowTransitionRequest(BaseModel):
+    stage_id: str
+    gate_id: str
+    gate_review_id: Optional[str] = None
+
+
+@router.post("/api/sessions/{session_id}/workflow/transition")
+async def transition_workflow_stage(session_id: str, req: WorkflowTransitionRequest):
+    """
+    Evaluates and applies workflow transition following a formal gate clearance.
+    Enforces INV-CCDS-001-WORKFLOW-003 and INV-CCDS-001-GATE-001.
+    """
+    storage = get_storage()
+    service = WorkflowTransitionService(storage=storage)
+    try:
+        res = service.process_gate_transition(
+            session_id=session_id,
+            stage_id=req.stage_id,
+            gate_id=req.gate_id,
+            gate_review_id=req.gate_review_id,
+        )
+        return res
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+

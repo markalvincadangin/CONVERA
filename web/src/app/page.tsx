@@ -349,6 +349,11 @@ export default function Home() {
                 onSendToPhase2={handleSendToPhase2}
               />
             ) : session.framework_id?.toUpperCase().includes("RESEARCH") ? (
+              // REQ-CCDS-001-DEFECT-4 FIX:
+              // Research stepper has 8 slots: 0=Bank, 1=Stage A, 2=Stage B,
+              // 3=Stage C, 4=Stage D, 5=Stage E, 6=Stage F, 7=Studio.
+              // Previous bug: condition "activePhase <= 6" caught slot 7 (Studio)
+              // inside ResearchWorkspaceView instead of routing to DeliverablesStudio.
               activePhase >= 1 && activePhase <= 6 ? (
                 <ResearchWorkspaceView
                   session={session}
@@ -357,6 +362,7 @@ export default function Home() {
                   onUpdateSession={handleUpdateSession}
                 />
               ) : (
+                // Slot 7 = Research Deliverables Studio; all other values fall here too
                 <DeliverablesStudio
                   session={session}
                   onExportDossier={handleExportDossier}

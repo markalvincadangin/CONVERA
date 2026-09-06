@@ -561,6 +561,19 @@ def execute_pivot_loop(
     state["phase5_complete"] = False
     state["phase3_problem"] = None
 
+    if "stage_progress" in state and isinstance(state["stage_progress"], dict):
+        sp = state["stage_progress"]
+        stages = sp.get("stages", {})
+        if "p2_screening" in stages:
+            stages["p2_screening"]["status"] = "IN_PROGRESS"
+            stages["p2_screening"]["gate_status"] = "PENDING"
+        for stg in ["p3_mom_test", "p4_mechanism", "p5_economics"]:
+            if stg in stages:
+                stages[stg]["status"] = "LOCKED"
+                stages[stg]["gate_status"] = "NOT_REQUIRED"
+        sp["current_stage_id"] = "p2_screening"
+        state["stage_progress"] = sp
+
     storage.save_session(session_id, state)
 
     return {

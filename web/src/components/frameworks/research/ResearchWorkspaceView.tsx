@@ -35,6 +35,7 @@ import { Button } from "@/components/common/Button";
 import { useToast } from "@/components/common/ToastProvider";
 import { researchService, ResearchDomainRecord } from "@/services/researchService";
 import { unknownsApi } from "@/services/knowledgeService";
+import { sessionService } from "@/services/sessionService";
 import { Target, SearchCode } from "lucide-react";
 import { Filter, Users, Briefcase, FileCheck, Trash2, Database, X, Tag } from "lucide-react";
 
@@ -959,8 +960,66 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
           isOpen={!!activeGateModal}
           gateId={activeGateModal}
           onClose={() => setActiveGateModal(null)}
-          onGatePassed={() => {
-            console.log(`Gate ${activeGateModal} Passed!`);
+          onGatePassed={async () => {
+            // REQ-CCDS-001-DEFECT-3 FIX: was console.log no-op; now invokes the
+            // application-layer 9-step transition evaluator via the canonical endpoint.
+            if (!session?.session_id) return;
+
+            // Gate → canonical stage_id mapping (the stage whose gate was just passed).
+            // Gate 1 lives at Stage B, Gate 2 at Stage C, Gate 3 at Stage E, Gate 4 at Stage F.
+            const GATE_STAGE_MAP: Record<string, string> = {
+              GATE_1: "stage_b_validation",
+              GATE_2: "stage_c_opportunity",
+              GATE_3: "stage_e_evaluation",
+              GATE_4: "stage_f_feasibility",
+            };
+            // Next phase letter to activate on success (presentation-layer only).
+            const GATE_NEXT_PHASE: Record<string, string> = {
+              GATE_1: "C",
+              GATE_2: "D",
+              GATE_3: "F",
+              GATE_4: "F", // Studio handled at page.tsx level via session update
+            };
+
+            const currentStageId = GATE_STAGE_MAP[activeGateModal];
+            if (!currentStageId) return;
+
+            try {
+              const result = await sessionService.transitionWorkflowStage(
+                session.session_id,
+                currentStageId,
+                activeGateModal
+              );
+
+              if (result.transition_applied && onUpdateSession) {
+                // Merge the updated stage_progress from the canonical response
+                // back into local session state so the UI reflects the new state.
+                onUpdateSession({
+                  ...session,
+                  stage_progress: result.stage_progress,
+                });
+                toast.success(
+                  `${activeGateModal} passed — advanced to ${result.current_stage_id.replace(/_/g, " ").toUpperCase()}`,
+                  "Gate Cleared"
+                );
+                // Advance the workspace view to the next Research phase.
+                const nextPhase = GATE_NEXT_PHASE[activeGateModal];
+                if (nextPhase) setActivePhaseId(nextPhase);
+              } else {
+                toast.warning(
+                  "Gate verdict not applied. Review the criteria and resubmit.",
+                  "Gate Not Cleared"
+                );
+              }
+            } catch (err: any) {
+              console.error("[Defect3] transitionWorkflowStage failed:", err);
+              toast.error(
+                "Could not persist gate transition. Please retry.",
+                "Transition Failed"
+              );
+            } finally {
+              setActiveGateModal(null);
+            }
           }}
         />
       )}

@@ -217,6 +217,80 @@ export interface PitchDeckData {
   slides: PitchDeckSlide[];
 }
 
+/**
+ * Innovation Track Stage Identifiers (Venture Validation Track)
+ */
+export type InnovationStageId =
+  | "bank"
+  | "p1_discovery"
+  | "p2_screening"
+  | "p3_mom_test"
+  | "p4_mechanism"
+  | "p5_economics"
+  | "studio";
+
+/**
+ * Computing Research Track Stage Identifiers (CRCDP Track)
+ */
+export type ResearchStageId =
+  | "bank"
+  | "stage_a_scouting"
+  | "stage_b_validation"
+  | "stage_c_opportunity"
+  | "stage_d_formulation"
+  | "stage_e_evaluation"
+  | "stage_f_feasibility"
+  | "studio";
+
+/**
+ * Universal Canonical Stage Identifier
+ */
+export type CanonicalStageId = InnovationStageId | ResearchStageId;
+
+/**
+ * Stage Execution Status Lifecycle
+ */
+export type StageStatus = "LOCKED" | "AVAILABLE" | "IN_PROGRESS" | "COMPLETED";
+
+/**
+ * Stage Gate Lifecycle Evaluation Status
+ */
+export type GateStatus = "NOT_REQUIRED" | "PENDING" | "REVISE" | "PASSED" | "FAILED";
+
+/**
+ * Canonical Stage Progress Item
+ */
+export interface StageProgressItem {
+  status: StageStatus;
+  gate_id: string | null;
+  gate_status: GateStatus;
+  started_at?: string | null;
+  completed_at?: string | null;
+}
+
+/**
+ * Canonical Workflow State Representation (Stored in sessions.state_data)
+ */
+export interface WorkflowProgressState {
+  schema_version: number;
+  framework_id: "INNOVATION" | "RESEARCH";
+  current_stage_id: CanonicalStageId;
+  stages: Record<string, StageProgressItem>;
+}
+
+/**
+ * Application Navigation Stage Descriptor (Presentation/UI Descriptor only; NOT a Domain Entity)
+ */
+export interface WorkflowStageDescriptor {
+  id: CanonicalStageId;
+  label: string;
+  shortName: string;
+  position: number;
+  gateId?: string;
+  isStudio?: boolean;
+  isBank?: boolean;
+}
+
 export interface SessionMeta {
   session_id: string;
   framework_id?: string;
@@ -234,6 +308,7 @@ export interface SessionMeta {
   phase5_complete?: boolean;
   completed_levels?: string[];
   problem_statement?: string;
+  stage_progress?: WorkflowProgressState;
 }
 
 export interface SessionState extends SessionMeta {
