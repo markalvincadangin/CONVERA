@@ -133,7 +133,10 @@ def check_concept_minimum(concepts: list[dict]) -> dict:
       - families_present: list[str]
       - families_missing_examples: list[str]  (suggestions for untried families)
     """
-    from schemas.phase4_output import VALID_MECHANISM_FAMILIES
+    try:
+        from schemas.domain.concept import VALID_MECHANISM_FAMILIES
+    except ImportError:
+        from backend.schemas.domain.concept import VALID_MECHANISM_FAMILIES
 
     families_present = {c.get("mechanism_family", "") for c in concepts}
     families_present.discard("")

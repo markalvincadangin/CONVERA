@@ -14,13 +14,15 @@ import { phaseService } from "@/services/phaseService";
 import { problemService } from "@/services/problemService";
 import { SessionState } from "@/lib/types";
 
-interface Phase3ViewProps {
+interface ProblemValidationViewProps {
   session: SessionState;
   onUpdateSession: (newState: SessionState) => void;
   onAdvanceToNextPhase: () => void;
   onGoBack: () => void;
   initialProblemStatement?: string;
 }
+
+export type Phase3ViewProps = ProblemValidationViewProps;
 
 const QUICK_EVIDENCE_TEMPLATES = [
   {
@@ -40,7 +42,7 @@ const QUICK_EVIDENCE_TEMPLATES = [
   },
 ];
 
-export const Phase3View: React.FC<Phase3ViewProps> = ({
+export const ProblemValidationView: React.FC<ProblemValidationViewProps> = ({
   session,
   onUpdateSession,
   onAdvanceToNextPhase,
@@ -397,3 +399,5 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
     </div>
   );
 };
+
+export const Phase3View = ProblemValidationView;

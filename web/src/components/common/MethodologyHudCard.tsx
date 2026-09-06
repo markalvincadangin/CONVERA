@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { SessionState, ProblemRecord } from "@/lib/types";
+import { SessionState, ProblemRecord, CanonicalStageId } from "@/lib/types";
 import {
   Sparkles,
   ArrowRight,
@@ -102,7 +102,8 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
     status: "READY" | "NOT_READY" | "PASSED";
     progress: number;
     recommendedAction: string;
-    targetPhase: number;
+    /** Semantic stage identifier — maps to PipelineStepper slot via STAGE_SLOT_MAP */
+    targetStageId: CanonicalStageId;
   }
 
   const getGateMeta = (): GateMeta => {
@@ -114,7 +115,8 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
           status: "NOT_READY",
           progress: 15,
           recommendedAction: "Ingest Initial Field Signals",
-          targetPhase: 0,
+          // REQ-CCDS-001-DEFECT-1: Stage A = slot 1 in Research stepper
+          targetStageId: "stage_a_scouting",
         };
       }
       if (!session.phase2_complete) {
@@ -124,7 +126,8 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
           status: stronglyDocumented > 0 ? "READY" : "NOT_READY",
           progress: stronglyDocumented > 0 ? 80 : 40,
           recommendedAction: "Ground Problem in Literature (DOI Evidence)",
-          targetPhase: 1,
+          // REQ-CCDS-001-DEFECT-1: Gate 1 targets Stage B
+          targetStageId: "stage_b_validation",
         };
       }
       if (!session.phase3_complete) {
@@ -134,7 +137,8 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
           status: "NOT_READY",
           progress: 50,
           recommendedAction: "Formulate Research Questions & Gaps",
-          targetPhase: 2,
+          // REQ-CCDS-001-DEFECT-1: Gate 2 targets Stage C
+          targetStageId: "stage_c_opportunity",
         };
       }
       return {
@@ -143,7 +147,9 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
         status: "READY",
         progress: 90,
         recommendedAction: "Review Evaluation Metrics & Circumscription",
-        targetPhase: 3,
+        // REQ-CCDS-001-DEFECT-1 FIX: Gate 3 must route to Stage E (slot 5), NOT Stage C (slot 3).
+        // Previous bug: targetPhase: 3 routed to Stage C. Corrected to stage_e_evaluation.
+        targetStageId: "stage_e_evaluation",
       };
     }
 
@@ -155,7 +161,7 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
         status: "NOT_READY",
         progress: 10,
         recommendedAction: "Run Socratic Discovery",
-        targetPhase: 1,
+        targetStageId: "p1_discovery",
       };
     }
     if (!session.phase2_complete) {
@@ -165,7 +171,7 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
         status: problems.some((p) => (p.score || 0) >= 70) ? "READY" : "NOT_READY",
         progress: problems.some((p) => (p.score || 0) >= 70) ? 85 : 45,
         recommendedAction: "Screen & Select Winner in Decision Room",
-        targetPhase: 2,
+        targetStageId: "p2_screening",
       };
     }
     if (!session.phase3_complete) {
@@ -175,7 +181,7 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
         status: "NOT_READY",
         progress: 55,
         recommendedAction: "Execute Socratic Mom Test Validation",
-        targetPhase: 3,
+        targetStageId: "p3_mom_test",
       };
     }
     if (!session.phase4_complete) {
@@ -185,7 +191,7 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
         status: "READY",
         progress: 75,
         recommendedAction: "Map 15 Mechanism SVB Blueprint",
-        targetPhase: 4,
+        targetStageId: "p4_mechanism",
       };
     }
     return {
@@ -194,8 +200,32 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
       status: "PASSED",
       progress: 100,
       recommendedAction: "Export Validation Dossier in Studio",
-      targetPhase: 6,
+      targetStageId: "studio",
     };
+  };
+
+  /**
+   * Maps semantic CanonicalStageId to the integer slot used by PipelineStepper's
+   * onSelectPhase. This mapping is presentation-layer only and MUST NOT be used
+   * as workflow authority.
+   * REQ-CCDS-001-DEFECT-1: Eliminates Gate 3 → Stage C misrouting.
+   */
+  const STAGE_SLOT_MAP: Record<CanonicalStageId, number> = {
+    // Innovation Track slots
+    bank: 0,
+    p1_discovery: 1,
+    p2_screening: 2,
+    p3_mom_test: 3,
+    p4_mechanism: 4,
+    p5_economics: 5,
+    studio: isResearch ? 7 : 6,
+    // Research Track slots
+    stage_a_scouting: 1,
+    stage_b_validation: 2,
+    stage_c_opportunity: 3,
+    stage_d_formulation: 4,
+    stage_e_evaluation: 5,
+    stage_f_feasibility: 6,
   };
 
   const gate = getGateMeta();
@@ -295,7 +325,7 @@ export const MethodologyHudCard: React.FC<MethodologyHudCardProps> = ({
         </div>
 
         <button
-          onClick={() => onNavigate(gate.targetPhase)}
+          onClick={() => onNavigate(STAGE_SLOT_MAP[gate.targetStageId] ?? 0)}
           className="self-end sm:self-center font-bold text-xs text-cyan-300 hover:text-white flex items-center gap-1.5 bg-gradient-to-r from-cyan-600/20 to-blue-600/20 hover:from-cyan-500/30 hover:to-blue-500/30 px-3.5 py-1.5 rounded-xl border border-cyan-500/40 transition-all active:scale-[0.98] shadow-sm"
         >
           <span>Execute Action</span>

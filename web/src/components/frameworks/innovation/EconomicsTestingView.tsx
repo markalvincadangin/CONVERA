@@ -12,14 +12,16 @@ import { COMMITMENT_TIERS } from "@/lib/constants";
 import { phaseService } from "@/services/phaseService";
 import { SessionState, TestArchetype } from "@/lib/types";
 
-interface Phase5ViewProps {
+interface EconomicsTestingViewProps {
   session: SessionState;
   onUpdateSession: (newState: SessionState) => void;
   onGoBack: () => void;
   onExportDossier: () => void;
 }
 
-export const Phase5View: React.FC<Phase5ViewProps> = ({
+export type Phase5ViewProps = EconomicsTestingViewProps;
+
+export const EconomicsTestingView: React.FC<EconomicsTestingViewProps> = ({
   session,
   onUpdateSession,
   onGoBack,
@@ -305,3 +307,6 @@ export const Phase5View: React.FC<Phase5ViewProps> = ({
     </div>
   );
 };
+
+export const Phase5View = EconomicsTestingView;
+

@@ -17,7 +17,7 @@ import { phaseService } from "@/services/phaseService";
 import { problemService } from "@/services/problemService";
 import { SessionState, ProblemRecord } from "@/lib/types";
 
-interface Phase2ViewProps {
+interface ProblemScreeningViewProps {
   session: SessionState;
   onUpdateSession: (newState: SessionState) => void;
   onAdvanceToNextPhase: (problemToValidate?: string) => void;
@@ -25,7 +25,9 @@ interface Phase2ViewProps {
   selectedProblemIds?: string[];
 }
 
-export const Phase2View: React.FC<Phase2ViewProps> = ({
+export type Phase2ViewProps = ProblemScreeningViewProps;
+
+export const ProblemScreeningView: React.FC<ProblemScreeningViewProps> = ({
   session,
   onUpdateSession,
   onAdvanceToNextPhase,
@@ -308,3 +310,5 @@ export const Phase2View: React.FC<Phase2ViewProps> = ({
     </div>
   );
 };
+
+export const Phase2View = ProblemScreeningView;

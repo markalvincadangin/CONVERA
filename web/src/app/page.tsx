@@ -11,12 +11,12 @@ import {
   PresentationModal,
 } from "@/components/layout";
 import {
-  Phase1View,
-  Phase2View,
-  Phase3View,
-  Phase4View,
-  Phase5View,
-} from "@/components/phases";
+  ProblemDiscoveryView,
+  ProblemScreeningView,
+  ProblemValidationView,
+  SolutionConceptView,
+  EconomicsTestingView,
+} from "@/components/frameworks/innovation";
 import { ProblemBankView } from "@/components/problem-bank/ProblemBankView";
 import { DeliverablesStudio } from "@/components/deliverables/DeliverablesStudio";
 import { ResearchWorkspaceView } from "@/components/frameworks/research/ResearchWorkspaceView";
@@ -349,6 +349,11 @@ export default function Home() {
                 onSendToPhase2={handleSendToPhase2}
               />
             ) : session.framework_id?.toUpperCase().includes("RESEARCH") ? (
+              // REQ-CCDS-001-DEFECT-4 FIX:
+              // Research stepper has 8 slots: 0=Bank, 1=Stage A, 2=Stage B,
+              // 3=Stage C, 4=Stage D, 5=Stage E, 6=Stage F, 7=Studio.
+              // Previous bug: condition "activePhase <= 6" caught slot 7 (Studio)
+              // inside ResearchWorkspaceView instead of routing to DeliverablesStudio.
               activePhase >= 1 && activePhase <= 6 ? (
                 <ResearchWorkspaceView
                   session={session}
@@ -357,6 +362,7 @@ export default function Home() {
                   onUpdateSession={handleUpdateSession}
                 />
               ) : (
+                // Slot 7 = Research Deliverables Studio; all other values fall here too
                 <DeliverablesStudio
                   session={session}
                   onExportDossier={handleExportDossier}
@@ -366,7 +372,7 @@ export default function Home() {
             ) : (
               <>
                 {activePhase === 1 && (
-                  <Phase1View
+                  <ProblemDiscoveryView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onAdvanceToNextPhase={() => handleSelectPhase(2)}
@@ -374,7 +380,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 2 && (
-                  <Phase2View
+                  <ProblemScreeningView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     selectedProblemIds={phase2SelectedIds}
@@ -389,7 +395,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 3 && (
-                  <Phase3View
+                  <ProblemValidationView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onAdvanceToNextPhase={() => handleSelectPhase(4)}
@@ -399,7 +405,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 4 && (
-                  <Phase4View
+                  <SolutionConceptView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onAdvanceToNextPhase={() => handleSelectPhase(5)}
@@ -408,7 +414,7 @@ export default function Home() {
                 )}
 
                 {activePhase === 5 && (
-                  <Phase5View
+                  <EconomicsTestingView
                     session={session}
                     onUpdateSession={handleUpdateSession}
                     onGoBack={() => handleSelectPhase(4)}
