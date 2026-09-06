@@ -236,10 +236,11 @@ export const ScreeningScorecardGrid: React.FC<ScreeningScorecardGridProps> = ({
 
                 {isAdvance && (
                   <Button
-                    variant={isSelected ? "emerald" : "outline"}
+                    variant={isSelected ? "emerald" : "primary"}
                     size="sm"
                     onClick={() => onSelectProblem(statement)}
-                    rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                    leftIcon={isSelected ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : undefined}
+                    rightIcon={!isSelected ? <ArrowRight className="w-3.5 h-3.5 shrink-0" /> : undefined}
                   >
                     {isSelected ? "Selected for Validation" : "Select for Validation"}
                   </Button>

@@ -204,21 +204,33 @@ export const Phase3View: React.FC<Phase3ViewProps> = ({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-          {LEVEL_ORDER.map((lvl) => {
+          {LEVEL_ORDER.map((lvl, index) => {
             const isPassed = completedLevels.includes(lvl);
-            const label = LEVEL_LABELS[lvl] || `Level ${lvl}`;
+            const gateNum = index + 1;
+            const fullLabel = LEVEL_LABELS[lvl] || `Level ${gateNum}`;
+            const shortTitle = fullLabel.replace(/^Level\s*\d+:\s*/i, "");
             return (
               <div
                 key={lvl}
-                className={`p-2 rounded-xl border text-center transition-all ${
+                title={fullLabel}
+                className={`p-2.5 rounded-xl border text-center transition-all ${
                   isPassed
                     ? "bg-emerald-500/15 border-emerald-500/40 text-emerald-300"
-                    : "bg-slate-950/60 border-slate-800 text-slate-500"
+                    : "bg-slate-950/60 border-slate-800 text-slate-400"
                 }`}
               >
-                <div className="flex items-center justify-center gap-1.5 text-xs font-bold font-mono">
-                  {isPassed ? <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> : <span>L{lvl}</span>}
-                  <span className="truncate">{label}</span>
+                <div className="flex items-center justify-center gap-1.5 text-xs font-semibold">
+                  {isPassed ? (
+                    <span className="inline-flex items-center gap-1 text-emerald-400 font-bold font-mono">
+                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                      <span>{gateNum}.</span>
+                    </span>
+                  ) : (
+                    <span className="font-mono text-slate-500 font-bold">{gateNum}.</span>
+                  )}
+                  <span className="truncate text-xs font-medium text-slate-200">
+                    {shortTitle}
+                  </span>
                 </div>
               </div>
             );
