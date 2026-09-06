@@ -17,44 +17,24 @@ from datetime import datetime, timezone
 
 from storage.factory import get_storage
 from storage.sqlite_adapter import WorkflowStateCorruptedError
+from contracts.methodology import (
+    MethodologyContract,
+    INNOVATION_CONTRACT,
+    RESEARCH_CONTRACT,
+    get_methodology_contract,
+)
 
-
-RESEARCH_GATE_MAP = {
-    "stage_b_validation": "GATE_1",
-    "stage_c_opportunity": "GATE_2",
-    "stage_e_evaluation": "GATE_3",
-    "stage_f_feasibility": "GATE_4",
-}
-
-INNOVATION_GATE_MAP = {
-    "p2_screening": "GATE_1",
-    "p3_mom_test": "GATE_2",
-    "p5_economics": "GATE_3",
-}
-
-RESEARCH_SEQUENCE = [
-    "stage_a_scouting",
-    "stage_b_validation",
-    "stage_c_opportunity",
-    "stage_d_formulation",
-    "stage_e_evaluation",
-    "stage_f_feasibility",
-    "studio",
-]
-
-INNOVATION_SEQUENCE = [
-    "p1_discovery",
-    "p2_screening",
-    "p3_mom_test",
-    "p4_mechanism",
-    "p5_economics",
-    "studio",
-]
+# Backward-compatibility aliases for external modules/tests
+RESEARCH_GATE_MAP = RESEARCH_CONTRACT.gate_map
+INNOVATION_GATE_MAP = INNOVATION_CONTRACT.gate_map
+RESEARCH_SEQUENCE = RESEARCH_CONTRACT.stage_sequence
+INNOVATION_SEQUENCE = INNOVATION_CONTRACT.stage_sequence
 
 
 class WorkflowTransitionService:
-    def __init__(self, storage=None):
+    def __init__(self, storage=None, contract_resolver=None):
         self.storage = storage or get_storage()
+        self.contract_resolver = contract_resolver or get_methodology_contract
 
     def process_gate_transition(
         self,
@@ -75,22 +55,25 @@ class WorkflowTransitionService:
         if not stage_progress or not isinstance(stage_progress, dict):
             raise WorkflowStateCorruptedError(f"Session '{session_id}' has no valid canonical stage_progress")
 
-        framework_id = str(session.get("framework_id") or stage_progress.get("framework_id") or "INNOVATION").upper()
-        is_research = "RESEARCH" in framework_id
+        raw_framework_id = session.get("framework_id") or stage_progress.get("framework_id")
+        if not raw_framework_id or not str(raw_framework_id).strip():
+            raise ValueError("Methodology framework identity is missing or empty for this session")
 
-        # Step 2: Identify Current Stage
+        framework_id = str(raw_framework_id).strip().upper()
+        contract = self.contract_resolver(framework_id)
+        if not contract:
+            raise ValueError(f"Unknown or unsupported methodology framework: '{framework_id}'")
+
+        # Step 2: Identify Current Stage & Validate
         current_stage_id = stage_progress.get("current_stage_id")
         stages = stage_progress.get("stages", {})
 
-        gate_map = RESEARCH_GATE_MAP if is_research else INNOVATION_GATE_MAP
-        sequence = RESEARCH_SEQUENCE if is_research else INNOVATION_SEQUENCE
-
-        # Verify stage exists in methodology
-        if stage_id not in stages and stage_id != "studio":
+        # Verify stage exists in methodology contract or session stages
+        if not contract.has_stage(stage_id) and (stage_id not in stages and stage_id != "studio"):
             raise ValueError(f"Stage '{stage_id}' is not recognized for framework '{framework_id}'")
 
         # Step 3: Identify Expected Gate for Current Stage
-        expected_gate = gate_map.get(stage_id)
+        expected_gate = contract.get_expected_gate(stage_id)
         if not expected_gate:
             raise ValueError(f"Stage '{stage_id}' does not require a quality gate transition in framework '{framework_id}'")
 
@@ -115,8 +98,8 @@ class WorkflowTransitionService:
             # Fall back to matching by gate_id for the project/session
             matching = [r for r in reviews if r.get("gate_id") == gate_id]
             if matching:
-                # Latest review
-                target_review = matching[-1]
+                # Latest review (list_gate_reviews returns created_at DESC)
+                target_review = matching[0]
 
         if not target_review:
             raise ValueError(
@@ -143,12 +126,8 @@ class WorkflowTransitionService:
         stages[stage_id]["gate_status"] = "PASSED"
         stages[stage_id]["completed_at"] = datetime.now(timezone.utc).isoformat()
 
-        # Resolve next stage
-        try:
-            curr_idx = sequence.index(stage_id)
-            next_stage_id = sequence[curr_idx + 1] if curr_idx + 1 < len(sequence) else "studio"
-        except ValueError:
-            next_stage_id = "studio"
+        # Resolve next stage via methodology contract
+        next_stage_id = contract.get_next_stage(stage_id)
 
         if next_stage_id != "studio" and next_stage_id in stages:
             stages[next_stage_id]["status"] = "IN_PROGRESS"
@@ -167,3 +146,4 @@ class WorkflowTransitionService:
             "current_stage_id": next_stage_id,
             "stage_progress": saved_state.get("stage_progress", stage_progress),
         }
+
