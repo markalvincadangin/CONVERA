@@ -43,6 +43,187 @@ def generate_share_code(prefix: str = "CONV") -> str:
     return f"{prefix}-{chars}"
 
 
+class WorkflowStateCorruptedError(RuntimeError):
+    """Raised when canonical stage_progress is corrupted or fails schema validation."""
+    pass
+
+
+def validate_stage_progress_schema(stage_progress: Any) -> bool:
+    """
+    Validates that stage_progress is a valid dictionary adhering to the canonical schema:
+    - schema_version: int
+    - framework_id: str ("INNOVATION" or "RESEARCH" or similar)
+    - current_stage_id: str
+    - stages: dict mapping stage_id -> dict with status, gate_id, gate_status
+    """
+    if not isinstance(stage_progress, dict):
+        return False
+    if "schema_version" not in stage_progress or not isinstance(stage_progress["schema_version"], int):
+        return False
+    if "framework_id" not in stage_progress or not isinstance(stage_progress["framework_id"], str):
+        return False
+    if "current_stage_id" not in stage_progress or not isinstance(stage_progress["current_stage_id"], str):
+        return False
+    stages = stage_progress.get("stages")
+    if not isinstance(stages, dict) or not stages:
+        return False
+    for s_id, s_data in stages.items():
+        if not isinstance(s_data, dict):
+            return False
+        if "status" not in s_data or not isinstance(s_data["status"], str):
+            return False
+        if "gate_status" in s_data and not isinstance(s_data["gate_status"], str):
+            return False
+    return True
+
+
+def derive_legacy_phase_projection(framework_id: str, stage_progress: dict) -> Dict[str, bool]:
+    """
+    Pure projection from canonical stage_progress to legacy boolean columns.
+    Single-writer: Called ONLY during persistence.
+    Enforces INV-CCDS-001-COMPAT-001 (Prohibition of reverse synchronization).
+    """
+    stages = stage_progress.get("stages", {}) if isinstance(stage_progress, dict) else {}
+    fw = str(framework_id or "").upper()
+    if "RESEARCH" in fw:
+        return {
+            "phase1_complete": bool(stages.get("stage_a_scouting", {}).get("status") == "COMPLETED"),
+            "phase2_complete": bool(stages.get("stage_b_validation", {}).get("status") == "COMPLETED"),
+            "phase3_complete": bool(stages.get("stage_c_opportunity", {}).get("status") == "COMPLETED"),
+            "phase4_complete": bool(stages.get("stage_d_formulation", {}).get("status") == "COMPLETED"),
+            # Legacy phase 5 represented terminal research readiness
+            "phase5_complete": bool(
+                stages.get("stage_e_evaluation", {}).get("status") == "COMPLETED"
+                and stages.get("stage_f_feasibility", {}).get("status") == "COMPLETED"
+            ),
+        }
+    else:
+        return {
+            "phase1_complete": bool(stages.get("p1_discovery", {}).get("status") == "COMPLETED"),
+            "phase2_complete": bool(stages.get("p2_screening", {}).get("status") == "COMPLETED"),
+            "phase3_complete": bool(stages.get("p3_mom_test", {}).get("status") == "COMPLETED"),
+            "phase4_complete": bool(stages.get("p4_mechanism", {}).get("status") == "COMPLETED"),
+            "phase5_complete": bool(stages.get("p5_economics", {}).get("status") == "COMPLETED"),
+        }
+
+
+def synthesize_canonical_stage_progress(
+    framework_id: str,
+    legacy_state: Dict[str, Any],
+    row_flags: Optional[Dict[str, Any]] = None
+) -> Dict[str, Any]:
+    """
+    Deterministically synthesizes canonical stage_progress from legacy session flags.
+    Enforces INV-CCDS-001-WORKFLOW-002 (Deterministic Migration).
+    """
+    fw = str(framework_id or legacy_state.get("framework_id") or "INNOVATION").upper()
+    is_research = "RESEARCH" in fw
+    
+    flags = dict(row_flags or {})
+    p1 = bool(legacy_state.get("phase1_complete") or flags.get("phase1_complete") or legacy_state.get("phase1_response"))
+    p2 = bool(legacy_state.get("phase2_complete") or flags.get("phase2_complete") or legacy_state.get("phase2_response") or legacy_state.get("phase2_scorecard"))
+    p3 = bool(legacy_state.get("phase3_complete") or flags.get("phase3_complete") or (legacy_state.get("completed_levels") and len(legacy_state.get("completed_levels", [])) >= 6))
+    p4 = bool(legacy_state.get("phase4_complete") or flags.get("phase4_complete") or legacy_state.get("phase4_response") or legacy_state.get("phase4_concepts"))
+    p5 = bool(legacy_state.get("phase5_complete") or flags.get("phase5_complete") or legacy_state.get("phase5_response") or legacy_state.get("phase5_metrics"))
+
+    if is_research:
+        stages = {
+            "stage_a_scouting": {
+                "status": "COMPLETED" if p1 else "IN_PROGRESS",
+                "gate_id": None,
+                "gate_status": "NOT_REQUIRED",
+            },
+            "stage_b_validation": {
+                "status": "COMPLETED" if p2 else ("AVAILABLE" if p1 else "LOCKED"),
+                "gate_id": "GATE_1",
+                "gate_status": "PASSED" if p2 else "NOT_REQUIRED",
+            },
+            "stage_c_opportunity": {
+                "status": "COMPLETED" if p3 else ("AVAILABLE" if p2 else "LOCKED"),
+                "gate_id": "GATE_2",
+                "gate_status": "PASSED" if p3 else "NOT_REQUIRED",
+            },
+            "stage_d_formulation": {
+                "status": "COMPLETED" if p4 else ("AVAILABLE" if p3 else "LOCKED"),
+                "gate_id": None,
+                "gate_status": "NOT_REQUIRED",
+            },
+            "stage_e_evaluation": {
+                "status": "COMPLETED" if p5 else ("AVAILABLE" if p4 else "LOCKED"),
+                "gate_id": "GATE_3",
+                "gate_status": "PASSED" if p5 else "NOT_REQUIRED",
+            },
+            "stage_f_feasibility": {
+                "status": "COMPLETED" if p5 else ("AVAILABLE" if (p4 and not p5) else "LOCKED"),
+                "gate_id": "GATE_4",
+                "gate_status": "PASSED" if p5 else "NOT_REQUIRED",
+            },
+        }
+        sequence = [
+            "stage_a_scouting",
+            "stage_b_validation",
+            "stage_c_opportunity",
+            "stage_d_formulation",
+            "stage_e_evaluation",
+            "stage_f_feasibility",
+        ]
+        curr = "studio"
+        for stg in sequence:
+            if stages[stg]["status"] != "COMPLETED":
+                curr = stg
+                if stages[stg]["status"] == "AVAILABLE":
+                    stages[stg]["status"] = "IN_PROGRESS"
+                break
+        return {
+            "schema_version": 1,
+            "framework_id": "RESEARCH",
+            "current_stage_id": curr,
+            "stages": stages,
+        }
+    else:
+        stages = {
+            "p1_discovery": {
+                "status": "COMPLETED" if p1 else "IN_PROGRESS",
+                "gate_id": None,
+                "gate_status": "NOT_REQUIRED",
+            },
+            "p2_screening": {
+                "status": "COMPLETED" if p2 else ("AVAILABLE" if p1 else "LOCKED"),
+                "gate_id": "GATE_1",
+                "gate_status": "PASSED" if p2 else "NOT_REQUIRED",
+            },
+            "p3_mom_test": {
+                "status": "COMPLETED" if p3 else ("AVAILABLE" if p2 else "LOCKED"),
+                "gate_id": "GATE_2",
+                "gate_status": "PASSED" if p3 else "NOT_REQUIRED",
+            },
+            "p4_mechanism": {
+                "status": "COMPLETED" if p4 else ("AVAILABLE" if p3 else "LOCKED"),
+                "gate_id": None,
+                "gate_status": "NOT_REQUIRED",
+            },
+            "p5_economics": {
+                "status": "COMPLETED" if p5 else ("AVAILABLE" if p4 else "LOCKED"),
+                "gate_id": "GATE_3",
+                "gate_status": "PASSED" if p5 else "NOT_REQUIRED",
+            },
+        }
+        sequence = ["p1_discovery", "p2_screening", "p3_mom_test", "p4_mechanism", "p5_economics"]
+        curr = "studio"
+        for stg in sequence:
+            if stages[stg]["status"] != "COMPLETED":
+                curr = stg
+                if stages[stg]["status"] == "AVAILABLE":
+                    stages[stg]["status"] = "IN_PROGRESS"
+                break
+        return {
+            "schema_version": 1,
+            "framework_id": "INNOVATION",
+            "current_stage_id": curr,
+            "stages": stages,
+        }
+
+
 class SQLiteStorageAdapter(BaseStorageAdapter):
     """High-concurrency SQLite WAL storage adapter with full Problem Bank support for CONVERA."""
 
@@ -930,28 +1111,71 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             except Exception:
                 pass
 
+
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute(
-                "SELECT session_id, project_id, state_data, project_name, updated_at, created_at FROM sessions WHERE session_id = ?",
+                "SELECT session_id, project_id, state_data, project_name, phase1_complete, phase2_complete, phase3_complete, phase4_complete, phase5_complete, updated_at, created_at FROM sessions WHERE session_id = ?",
                 (session_id,)
             ).fetchone()
             if not row:
                 return None
             try:
-                state = json.loads(row["state_data"])
-                state["session_id"] = row["session_id"]
-                state["project_id"] = row["project_id"]
-                if "project_name" not in state or not state["project_name"]:
-                    state["project_name"] = row["project_name"]
-                if row["project_id"]:
-                    p_row = conn.execute("SELECT share_code, passcode FROM projects WHERE id = ?", (row["project_id"],)).fetchone()
-                    if p_row:
-                        state["share_code"] = p_row["share_code"]
-                        state["has_passcode"] = bool(p_row["passcode"])
-                return state
-            except Exception:
-                return None
+                state = json.loads(row["state_data"]) if row["state_data"] else {}
+            except Exception as e:
+                raise WorkflowStateCorruptedError(f"Session {session_id} state_data is not valid JSON: {e}")
+
+            state["session_id"] = row["session_id"]
+            state["project_id"] = row["project_id"]
+            if "project_name" not in state or not state["project_name"]:
+                state["project_name"] = row["project_name"]
+
+            # Evaluate 3-state migration model
+            if "stage_progress" in state and state["stage_progress"] is not None:
+                # CASE A: MIGRATED SESSION (Read-Only)
+                # Verify schema
+                if not validate_stage_progress_schema(state["stage_progress"]):
+                    raise WorkflowStateCorruptedError(
+                        f"Session {session_id} has invalid/corrupted stage_progress schema."
+                    )
+                # Canonical stage_progress is authoritative; project legacy flags into return dict
+                fw = state.get("framework_id") or state["stage_progress"].get("framework_id") or "INNOVATION"
+                projection = derive_legacy_phase_projection(fw, state["stage_progress"])
+                state.update(projection)
+                state["current_stage_id"] = state["stage_progress"].get("current_stage_id")
+            else:
+                # CASE B: LEGACY SESSION (Intentional Lazy Migration Write)
+                row_flags = {
+                    "phase1_complete": bool(row["phase1_complete"]),
+                    "phase2_complete": bool(row["phase2_complete"]),
+                    "phase3_complete": bool(row["phase3_complete"]),
+                    "phase4_complete": bool(row["phase4_complete"]),
+                    "phase5_complete": bool(row["phase5_complete"]),
+                }
+                fw = state.get("framework_id") or "INNOVATION"
+                canonical_progress = synthesize_canonical_stage_progress(fw, state, row_flags)
+                if not validate_stage_progress_schema(canonical_progress):
+                    raise WorkflowStateCorruptedError(
+                        f"Synthesized stage_progress failed validation for session {session_id}."
+                    )
+                state["stage_progress"] = canonical_progress
+                state["current_stage_id"] = canonical_progress.get("current_stage_id")
+                # Persist migration write atomically
+                projection = derive_legacy_phase_projection(fw, canonical_progress)
+                state.update(projection)
+                now = datetime.now(timezone.utc).isoformat()
+                state_json = json.dumps(state)
+                conn.execute(
+                    "UPDATE sessions SET state_data = ?, updated_at = ? WHERE session_id = ?",
+                    (state_json, now, session_id)
+                )
+
+            if row["project_id"]:
+                p_row = conn.execute("SELECT share_code, passcode FROM projects WHERE id = ?", (row["project_id"],)).fetchone()
+                if p_row:
+                    state["share_code"] = p_row["share_code"]
+                    state["has_passcode"] = bool(p_row["passcode"])
+            return state
 
     def save_session(self, session_id: str, state: Optional[Dict[str, Any]] = None, **kwargs) -> Dict[str, Any]:
         if state is None:
@@ -966,7 +1190,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
 
         with self._get_connection() as conn:
             existing_sess = conn.execute(
-                "SELECT project_id, project_name, state_data FROM sessions WHERE session_id = ?",
+                "SELECT project_id, project_name, state_data, phase1_complete, phase2_complete, phase3_complete, phase4_complete, phase5_complete FROM sessions WHERE session_id = ?",
                 (session_id,)
             ).fetchone()
 
@@ -981,6 +1205,50 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
 
             # Merge: preserve prior session state while applying incoming updates
             merged_state = {**existing_state, **state}
+
+            fw = merged_state.get("framework_id") or "INNOVATION"
+            
+            # Workflow state management:
+            legacy_keys = ["phase1_complete", "phase2_complete", "phase3_complete", "phase4_complete", "phase5_complete"]
+            incoming_sp = state.get("stage_progress")
+            existing_sp = existing_state.get("stage_progress")
+            has_canonical_delta = (
+                incoming_sp is not None 
+                and isinstance(incoming_sp, dict) 
+                and incoming_sp != existing_sp
+            )
+
+            # If canonical stage_progress exists:
+            if "stage_progress" in merged_state and merged_state["stage_progress"] is not None:
+                if not validate_stage_progress_schema(merged_state["stage_progress"]):
+                    raise WorkflowStateCorruptedError(
+                        f"Cannot save session {session_id}: invalid stage_progress schema."
+                    )
+                projection = derive_legacy_phase_projection(fw, merged_state["stage_progress"])
+
+                # Check if incoming state explicitly provided legacy delta without modifying canonical stage_progress
+                has_legacy_delta = any(
+                    k in state and bool(state[k]) != bool(projection.get(k))
+                    for k in legacy_keys
+                )
+                if has_legacy_delta and not has_canonical_delta:
+                    # Legacy update path: synchronize stage_progress from incoming legacy flags
+                    canonical_progress = synthesize_canonical_stage_progress(fw, merged_state)
+                    merged_state["stage_progress"] = canonical_progress
+                    merged_state["current_stage_id"] = canonical_progress.get("current_stage_id")
+                    projection = derive_legacy_phase_projection(fw, canonical_progress)
+
+                # Single-writer projection (INV-CCDS-001-COMPAT-001):
+                # Legacy phase flags strictly match stage_progress projection
+                merged_state.update(projection)
+                merged_state["current_stage_id"] = merged_state["stage_progress"].get("current_stage_id")
+            else:
+                # Synthesize initial canonical stage_progress so session is saved as MIGRATED
+                canonical_progress = synthesize_canonical_stage_progress(fw, merged_state)
+                merged_state["stage_progress"] = canonical_progress
+                merged_state["current_stage_id"] = canonical_progress.get("current_stage_id")
+                projection = derive_legacy_phase_projection(fw, canonical_progress)
+                merged_state.update(projection)
 
             project_name = merged_state.get("project_name") or (existing_sess["project_name"] if existing_sess else None) or "Venture Project"
             project_id = merged_state.get("project_id") or (existing_sess["project_id"] if existing_sess else None)
@@ -1004,11 +1272,11 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             merged_state["project_id"] = project_id
             merged_state["session_id"] = session_id
 
-            p1 = 1 if merged_state.get("phase1_complete") or merged_state.get("phase1_response") else 0
-            p2 = 1 if merged_state.get("phase2_complete") or merged_state.get("phase2_response") else 0
-            p3 = 1 if merged_state.get("phase3_complete") or (merged_state.get("completed_levels") and len(merged_state.get("completed_levels", [])) >= 6) else 0
-            p4 = 1 if merged_state.get("phase4_complete") or merged_state.get("phase4_response") else 0
-            p5 = 1 if merged_state.get("phase5_complete") or merged_state.get("phase5_response") else 0
+            p1 = 1 if merged_state.get("phase1_complete") else 0
+            p2 = 1 if merged_state.get("phase2_complete") else 0
+            p3 = 1 if merged_state.get("phase3_complete") else 0
+            p4 = 1 if merged_state.get("phase4_complete") else 0
+            p5 = 1 if merged_state.get("phase5_complete") else 0
 
             state_json = json.dumps(merged_state)
 

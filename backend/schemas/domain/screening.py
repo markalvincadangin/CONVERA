@@ -30,21 +30,3 @@ class ScreeningResult(BaseModel):
                 "A SECOND LOOK without an exit condition is a parking lot with no exit."
             )
         return self
-
-
-class Phase2Output(BaseModel):
-    total_input: int
-    solution_in_disguise_count: int
-    scored_count: int
-    advance_count: int
-    second_look_count: int
-    park_count: int
-    results: list[ScreeningResult]
-
-    @property
-    def advance_problems(self) -> list[ScreeningResult]:
-        return [r for r in self.results if r.verdict == "ADVANCE"]
-
-    @property
-    def second_look_problems(self) -> list[ScreeningResult]:
-        return [r for r in self.results if r.verdict == "SECOND_LOOK"]

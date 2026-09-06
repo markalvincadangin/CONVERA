@@ -1,5 +1,5 @@
 import { fetchApi } from "@/lib/api-client";
-import { SessionMeta, SessionState } from "@/lib/types";
+import { SessionMeta, SessionState, WorkflowProgressState } from "@/lib/types";
 
 export interface SessionSnapshot {
   id: number;
@@ -103,5 +103,31 @@ export const sessionService = {
 
   async getHealth(): Promise<any> {
     return await fetchApi<any>("/api/health");
+  },
+
+  async transitionWorkflowStage(
+    sessionId: string,
+    stageId: string,
+    gateId: string,
+    gateReviewId?: string
+  ): Promise<{
+    transition_applied: boolean;
+    previous_stage_id: string;
+    current_stage_id: string;
+    stage_progress: WorkflowProgressState;
+  }> {
+    return await fetchApi<{
+      transition_applied: boolean;
+      previous_stage_id: string;
+      current_stage_id: string;
+      stage_progress: WorkflowProgressState;
+    }>(`/api/sessions/${sessionId}/workflow/transition`, {
+      method: "POST",
+      body: JSON.stringify({
+        stage_id: stageId,
+        gate_id: gateId,
+        gate_review_id: gateReviewId || "",
+      }),
+    });
   },
 };

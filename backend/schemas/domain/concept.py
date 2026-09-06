@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import Literal
 from pydantic import BaseModel, computed_field, model_validator
 
+
 VALID_MECHANISM_FAMILIES = {
     "Prevention",
     "Prediction / early warning",
@@ -21,8 +22,6 @@ VALID_MECHANISM_FAMILIES = {
 }
 
 ASSUMPTION_TYPES = Literal["Desirability", "Feasibility", "Behavioral", "Value", "Viability"]
-CONCEPT_VERDICT = Literal["ADVANCE_TO_HYPOTHESIS", "REVISE", "DROP"]
-PHASE4_VERDICT = Literal["READY_TO_TEST", "RE_IDEATE", "RETURN_TO_PROBLEM"]
 
 
 class ConceptScreeningScore(BaseModel):
@@ -35,14 +34,16 @@ class ConceptScreeningScore(BaseModel):
 
     @computed_field
     @property
-    def verdict(self) -> CONCEPT_VERDICT:
-        if self.problem_fit == 1:
-            return "DROP"
-        if self.feasibility == 1 and self.viability == 1:
-            return "DROP"
-        if self.problem_fit >= 2 and self.evidence_testability >= 2 and self.feasibility >= 2:
-            return "ADVANCE_TO_HYPOTHESIS"
-        return "REVISE"
+    def total_score(self) -> int:
+        return (
+            self.problem_fit + self.user_desirability + self.advantage_over_status_quo +
+            self.feasibility + self.viability + self.evidence_testability
+        )
+
+    @computed_field
+    @property
+    def has_fatal_flaw(self) -> bool:
+        return self.problem_fit == 1 or (self.feasibility == 1 and self.viability == 1)
 
 
 class SolutionConcept(BaseModel):
@@ -103,50 +104,3 @@ class ExperimentCard(BaseModel):
     fail_threshold: str                 # specific number or condition
     decision_if_pass: str
     decision_if_fail: str
-
-
-class Phase4Output(BaseModel):
-    opportunity_question: str
-    root_mechanism_decomposition: list[dict]    # [{trigger, mechanism_type, consequence}, ...]
-    concepts: list[SolutionConcept]
-    assumption_register: list[Assumption]
-    experiment_cards: list[ExperimentCard]
-    verdict: PHASE4_VERDICT
-    re_ideate_reason: str | None = None         # populated if RE_IDEATE
-    return_to_problem_gap: str | None = None    # populated if RETURN_TO_PROBLEM
-
-    @computed_field
-    @property
-    def advance_concepts(self) -> list[SolutionConcept]:
-        return [
-            c for c in self.concepts
-            if c.screening_score and c.screening_score.verdict == "ADVANCE_TO_HYPOTHESIS"
-        ]
-
-    @computed_field
-    @property
-    def mechanism_families_present(self) -> set[str]:
-        return {c.mechanism_family for c in self.concepts}
-
-    @computed_field
-    @property
-    def minimum_concept_set_met(self) -> bool:
-        return len(self.concepts) >= 5 and len(self.mechanism_families_present) >= 3
-
-    @computed_field
-    @property
-    def p1_assumptions(self) -> list[Assumption]:
-        return [a for a in self.assumption_register if a.priority == 1]
-
-    @model_validator(mode="after")
-    def check_experiment_cards_for_p1(self) -> "Phase4Output":
-        if self.verdict == "READY_TO_TEST":
-            p1_ids = {a.id for a in self.p1_assumptions}
-            covered = {card.assumption_id for card in self.experiment_cards}
-            missing = p1_ids - covered
-            if missing:
-                raise ValueError(
-                    f"READY_TO_TEST verdict requires an Experiment Card for every P1 assumption. "
-                    f"Missing cards for assumption IDs: {missing}"
-                )
-        return self

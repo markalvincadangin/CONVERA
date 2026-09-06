@@ -201,7 +201,12 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       title: "Evaluation [G3]",
       desc: "Kothari Trapping",
       icon: BarChart2,
-      isComplete: Boolean(session?.phase5_complete),
+      // REQ-CCDS-001-DEFECT-2 FIX: Stage E is now independently resolved via canonical stage_progress.
+      // Fallback to legacy phase5_complete only for pre-migration (LEGACY) sessions.
+      isComplete: Boolean(
+        session?.stage_progress?.stages?.["stage_e_evaluation"]?.status === "COMPLETED" ||
+        (!session?.stage_progress && session?.phase5_complete)
+      ),
       isAvailable: Boolean(session?.phase4_complete),
       lockReason: "Formulate computing artifact in Stage D first.",
       isBank: false,
@@ -212,8 +217,17 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
       title: "Feasibility [G4]",
       desc: "Ethics & DOST/SDG",
       icon: ShieldCheck,
-      isComplete: Boolean(session?.phase5_complete),
-      isAvailable: Boolean(session?.phase5_complete || session?.phase4_complete),
+      // REQ-CCDS-001-DEFECT-2 FIX: Stage F is now independently resolved via canonical stage_progress.
+      // Previously shared phase5_complete with Stage E, making them indistinguishable.
+      // Fallback: for LEGACY sessions (no stage_progress yet), treat as incomplete so Stage F
+      // is gated behind Stage E completion — preserving existing LEGACY ordering semantics.
+      isComplete: Boolean(
+        session?.stage_progress?.stages?.["stage_f_feasibility"]?.status === "COMPLETED"
+      ),
+      isAvailable: Boolean(
+        session?.stage_progress?.stages?.["stage_e_evaluation"]?.status === "COMPLETED" ||
+        (!session?.stage_progress && session?.phase4_complete)
+      ),
       lockReason: "Complete Kothari experimental evaluation in Stage E first.",
       isBank: false,
     },
