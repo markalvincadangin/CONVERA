@@ -64,6 +64,7 @@ CONVERA DOCUMENTATION ARCHITECTURE (38 RATIFIED SPECIFICATIONS)
 * [**`GLOSSARY.md`**](00-foundation/GLOSSARY.md) — Canonical terminology, entity definitions, and cross-layer references.
 
 ### 2. Product & System Layer (`docs/01-product/`, `docs/02-system/`)
+* [**`CONVERA_UPGRADE_CHARTER.md`**](01-product/CONVERA_UPGRADE_CHARTER.md) — Strategic Evolution Charter across AI, Data, Frontend, and Verification modernization.
 * [**`PRODUCT_DEFINITION.md`**](01-product/PRODUCT_DEFINITION.md) — Target user personas, value propositions, and core inquiry archetypes.
 * [**`CAPABILITIES.md`**](01-product/CAPABILITIES.md) — Functional capability matrix (F-01 through F-10).
 * [**`SYSTEM_ARCHITECTURE.md`**](02-system/SYSTEM_ARCHITECTURE.md) — 5-Tier layered system blueprint, boundaries, and communication topologies.
@@ -123,6 +124,7 @@ ightarrow$ `CONVERGE`).
   - [Computing Research Concept Development Framework](frameworks/Computing%20Research%20Concept%20Development%20Framework.md)
   - [Evidence-Ratcheted Problem-to-Solution Pipeline Framework](frameworks/Evidence-Ratcheted%20Problem-to-Solution%20Pipeline%20Framework.md)
   - [UI/UX Design Framework](frameworks/UIUX%20Design%20Framework.md)
+  - [UX Iteration & Continuous Improvement Framework](frameworks/UX_ITERATION_FRAMEWORK.md)
 * [**`prompts/`**](prompts/) — Structured Socratic prompt templates:
   - [**Innovation Track Prompts**](prompts/innovation/) (Phases 1 through 5)
   - [**Thesis Research Track Prompts**](prompts/thesis/) (Phases A through F)
