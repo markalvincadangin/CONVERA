@@ -14,6 +14,56 @@ import {
   Flame,
 } from "lucide-react";
 
+/**
+ * Safe, allowlisted human-readable mapping for invalidation trigger actions.
+ * INVARIANT: No raw/unknown internal enum or state identifier may leak to the UI.
+ */
+export const formatTriggerAction = (action?: string | null): string => {
+  if (!action) return "Epistemic validation issue detected";
+
+  const normalized = action.trim().toUpperCase();
+
+  switch (normalized) {
+    case "TEST_FAILED_FALSIFIED":
+      return "Validation test failed (assumption falsified)";
+    case "CONTRADICTION_LINKED (CONTRADICTS)":
+      return "Contradicting evidence linked";
+    case "CONTRADICTION_LINKED (FALSIFIES)":
+      return "Falsifying evidence linked";
+    default:
+      if (normalized.startsWith("CONTRADICTION_LINKED")) {
+        if (normalized.includes("FALSIFIES")) return "Falsifying evidence linked";
+        return "Contradicting evidence linked";
+      }
+      // Safe generic fallback — NEVER expose raw enum/string to user
+      return "Epistemic validation issue detected";
+  }
+};
+
+/**
+ * Safe, allowlisted human-readable mapping for invalidation entity types.
+ * INVARIANT: No raw/unknown internal enum or state identifier may leak to the UI.
+ */
+export const formatEntityType = (type?: string | null): string => {
+  if (!type) return "Related record";
+
+  const normalized = type.trim().toUpperCase();
+
+  switch (normalized) {
+    case "ASSUMPTION":
+      return "Assumption";
+    case "EVIDENCE":
+      return "Evidence Source";
+    case "CLAIM":
+      return "Claim";
+    case "DECISION":
+      return "Decision Record";
+    default:
+      // Safe generic fallback — NEVER expose raw enum/string to user
+      return "Related record";
+  }
+};
+
 interface ImpactAlertBannerProps {
   sessionId?: string;
   projectId?: string;
@@ -95,7 +145,8 @@ export const ImpactAlertBanner: React.FC<ImpactAlertBannerProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-200 mt-0.5">
-              <strong>Trigger:</strong> {topAlert.trigger_action} on {topAlert.trigger_entity_type} #{topAlert.trigger_entity_id}. Downstream candidate assumptions or decisions compromised.
+              <strong>Trigger:</strong> {formatTriggerAction(topAlert.trigger_action)} on{" "}
+              {formatEntityType(topAlert.trigger_entity_type)} #{topAlert.trigger_entity_id}. Downstream candidate assumptions or decisions compromised.
             </p>
           </div>
         </div>
@@ -135,8 +186,8 @@ export const ImpactAlertBanner: React.FC<ImpactAlertBannerProps> = ({
                 className="p-3 bg-slate-900/80 rounded-xl border border-rose-500/20 text-xs space-y-1"
               >
                 <div className="flex items-center justify-between text-slate-400">
-                  <span className="font-bold text-rose-400 uppercase tracking-wider text-[10px]">
-                    [{entity.type}] #{entity.id}
+                  <span className="font-bold text-rose-400 tracking-wider text-[10px]">
+                    [{formatEntityType(entity.type)}] #{entity.id}
                   </span>
                   <span className="text-[10px] text-slate-500">Status: Compromised</span>
                 </div>

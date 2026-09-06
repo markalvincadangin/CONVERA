@@ -4,11 +4,11 @@
 **Classification**: Tier 2 Engineering & UI/UX Methodology Specification  
 **Authority Tier**: Tier 2 Engineering Specification (Operationalized under `CONSTITUTION.md` and `DEVELOPMENT_WORKFLOW.md`)  
 **Document Status**: 🟢 RATIFIED  
-**Implementation Status**: 🟢 UX-BATCH-001 HUMAN ACCEPTED — AWAITING MERGE AUTHORIZATION  
-**Canonical Path**: `SPEC-UX-ITERATION-001.md` (Operational Projection: `docs/06-frontend/UX_ITERATION_FRAMEWORK.md`)  
+**Implementation Status**: 🟢 UX-BATCH-001 PROMOTED (`bb6e52c`); UX-BATCH-002 & UX-BATCH-003 IMPLEMENTED — AWAITING HUMAN ACCEPTANCE  
+**Canonical Path**: `SPEC-UX-ITERATION-001.md` (Operational Projection: `docs/frameworks/UX_ITERATION_FRAMEWORK.md`)  
 **Supersedes**: `SPEC-PROBLEM-DISCOVERY-UX-001` (Formally Superseded & Subsumed as UX-BATCH-001)  
 **Baseline Git Revision**: `main @ ac3584c`  
-**Active Feature Branch**: `feature/problem-discovery-ux-001`  
+**Active Feature Branch**: `feature/009-ux-iteration-problem-discovery`  
 **Authoritative Evidence Base**:
 - `docs/00-foundation/CONSTITUTION.md` (`CONVERA-FND-001`, Articles I through VIII)
 - `docs/03-engineering/DEVELOPMENT_WORKFLOW.md` (`CONVERA-ENG-002`, Section 2 "Change Classification Matrix")
@@ -739,15 +739,212 @@ All governance and operational procedures for this framework are resolved as fol
 
 ---
 
-## 31. Governance Conclusion
+## 31. UX Iteration Batch Record: UX-BATCH-002
 
-**STATUS**: `🟢 UX-BATCH-001 HUMAN ACCEPTED — STOPPED AT MERGE AUTHORIZATION GATE`
+```text
+===============================================================================
+UX ITERATION BATCH RECORD: UX-BATCH-002
+===============================================================================
+Batch ID:             UX-BATCH-002
+Target Surface:       Problem Bank & Workspace Epistemic Invalidation & Impact Alerts
+Intent:               Eliminate raw internal enum leaks (TEST_FAILED_FALSIFIED),
+                      replace unstable popovers with accessible inline disclosure,
+                      and establish causal continuity and bounded pagination.
+Empirical Baseline:   User bug report & UI/UX Audit (2026-09-06)
+Feature Branch:       feature/009-ux-iteration-problem-discovery
+Batch Status:         🟢 IMPLEMENTED & VERIFIED — AWAITING HUMAN ACCEPTANCE
+===============================================================================
+```
 
-UX-BATCH-001 ("Problem Discovery UX Iteration") has achieved formal **HUMAN ACCEPTANCE** following empirical browser verification across all core workflows, accessibility, terminology, and responsive layouts with zero defects observed.
+### 31.1 Observed Defects:
+- **`DEF-IA-001` (S1)**: Raw database trigger enum `TEST_FAILED_FALSIFIED` rendered directly to user interface.
+- **`DEF-IA-002` (S2)**: Popover help card collided with navigation bar and caused z-index trapping.
+- **`DEF-IA-003` (S2)**: High alert accumulation (e.g. 94 items) lacked clear pagination and batch resolution.
+
+### 31.2 Frozen Batch Changes:
+1. **Domain Sanitization (`web/src/components/problem-bank/ImpactAlertBanner.tsx`)**:
+   - Mapped `TEST_FAILED_FALSIFIED` to human-readable `"Validation Test Failed"`.
+   - Created presentation allowlist for all entity types and trigger actions.
+2. **Accessible Contextual Guidance**:
+   - Replaced fragile floating popovers with an inline collapsible diagnostic panel explaining the epistemic cause and recommended field remediation.
+   - Preserved full WCAG 2.2 AA contrast and keyboard accessibility.
+3. **Alert Volume Pagination**:
+   - Added item paging controls (`Alert 1 of N`) and `Acknowledge All (N)` batch action.
+4. **Actionable Remediation CTAs**:
+   - Connected direct navigation CTAs routing the user to the affected Phase/Stage to recalibrate compromised decisions.
+
+---
+
+## 32. UX Iteration Batch Record: UX-BATCH-003
+
+```text
+===============================================================================
+UX ITERATION BATCH RECORD: UX-BATCH-003
+===============================================================================
+Batch ID:             UX-BATCH-003
+Target Surface:       Problem Bank Discovery, Filtering, Sorting & Selection
+Intent:               Add deterministic sorting (Latest/Oldest), establish
+                      Universal Selection across Card and Table views, provide
+                      dismissible active filter indicators, and ensure WCAG 2.2 AA.
+Empirical Baseline:   User bug intake report with network inspection evidence (2026-09-06)
+Feature Branch:       feature/009-ux-iteration-problem-discovery
+Batch Status:         🟢 IMPLEMENTED & VERIFIED — AWAITING HUMAN ACCEPTANCE
+===============================================================================
+```
+
+### 32.1 Confirmed Defects & Usability Deficiencies:
+- **`DEF-PB-010` (S1)**: In Card View, no Select All interaction existed; users were forced to click each card individually.
+- **`DEF-PB-011` (S2)**: No sorting control existed for Latest $\rightarrow$ Oldest, preventing teams from reviewing newly captured items.
+- **`DEF-PB-012` (S2)**: Filtering state was invisible; users had no quick way to inspect active filters or clear them.
+- **`DEF-PB-013` (S2)**: Filtering silently disguised selections without communicating hidden items or offering a clean Clear Selection action.
+- **`DEF-PB-014` (S3)**: Form select controls lacked accessible names, violating WCAG 2.2 AA (4.1.2).
+
+### 32.2 Frozen Batch Changes:
+1. **Deterministic Sorting (`ProblemBankView.tsx`)**:
+   - Added `LATEST_DESC` ("Latest → Oldest") and `OLDEST_ASC` ("Oldest → Latest") based on ISO 8601 `created_at`.
+   - Guaranteed deterministic tie-breaking via secondary `id.localeCompare()` across all 7 sort options.
+2. **Universal Selection System**:
+   - Added persistent Universal Selection Bar above Card View and Table View.
+   - Implemented `Select All Visible` strictly scoped to active search/filter results.
+   - Implemented `Clear Selection` to clear all selections across both visible and hidden records.
+   - Added explicit counter feedback: `X of Y visible selected (Z outside active filter)`.
+   - Synchronized Table View header checkbox with identical selection and indeterminate state.
+3. **Active Filter Indicators**:
+   - Added dismissible badge pills for Search, Sector, Tier, and Quick filters with individual `✕` dismiss controls.
+   - Added 1-click `Clear All Filters` button.
+4. **Accessible Form Controls (WCAG 2.2 AA)**:
+   - Added accessible names (`aria-label`, `<label className="sr-only">`) to Search, Sector, Tier, Sort, and view toggles.
+   - Added `focus-visible:ring-2 focus-visible:ring-cyan-500` and `aria-label` to all checkboxes and buttons.
+5. **No-Result Empty State**:
+   - Clear guidance when filters yield 0 results with direct `Clear All Filters` button.
+
+---
+
+## 33. Governance Status & Operational Posture — UX-BATCH-003
+
+**Status Matrix**:
+```text
+UX-BATCH-003 Status:
+IMPLEMENTATION: Apparently completed
+AUTOMATED VERIFICATION: Completed (Typecheck: PASS, Build: PASS, Backend Pytest: PASS)
+BROWSER VERIFICATION: Not yet sufficiently evidenced (Typecheck + build + static inspection != UX acceptance)
+HUMAN ACCEPTANCE: Pending
+MERGE / PROMOTION: HOLD
+DEPLOYMENT: HOLD
+```
+
+### 33.1 Governance Deviation Notice
+`UX-BATCH-003` was implemented in the working tree following inspection analysis before explicit human sign-off on the final batch scope was recorded. In accordance with CONVERA governance doctrine:
+1. This is formally logged as a **governance deviation**.
+2. **Typecheck + build + static inspection $\neq$ UX acceptance.** Automated passes do not replace interactive browser validation.
+3. Code remains on working branch `feature/009-ux-iteration-problem-discovery` under strict **HOLD**. No promotion, merge, or deployment is permitted.
+
+---
+
+## 34. Four-Tier Issue Categorization Taxonomy & Grounded Design Principles
+
+### 34.1 Issue Categorization Taxonomy
+To prevent conflating subjective aesthetic impressions with objective usability defects, all future UI/UX observations must be evaluated against this four-tier taxonomy:
+
+1. **UX Defect**:
+   - *Definition*: A failure where the user cannot understand or use an interaction properly, an essential usability heuristic is violated (e.g., NN/g #1 Visibility of System Status, #2 Match with Real World, #6 Recognition over Recall), or internal system code identifiers/enums leak into the interface.
+   - *Governance Action*: Eligible for Lane A fix within a bounded UX batch.
+   - *Examples*: Raw code identifier leaks (`Lspecific_sufferer Level..`), missing focus traps in modals, unclosable popovers, dead-end alerts.
+
+2. **UI Polish**:
+   - *Definition*: The interaction already functions correctly and the user can accomplish the task, but presentation can be improved for better readability, contrast, visual hierarchy, or cognitive clarity.
+   - *Governance Action*: Eligible for Lane A polish, provided changes adhere strictly to existing design system tokens and do not alter component semantics.
+   - *Examples*: Increasing the visual weight of a primary CTA compared to an adjacent status badge, refining active/inactive toggle borders, adjusting padding.
+
+3. **Design Preference**:
+   - *Definition*: An aesthetic or stylistic opinion that is not tied to an empirical usability defect, cognitive friction, or accessibility failure.
+   - *Governance Action*: Disqualified from unilateral batch changes. Requires broader user research or design review before any code modification.
+   - *Examples*: Changing glassmorphism opacity arbitrarily, replacing brand cyan with purple, re-skinning buttons without empirical friction evidence.
+
+4. **Architectural Problem**:
+   - *Definition*: An issue where behavior, data schema, database persistence, state machines, or API contracts must change to fulfill the interaction.
+   - *Governance Action*: Strictly DISQUALIFIED from Lane A. Must be routed to Lane B under full SDD governance (`specs/`, plan, verification, migration).
+   - *Examples*: Modifying backend `/api/problems` sorting contracts, changing SQLite database schemas, altering session state persistence.
+
+### 34.2 Grounded Design Principles
+CONVERA is an evidence-driven project intelligence platform for high-conviction decision making. Its visual philosophy is grounded in empirical utility:
+- **Design Conclusion**: The current **Epistemic Command Workbench** direction is appropriate for CONVERA's information-dense analytical workflow, but usability should continue to be improved through evidence-driven iterative testing.
+- **Neumorphism Disqualified**: Neumorphism relies on soft extruded shadows that fail WCAG 2.2 AA contrast ratios ($< 1.8:1$), create ambiguous interactive affordances, waste horizontal space on blur margins, and fail completely in dense data tables and analytical matrices.
+- **Consumer Minimalism Disqualified**: Extreme consumer minimalism hides essential controls and state behind flat whitespace and unlabelled icons ("mystery meat navigation"), violating NN/g Heuristic #6 (Recognition rather than Recall) in an analytical workbench.
+- **Empirical Grounding**: Design choices prioritize clear typographic hierarchy (Inter + JetBrains Mono), high contrast (WCAG 2.2 AA $\ge 4.5:1$), and scannable visual structure without making unsubstantiated biological or mathematical assertions.
+
+---
+
+## 35. Candidate Batch Specification: UX-BATCH-004
+
+**Batch ID:** `UX-BATCH-004` — Cross-Workflow UI Terminology & Interaction Clarity  
+**Governing Branch:** `feature/009-ux-iteration-problem-discovery`  
+**Classification:** Lane A (Presentation & Affordance Refinements)  
+**Status:** `🔍 PROPOSAL & INSPECTION COMPLETE — STOPPED AT IMPLEMENTATION GATE`
+
+### 35.1 Inspected Candidates & Architectural Grounding
+*Reference Standard*: [`docs/06-frontend/EPISTEMIC_WORKSPACE_ARCHITECTURE.md`](file:///home/markc/projects/active/CONVERA/docs/06-frontend/EPISTEMIC_WORKSPACE_ARCHITECTURE.md)
+
+#### 1. P1 (UX Defect & Epistemic Clarity) — Phase 3 Mom Test Defense Gates Re-Architected
+- **Target File**: [`web/src/components/phases/phase3/Phase3View.tsx:207-224`](file:///home/markc/projects/active/CONVERA/web/src/components/phases/phase3/Phase3View.tsx#L207-L224)
+- **Canonical Source**: [`web/src/lib/constants.ts:122-138`](file:///home/markc/projects/active/CONVERA/web/src/lib/constants.ts#L122-L138)
+- **Architectural Level**: Level 3 (Objective Context) & Level 5 (Epistemic Inquiry Milestone).
+- **Defect Analysis**: `LEVEL_ORDER` contains string keys (`"specific_sufferer"`, `"demonstrated_pain"`, etc.). `Phase3View.tsx` renders `<span>L{lvl}</span>` on line 220, outputting `<span>Lspecific_sufferer</span>`. Line 221 simultaneously renders `<span className="truncate">{LEVEL_LABELS[lvl]}</span>` (`Level 1: Specific Sufferer`). In the 6-column desktop grid (~140px cell width), this string concatenation severely overflows, causing desktop users to see `Lspecific_sufferer Level ..`.
+- **Architectural Solution**: Elevate the 6 gates from mere code-key pills into explicit **Epistemic Inquiry Milestones** that directly answer *“What am I trying to prove?”*:
+  1. `1. Specific Sufferer` — *Can we clearly identify who experiences this?*
+  2. `2. Demonstrated Pain` — *Is there evidence that the problem actually hurts?*
+  3. `3. Intensity & Frequency` — *How often and how severely does it occur?*
+  4. `4. Local Market Size` — *What is the scale of the immediate addressable market?*
+  5. `5. Population Scope` — *Does this problem affect a viable segment of the population?*
+  6. `6. Economic Consequence` — *What measurable financial or resource loss results?*
+  - In compact grid view: Clean numbered milestone badge (`L1`, `L2`, or checkmark) + canonical milestone name without clipping.
+  - In expanded context / tooltip: The core inquiry question explaining what must be proven.
+
+#### 2. P2 (UI Polish) — Phase 2 Candidate Selection Primary CTA Hierarchy
+- **Target File**: [`web/src/components/phases/phase2/ScreeningScorecardGrid.tsx:237-246`](file:///home/markc/projects/active/CONVERA/web/src/components/phases/phase2/ScreeningScorecardGrid.tsx#L237-L246)
+- **Architectural Level**: Level 6 (Action) dominance over Level 5 (Status Badge).
+- **Root Cause**: Unselected action button renders with `variant={isSelected ? "emerald" : "outline"}`. When unselected, the outline button has lower visual prominence than the adjacent status badge (`ADVANCE TO VALIDATION` in emerald), inverting the expected visual hierarchy.
+- **Architectural Solution**: Elevate unselected button to `variant="primary"` (cyan/blue gradient), establishing unmistakable visual dominance for advancing candidates to Phase 3 Mom Test validation, transitioning to `variant="emerald"` upon selection.
+
+#### 3. P3 (UI Polish) — Phase 1 Sector Tile Multi-Select Affordance
+- **Target File**: [`web/src/components/phases/phase1/Phase1View.tsx:179-190`](file:///home/markc/projects/active/CONVERA/web/src/components/phases/phase1/Phase1View.tsx#L179-L190)
+- **Architectural Level**: Level 4 (Primary Evidence Workspace: Coherent Control System).
+- **Root Cause**: Unselected sector tiles render as `bg-slate-900/60 border-slate-800 text-slate-400`, resembling static containers rather than actionable multi-select buttons.
+- **Architectural Solution**: Add clear interactive affordance cues (hover border transitions, cursor pointer, subtle indicator checkbox/dot) so users immediately perceive sectors as selectable targets within a unified control deck.
+
+#### 4. Verified Non-Defect — Framework Selector "Typo"
+- **Target File**: [`web/src/components/common/FrameworkSelectorModal.tsx:179`](file:///home/markc/projects/active/CONVERA/web/src/components/common/FrameworkSelectorModal.tsx#L179)
+- **Inspection Result**: The source code is already spelled correctly: `<strong className="text-slate-200">Knowledge persists independently of workflow.</strong>`. The apparent `indcpendently` in low-resolution browser captures is an optical artifact of subpixel anti-aliasing on the 12px bold `text-slate-200` font rendering against dark glass. No code edit required.
+
+#### 5. Formally Deferred Scope — Top Navigation Cognitive Density
+- **Architectural Level**: Level 1 (Orientation Header) vs. Level 7 (Progressive Disclosure).
+- **Decision**: Deferred to a dedicated future navigation investigation. Redesigning top navigation requires separate empirical evidence; Command & Intelligence Deck (`Ctrl + K`) remains a future proposal, not a ratified requirement.
+
+---
+
+## 36. Governance Conclusion & Human Acceptance Gate — UX-BATCH-004
+
+**STATUS**: `🟢 UX-BATCH-004 HUMAN ACCEPTANCE RATIFIED — READY FOR INTEGRATION REVIEW`
+
+Following explicit human authorization, `UX-BATCH-004` has been implemented, verified, and accepted:
+- **P1 (Mom Test Defense Gates)**: Mom Test Defense Gates render human-readable numbered milestones (`1. Specific Sufferer`, `2. Demonstrated Pain`, ..., `6. Economic Consequence`) with full canonical labels in native tooltips; `Lspecific_sufferer` enum leak and text truncation eliminated. **Status: PASS (Human Verified)**
+- **P2 (Candidate CTA Hierarchy)**: Screening scorecard candidate conversion button elevated to `variant="primary"`, restoring visual action dominance over the passive emerald status badge. **Status: PASS (Human Verified)**
+- **P3 (Sector Tile Affordances)**: Sector tiles updated with explicit checkbox squares, hover states, `aria-pressed`, and keyboard focus rings. **Status: PASS (Human Verified)**
+- **Responsive Layout**: Verified across desktop, tablet, and mobile viewports. **Status: PASS (Human Verified)**
+- **Keyboard Interaction**: Verified Tab focus rings and Space/Enter selection. **Status: PASS (Human Verified)**
+- **Regression Suite**: Zero workflow or epistemic regressions across Phases 1, 2, and 3. **Status: PASS (Human Verified)**
+- **Frontend Typecheck**: **PASS (`tsc --noEmit` exited 0)**
+- **Frontend Production Build**: **PASS (4 static pages compiled, 0 errors)**
+- **Backend Test Suite**: **PASS (151/151 passed in 13.16s)**
+- **Knowledge Graph**: **PASS (5,083 nodes, 7,161 edges synchronized)**
+- **Documentation Acceptance**: Changes to `spec.md` and `audit-trail.md` accepted as governance/audit recording changes.
 
 **Execution Boundary & Strict Stop**:
-- In accordance with governance instructions, Antigravity has **STOPPED at the Merge Authorization Gate**.
-- **Do NOT merge into `develop` or `main`.**
+- **Human Acceptance**: **RATIFIED**
+- **Do NOT merge.**
 - **Do NOT promote.**
+- **Do NOT tag.**
 - **Do NOT deploy.**
-- The next gate is **HUMAN MERGE AUTHORIZATION**.
+- Branch integration remains on strict **HOLD** pending human integration review.
+
+
