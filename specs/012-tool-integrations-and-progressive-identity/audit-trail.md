@@ -5,7 +5,7 @@
 **Governing Standard:** CONVERA Concept Development Standard (CCDS v2.0) — *“Knowledge != Workflow”*  
 **Parent Architectural Authority:** `CONVERA-ENG-012 — Tool Integrations & Progressive Identity Architectural Specification`  
 **Ratification Date:** 2026-09-27  
-**Document Status:** 🟢 IMPLEMENTATION COMPLETE & VERIFIED — PENDING HUMAN CLOSURE ACCEPTANCE  
+**Document Status:** 🟢 SPECIFICATION CLOSED & RATIFIED (Commit `f586871`)  
 
 ---
 
@@ -27,8 +27,8 @@
 | **Phase 8: [US6] Docker Deployment** | 2026-09-27 | 4-Service Compose Topology & Bootstrapper | Antigravity AI | `docker-compose.yml`, `backend/Dockerfile`, `web/Dockerfile`, `.dockerignore`, `docker/` | **COMPLETE** |
 | **Dev Environment Reorganization** | 2026-09-28 | Canonical Scripts, Shims & Root Makefile | User Mandate | `Makefile`, `scripts/dev/`, `scripts/ops/`, `docker/`, `.dockerignore` | **COMPLETE** |
 | **Automated Verification Gate** | 2026-09-28 | Pytest Suite & Next.js Typecheck | Automated Gate | 224/224 pytest tests pass (0 failures), Next.js `tsc --noEmit` clean (0 errors) | **PASSED** |
-| **Knowledge Graph Synchronization** | 2026-09-28 | Knowledge Graph AST Refresh | Automated Gate | `graphify update .` clean (6,111 nodes indexed) | **PASSED** |
-| **Human Acceptance Gate** | Pending | Human Specification Closure Review | Human Leadership | `specs/012-tool-integrations-and-progressive-identity/` closure package | **AWAITING USER ACCEPTANCE** |
+| **Knowledge Graph Synchronization** | 2026-09-28 | Knowledge Graph AST Refresh | Automated Gate | `graphify update .` clean (6,119 nodes indexed) | **PASSED** |
+| **Human Acceptance Gate** | 2026-09-28 | Human Specification Closure Review | Human Leadership | Formal acceptance of Spec 012 and commit `f586871` | **ACCEPTED & CLOSED** |
 
 ---
 
