@@ -82,32 +82,49 @@ def validate_stage_progress_schema(stage_progress: Any) -> bool:
 
 def derive_legacy_phase_projection(framework_id: str, stage_progress: dict) -> Dict[str, bool]:
     """
+    LEGACY COMPATIBILITY BEHAVIOR:
     Pure projection from canonical stage_progress to legacy boolean columns.
     Single-writer: Called ONLY during persistence.
     Enforces INV-CCDS-001-COMPAT-001 (Prohibition of reverse synchronization).
     """
+    from contracts.methodology import get_methodology_contract
+
     stages = stage_progress.get("stages", {}) if isinstance(stage_progress, dict) else {}
     fw = str(framework_id or "").upper()
-    if "RESEARCH" in fw:
-        return {
-            "phase1_complete": bool(stages.get("stage_a_scouting", {}).get("status") == "COMPLETED"),
-            "phase2_complete": bool(stages.get("stage_b_validation", {}).get("status") == "COMPLETED"),
-            "phase3_complete": bool(stages.get("stage_c_opportunity", {}).get("status") == "COMPLETED"),
-            "phase4_complete": bool(stages.get("stage_d_formulation", {}).get("status") == "COMPLETED"),
-            # Legacy phase 5 represented terminal research readiness
-            "phase5_complete": bool(
-                stages.get("stage_e_evaluation", {}).get("status") == "COMPLETED"
-                and stages.get("stage_f_feasibility", {}).get("status") == "COMPLETED"
-            ),
-        }
-    else:
-        return {
-            "phase1_complete": bool(stages.get("p1_discovery", {}).get("status") == "COMPLETED"),
-            "phase2_complete": bool(stages.get("p2_screening", {}).get("status") == "COMPLETED"),
-            "phase3_complete": bool(stages.get("p3_mom_test", {}).get("status") == "COMPLETED"),
-            "phase4_complete": bool(stages.get("p4_mechanism", {}).get("status") == "COMPLETED"),
-            "phase5_complete": bool(stages.get("p5_economics", {}).get("status") == "COMPLETED"),
-        }
+    contract = get_methodology_contract(fw)
+
+    if contract is None:
+        return {f"phase{i}_complete": False for i in range(1, 6)}
+
+    non_terminal = [s for s in contract.stage_sequence if s != "studio"]
+
+    # INNOVATION (5 stages -> 5 flags): Direct 1:1 positional mapping
+    if len(non_terminal) <= 5:
+        projection = {}
+        for i in range(5):
+            if i < len(non_terminal):
+                stage_id = non_terminal[i]
+                projection[f"phase{i+1}_complete"] = bool(
+                    stages.get(stage_id, {}).get("status") == "COMPLETED"
+                )
+            else:
+                projection[f"phase{i+1}_complete"] = False
+        return projection
+
+    # RESEARCH (6 stages -> 5 flags): Explicit compound terminal mapping
+    # Stages A-D map 1:1 to phases 1-4.
+    # Phase 5 = (stage_e_evaluation COMPLETED) AND (stage_f_feasibility COMPLETED).
+    projection = {}
+    for i in range(4):
+        stage_id = non_terminal[i]
+        projection[f"phase{i+1}_complete"] = bool(
+            stages.get(stage_id, {}).get("status") == "COMPLETED"
+        )
+    projection["phase5_complete"] = all(
+        stages.get(non_terminal[j], {}).get("status") == "COMPLETED"
+        for j in range(4, len(non_terminal))
+    )
+    return projection
 
 
 def synthesize_canonical_stage_progress(
@@ -116,12 +133,21 @@ def synthesize_canonical_stage_progress(
     row_flags: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
+    LEGACY COMPATIBILITY ADAPTER BEHAVIOR:
     Deterministically synthesizes canonical stage_progress from legacy session flags.
     Enforces INV-CCDS-001-WORKFLOW-002 (Deterministic Migration).
-    """
-    fw = str(framework_id or legacy_state.get("framework_id") or "INNOVATION").upper()
-    is_research = "RESEARCH" in fw
     
+    This function performs two responsibilities:
+    1. LEGACY INFERENCE (adapter behavior): Extracts completion booleans from
+       historical field names (phase1_response, completed_levels, etc.)
+    2. CONTRACT DELEGATION (methodology behavior): Delegates stage dictionary
+       construction to MethodologyContract.synthesize_stage_progress().
+    """
+    from contracts.methodology import get_methodology_contract, INNOVATION_CONTRACT
+
+    fw = str(framework_id or legacy_state.get("framework_id") or "").upper()
+
+    # LEGACY COMPATIBILITY ADAPTER BEHAVIOR: Historical field inference
     flags = dict(row_flags or {})
     p1 = bool(legacy_state.get("phase1_complete") or flags.get("phase1_complete") or legacy_state.get("phase1_response"))
     p2 = bool(legacy_state.get("phase2_complete") or flags.get("phase2_complete") or legacy_state.get("phase2_response") or legacy_state.get("phase2_scorecard"))
@@ -129,102 +155,20 @@ def synthesize_canonical_stage_progress(
     p4 = bool(legacy_state.get("phase4_complete") or flags.get("phase4_complete") or legacy_state.get("phase4_response") or legacy_state.get("phase4_concepts"))
     p5 = bool(legacy_state.get("phase5_complete") or flags.get("phase5_complete") or legacy_state.get("phase5_response") or legacy_state.get("phase5_metrics"))
 
-    if is_research:
-        stages = {
-            "stage_a_scouting": {
-                "status": "COMPLETED" if p1 else "IN_PROGRESS",
-                "gate_id": None,
-                "gate_status": "NOT_REQUIRED",
-            },
-            "stage_b_validation": {
-                "status": "COMPLETED" if p2 else ("AVAILABLE" if p1 else "LOCKED"),
-                "gate_id": "GATE_1",
-                "gate_status": "PASSED" if p2 else "NOT_REQUIRED",
-            },
-            "stage_c_opportunity": {
-                "status": "COMPLETED" if p3 else ("AVAILABLE" if p2 else "LOCKED"),
-                "gate_id": "GATE_2",
-                "gate_status": "PASSED" if p3 else "NOT_REQUIRED",
-            },
-            "stage_d_formulation": {
-                "status": "COMPLETED" if p4 else ("AVAILABLE" if p3 else "LOCKED"),
-                "gate_id": None,
-                "gate_status": "NOT_REQUIRED",
-            },
-            "stage_e_evaluation": {
-                "status": "COMPLETED" if p5 else ("AVAILABLE" if p4 else "LOCKED"),
-                "gate_id": "GATE_3",
-                "gate_status": "PASSED" if p5 else "NOT_REQUIRED",
-            },
-            "stage_f_feasibility": {
-                "status": "COMPLETED" if p5 else ("AVAILABLE" if (p4 and not p5) else "LOCKED"),
-                "gate_id": "GATE_4",
-                "gate_status": "PASSED" if p5 else "NOT_REQUIRED",
-            },
-        }
-        sequence = [
-            "stage_a_scouting",
-            "stage_b_validation",
-            "stage_c_opportunity",
-            "stage_d_formulation",
-            "stage_e_evaluation",
-            "stage_f_feasibility",
-        ]
-        curr = "studio"
-        for stg in sequence:
-            if stages[stg]["status"] != "COMPLETED":
-                curr = stg
-                if stages[stg]["status"] == "AVAILABLE":
-                    stages[stg]["status"] = "IN_PROGRESS"
-                break
-        return {
-            "schema_version": 1,
-            "framework_id": "RESEARCH",
-            "current_stage_id": curr,
-            "stages": stages,
-        }
-    else:
-        stages = {
-            "p1_discovery": {
-                "status": "COMPLETED" if p1 else "IN_PROGRESS",
-                "gate_id": None,
-                "gate_status": "NOT_REQUIRED",
-            },
-            "p2_screening": {
-                "status": "COMPLETED" if p2 else ("AVAILABLE" if p1 else "LOCKED"),
-                "gate_id": "GATE_1",
-                "gate_status": "PASSED" if p2 else "NOT_REQUIRED",
-            },
-            "p3_mom_test": {
-                "status": "COMPLETED" if p3 else ("AVAILABLE" if p2 else "LOCKED"),
-                "gate_id": "GATE_2",
-                "gate_status": "PASSED" if p3 else "NOT_REQUIRED",
-            },
-            "p4_mechanism": {
-                "status": "COMPLETED" if p4 else ("AVAILABLE" if p3 else "LOCKED"),
-                "gate_id": None,
-                "gate_status": "NOT_REQUIRED",
-            },
-            "p5_economics": {
-                "status": "COMPLETED" if p5 else ("AVAILABLE" if p4 else "LOCKED"),
-                "gate_id": "GATE_3",
-                "gate_status": "PASSED" if p5 else "NOT_REQUIRED",
-            },
-        }
-        sequence = ["p1_discovery", "p2_screening", "p3_mom_test", "p4_mechanism", "p5_economics"]
-        curr = "studio"
-        for stg in sequence:
-            if stages[stg]["status"] != "COMPLETED":
-                curr = stg
-                if stages[stg]["status"] == "AVAILABLE":
-                    stages[stg]["status"] = "IN_PROGRESS"
-                break
-        return {
-            "schema_version": 1,
-            "framework_id": "INNOVATION",
-            "current_stage_id": curr,
-            "stages": stages,
-        }
+    # CONTRACT RESOLUTION
+    contract = get_methodology_contract(fw)
+    if contract is None:
+        if not fw:
+            # HISTORICAL ABSENCE: No framework_id in legacy state (INV-METHODOLOGY-005)
+            contract = INNOVATION_CONTRACT
+        else:
+            # EXPLICIT UNKNOWN: framework_id is present but unresolvable
+            raise ValueError(
+                f"Cannot synthesize stage_progress: unknown framework '{fw}'"
+            )
+
+    completion_flags = [p1, p2, p3, p4, p5]
+    return contract.synthesize_stage_progress(completion_flags)
 
 
 class SQLiteStorageAdapter(BaseStorageAdapter):
@@ -1284,6 +1228,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     raise WorkflowStateCorruptedError(
                         f"Synthesized stage_progress failed validation for session {session_id}."
                     )
+                state["framework_id"] = fw
                 state["stage_progress"] = canonical_progress
                 state["current_stage_id"] = canonical_progress.get("current_stage_id")
                 # Persist migration write atomically
@@ -1332,9 +1277,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             # Merge: preserve prior session state while applying incoming updates
             merged_state = {**existing_state, **state}
 
-            fw = merged_state.get("framework_id") or "INNOVATION"
-            
-            # Workflow state management:
+            fw = merged_state.get("framework_id")
             legacy_keys = ["phase1_complete", "phase2_complete", "phase3_complete", "phase4_complete", "phase5_complete"]
             incoming_sp = state.get("stage_progress")
             existing_sp = existing_state.get("stage_progress")
@@ -1350,7 +1293,7 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     raise WorkflowStateCorruptedError(
                         f"Cannot save session {session_id}: invalid stage_progress schema."
                     )
-                projection = derive_legacy_phase_projection(fw, merged_state["stage_progress"])
+                projection = derive_legacy_phase_projection(fw or "INNOVATION", merged_state["stage_progress"])
 
                 # Check if incoming state explicitly provided legacy delta without modifying canonical stage_progress
                 has_legacy_delta = any(
@@ -1359,21 +1302,29 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 )
                 if has_legacy_delta and not has_canonical_delta:
                     # Legacy update path: synchronize stage_progress from incoming legacy flags
-                    canonical_progress = synthesize_canonical_stage_progress(fw, merged_state)
+                    canonical_progress = synthesize_canonical_stage_progress(fw or "INNOVATION", merged_state)
                     merged_state["stage_progress"] = canonical_progress
                     merged_state["current_stage_id"] = canonical_progress.get("current_stage_id")
-                    projection = derive_legacy_phase_projection(fw, canonical_progress)
+                    projection = derive_legacy_phase_projection(fw or "INNOVATION", canonical_progress)
 
                 # Single-writer projection (INV-CCDS-001-COMPAT-001):
                 # Legacy phase flags strictly match stage_progress projection
                 merged_state.update(projection)
                 merged_state["current_stage_id"] = merged_state["stage_progress"].get("current_stage_id")
-            else:
-                # Synthesize initial canonical stage_progress so session is saved as MIGRATED
+            elif fw:
+                # Stage progress not provided; framework_id explicitly provided: resolve contract or fail
                 canonical_progress = synthesize_canonical_stage_progress(fw, merged_state)
                 merged_state["stage_progress"] = canonical_progress
                 merged_state["current_stage_id"] = canonical_progress.get("current_stage_id")
                 projection = derive_legacy_phase_projection(fw, canonical_progress)
+                merged_state.update(projection)
+            else:
+                # Historical absence: framework_id omitted; default to INNOVATION (INV-METHODOLOGY-005)
+                canonical_progress = synthesize_canonical_stage_progress("INNOVATION", merged_state)
+                merged_state["framework_id"] = "INNOVATION"
+                merged_state["stage_progress"] = canonical_progress
+                merged_state["current_stage_id"] = canonical_progress.get("current_stage_id")
+                projection = derive_legacy_phase_projection("INNOVATION", canonical_progress)
                 merged_state.update(projection)
 
             project_name = merged_state.get("project_name") or (existing_sess["project_name"] if existing_sess else None) or "Venture Project"
@@ -2694,8 +2645,13 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         if not session_data:
             return None
         
+        from contracts.methodology import get_methodology_contract
+        target_contract = get_methodology_contract(framework_id)
+        if target_contract is None:
+            raise ValueError(f"Cannot switch session {session_id} to unknown framework '{framework_id}'")
+
         old_framework = session_data.get("framework_id", "INNOVATION").upper()
-        new_framework = framework_id.upper()
+        new_framework = target_contract.id
         
         if old_framework == new_framework:
             return session_data
@@ -2715,8 +2671,9 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         if not isinstance(framework_progress, dict):
             framework_progress = {}
         
-        # Save current framework's progress
+        # Save current framework's progress including canonical stage_progress
         framework_progress[old_framework] = {
+            "stage_progress": session_data.get("stage_progress"),
             "phase1_complete": bool(session_data.get("phase1_complete")),
             "phase2_complete": bool(session_data.get("phase2_complete")),
             "phase3_complete": bool(session_data.get("phase3_complete")),
@@ -2724,22 +2681,20 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             "phase5_complete": bool(session_data.get("phase5_complete")),
         }
         
-        # Load new framework's progress if previously tracked, otherwise initialize fresh for new methodology
-        new_prog = framework_progress.get(new_framework, {
-            "phase1_complete": False,
-            "phase2_complete": False,
-            "phase3_complete": False,
-            "phase4_complete": False,
-            "phase5_complete": False,
-        })
+        # Restore or initialize target framework's progress
+        saved_target = framework_progress.get(new_framework)
+        if saved_target and isinstance(saved_target, dict) and "stage_progress" in saved_target and saved_target["stage_progress"]:
+            target_sp = saved_target["stage_progress"]
+        else:
+            target_sp = target_contract.create_initial_stage_progress()
+        
+        projection = derive_legacy_phase_projection(new_framework, target_sp)
         
         session_data["framework_id"] = new_framework
         session_data["framework_progress"] = framework_progress
-        session_data["phase1_complete"] = new_prog.get("phase1_complete", False)
-        session_data["phase2_complete"] = new_prog.get("phase2_complete", False)
-        session_data["phase3_complete"] = new_prog.get("phase3_complete", False)
-        session_data["phase4_complete"] = new_prog.get("phase4_complete", False)
-        session_data["phase5_complete"] = new_prog.get("phase5_complete", False)
+        session_data["stage_progress"] = target_sp
+        session_data["current_stage_id"] = target_sp.get("current_stage_id")
+        session_data.update(projection)
 
         return self.save_session(session_id, session_data)
 

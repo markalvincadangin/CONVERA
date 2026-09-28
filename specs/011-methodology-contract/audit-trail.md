@@ -93,5 +93,57 @@
   - Existing workflow behavior and transition lifecycles preserved.
   - Backward-compatibility aliases `RESEARCH_GATE_MAP`, `INNOVATION_GATE_MAP`, `RESEARCH_SEQUENCE`, `INNOVATION_SEQUENCE` retained strictly as non-authoritative compatibility affordances.
   - Zero modifications to frontend, database schemas, HTTP APIs, AI/LLM providers, or epistemic semantics.
-- **Current Gate**: MERGE GATE (Awaiting explicit Human Leadership Merge Authorization).
+- **Current Gate**: PROMOTED TO MAIN (2026-09-06)
+
+---
+
+# PART II: SPEC-METHODOLOGY-CONTRACT-002 (Vertical Slice 2)
+
+**Specification ID:** `SPEC-METHODOLOGY-CONTRACT-002`  
+**Feature Title:** Methodology Contract Architecture — Vertical Slice 2: Contract-Driven Session Lifecycle & Canonical Progress Hydration  
+**Governing Standard:** CONVERA Concept Development Standard (CCDS v2.0) — *“Knowledge != Workflow”*  
+**Parent Architectural Authority:** `ADR-METHODOLOGY-CONTRACT-001-REV-01`  
+**Ratified SDD:** `SPEC-METHODOLOGY-CONTRACT-002-SDD-02-REV-01` (`specs/011-methodology-contract/sdd-slice-2.md`)  
+**Dedicated Working Branch:** `feature/011-methodology-contract-slice-2`  
+**Target Branch:** `develop`  
+**Document Status:** 🟢 INTEGRATED INTO DEVELOP — PROCEEDING TO PROMOTION GATE  
+
+---
+
+## 5. Slice 2 Lifecycle Events & Audit Record
+
+| Stage | Date / Timestamp | Event / Gate | Authorized By | Evidence Artifacts | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Architecture Discovery** | 2026-09-28 | Discovery & Problem Isolation | Human Mandate | `ARCH-DISCOVERY-METHODOLOGY-CONTRACT-002-REV-01` | **ACCEPTED** |
+| **SDD Formulation & Precision** | 2026-09-28 | SDD Candidate & Precision Review | Human Mandate | `SPEC-METHODOLOGY-CONTRACT-002-SDD-02-REV-01.md` | **RATIFIED** |
+| **Pre-Implementation Validation** | 2026-09-28 18:49:00+08:00 | Empirical Matrix Validation (64 boolean states) & DB Audit | Antigravity AI | `slice_2_validation_and_verification_record.md` | **VERIFIED** |
+| **Implementation Authorization** | 2026-09-28 18:51:18+08:00 | Human Implementation Authorization | Human Leadership | Explicit prompt authorization ("proceed if clear") | **AUTHORIZED** |
+| **Implementation Execution** | 2026-09-28 18:57:00+08:00 | Session Lifecycle Delegation & Storage Hardening | Antigravity AI | `backend/contracts/methodology.py`, `backend/storage/sqlite_adapter.py`, `backend/routers/sessions.py` | **COMPLETED** |
+| **Automated Verification Gate** | 2026-09-28 19:00:10+08:00 | Pytest Suites, Web Typecheck & Web Build | Antigravity AI | Pytest (259 passed, 0 failures), Next.js build (0 errors) | **PASSED** |
+| **Human Acceptance Gate** | 2026-09-28 19:05:53+08:00 | Human Acceptance Review | Human Leadership | Explicit prompt authorization ("proceed") after comprehensive review and validation | **ACCEPTED** |
+| **Merge Gate** | 2026-09-28 19:06:46+08:00 | Merge to develop | Human Leadership | Clean merge of feature/011-methodology-contract-slice-2 into develop | **MERGED** |
+| **Promotion Gate** | Pending | Promotion to main | Human Leadership | Pending Promotion Execution | **AUTHORIZED** |
+
+---
+
+## 6. Slice 2 Implemented Scope & Invariant Preservation
+
+1. **Implemented Scope**:
+   - `MethodologyContract.create_initial_stage_progress()`: Pure, deterministic generator for initial `stage_progress`.
+   - `MethodologyContract.synthesize_stage_progress()`: Reconstructs canonical progress from clean boolean flags with precise ungated stage status handling (`gate_status = NOT_REQUIRED` when `gate_id is None`).
+   - `get_methodology_contract()`: Removed prefix-matching (`.startswith()`), enforcing exact registry lookups only.
+   - `sqlite_adapter.py`:
+     - Delegated `synthesize_canonical_stage_progress()` to `contract.synthesize_stage_progress()`.
+     - Parameterized `derive_legacy_phase_projection()` through contracts while preserving compound terminal evaluation ($E \land F$).
+     - Hardened `save_session()` to synthesize initial canonical progress when omitted.
+     - Fixed `switch_session_framework()` to isolate and restore full `stage_progress` in `framework_progress`.
+   - `routers/sessions.py`: Added strict `framework_id` validation on `POST /api/sessions` (HTTP 400 for null, empty, whitespace, unknown framework).
+   - `test_session_lifecycle_contracts.py`: Comprehensive 35-test suite covering primitives, projection parity, registry strictness, HTTP validation, framework switching isolation, and backward compatibility.
+
+2. **Automated Verification Evidence**:
+   - **Backend Pytest Full Suite**: **259 passed, 12 deselected, 0 failures** in 23.76s.
+   - **New Test Suite**: `test_session_lifecycle_contracts.py`: **35/35 passed**.
+   - **Frontend TypeScript Typecheck**: `npm run test:frontend`: **0 errors**.
+   - **Frontend Production Build**: `npm run build`: **0 errors (8/8 routes)**.
+   - **Knowledge Graph**: `graphify update .`: **6,237 nodes, 9,034 edges, 484 communities indexed**.
 
