@@ -106,7 +106,7 @@
 **Ratified SDD:** `SPEC-METHODOLOGY-CONTRACT-002-SDD-02-REV-01` (`specs/011-methodology-contract/sdd-slice-2.md`)  
 **Dedicated Working Branch:** `feature/011-methodology-contract-slice-2`  
 **Target Branch:** `develop`  
-**Document Status:** 🟢 INTEGRATED INTO DEVELOP — PROCEEDING TO PROMOTION GATE  
+**Document Status:** 🟢 PROMOTED TO MAIN — SPEC-METHODOLOGY-CONTRACT-002 CLOSED  
 
 ---
 
@@ -122,7 +122,7 @@
 | **Automated Verification Gate** | 2026-09-28 19:00:10+08:00 | Pytest Suites, Web Typecheck & Web Build | Antigravity AI | Pytest (259 passed, 0 failures), Next.js build (0 errors) | **PASSED** |
 | **Human Acceptance Gate** | 2026-09-28 19:05:53+08:00 | Human Acceptance Review | Human Leadership | Explicit prompt authorization ("proceed") after comprehensive review and validation | **ACCEPTED** |
 | **Merge Gate** | 2026-09-28 19:06:46+08:00 | Merge to develop | Human Leadership | Clean merge of feature/011-methodology-contract-slice-2 into develop | **MERGED** |
-| **Promotion Gate** | Pending | Promotion to main | Human Leadership | Pending Promotion Execution | **AUTHORIZED** |
+| **Promotion Gate** | 2026-09-28 19:07:08+08:00 | Promotion to main | Human Leadership | Clean promotion of develop to main | **PROMOTED** |
 
 ---
 
