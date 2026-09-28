@@ -406,10 +406,10 @@ def format_model_display_name(provider: str, model: str) -> str:
 # ---------------------------------------------------------------------------
 
 def reload_config() -> Dict[str, Any]:
-    """Reload environment variables from .env and return active configuration."""
+    """Reload environment variables and dynamic encrypted database settings."""
     load_dotenv(BASE_DIR / ".env", override=True)
     load_dotenv(ROOT_DIR / ".env", override=True)
-    return {
+    cfg = {
         "provider": os.getenv("LLM_PROVIDER", "gemini").lower(),
         "gemini_model": os.getenv("GEMINI_MODEL", "gemini-3.5-flash-lite"),
         "gemini_key": os.getenv("GEMINI_API_KEY", os.getenv("GOOGLE_API_KEY", "")),
@@ -423,7 +423,66 @@ def reload_config() -> Dict[str, Any]:
         "openrouter_model": os.getenv("OPENROUTER_MODEL", "nvidia/nemotron-3.5-lightning:free"),
         "ollama_base": os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
         "ollama_model": os.getenv("OLLAMA_MODEL", "llama3.2"),
+        "custom_provider_order": [],
     }
+
+    try:
+        try:
+            from engines.settings_engine import get_settings_engine
+        except ImportError:
+            from backend.engines.settings_engine import get_settings_engine
+        engine = get_settings_engine()
+        db_providers = engine.list_providers(decrypt=True)
+        ordered_p: List[str] = []
+        for p in db_providers:
+            if not p.get("is_enabled", 1):
+                continue
+            name = p.get("provider_name", "").lower()
+            key = p.get("api_key")
+            model = p.get("model_name")
+            base = p.get("base_url")
+
+            if name == "gemini":
+                if key:
+                    cfg["gemini_key"] = key
+                if model:
+                    cfg["gemini_model"] = model
+            elif name == "groq":
+                if key:
+                    cfg["groq_key"] = key
+                if model:
+                    cfg["groq_model"] = model
+            elif name == "cerebras":
+                if key:
+                    cfg["cerebras_key"] = key
+                if model:
+                    cfg["cerebras_model"] = model
+            elif name == "github":
+                if key:
+                    cfg["github_token"] = key
+                if model:
+                    cfg["github_model"] = model
+            elif name == "openrouter":
+                if key:
+                    cfg["openrouter_key"] = key
+                if model:
+                    cfg["openrouter_model"] = model
+            elif name == "ollama":
+                if base:
+                    cfg["ollama_base"] = base
+                if model:
+                    cfg["ollama_model"] = model
+
+            if p.get("is_default"):
+                cfg["provider"] = name
+
+            if name not in ordered_p:
+                ordered_p.append(name)
+        cfg["custom_provider_order"] = ordered_p
+    except Exception:
+        pass
+
+    return cfg
 
 
 # ---------------------------------------------------------------------------
@@ -935,8 +994,11 @@ async def generate_with_meta(
                 if m and (p_name, m) not in cascade_specs:
                     cascade_specs.append((p_name, m))
 
-    # Priority ordering according to user preference
+    # Priority ordering according to user preference and dynamic DB configuration
     provider_order = [primary_provider]
+    for p in cfg.get("custom_provider_order", []):
+        if p not in provider_order:
+            provider_order.append(p)
     for p in ["gemini", "groq", "cerebras", "github", "openrouter", "ollama"]:
         if p not in provider_order:
             provider_order.append(p)

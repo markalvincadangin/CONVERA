@@ -4,6 +4,7 @@ Semantic Scholar Research Connector
 Fetches scholarly literature, citation graphs, and influential citation counts from Semantic Scholar.
 """
 
+import os
 import time
 import httpx
 from typing import Dict, List, Optional, Any
@@ -13,7 +14,7 @@ from .base import BaseConnector, NormalizedScholarlyWork, ProvenanceMetadata
 class SemanticScholarConnector(BaseConnector):
     def __init__(self, api_key: Optional[str] = None, cache_ttl_seconds: int = 3600):
         super().__init__(cache_ttl_seconds=cache_ttl_seconds)
-        self.api_key = api_key
+        self.api_key = api_key or os.getenv("SEMANTIC_SCHOLAR_API_KEY")
         self.base_url = "https://api.semanticscholar.org/graph/v1"
 
     @property

@@ -95,7 +95,7 @@ gzip -9 "${BACKUP_FILE}"
 echo "[OK] CONVERA live backup completed and verified: ${BACKUP_FILE}.gz"
 ```
 
-> **Executable Implementation**: This procedure is codified and executable at [`scripts/backup.sh`](../../scripts/backup.sh). Run `./scripts/backup.sh` from the repository root to execute online backups with integrity verification.
+> **Executable Implementation**: This procedure is codified and executable at [`scripts/ops/backup.sh`](../../scripts/ops/backup.sh) (with backward-compatible forwarding shim at `scripts/backup.sh`). Run `./scripts/ops/backup.sh` (or `make prod-backup`) from the repository root to execute online backups with integrity verification.
 
 ---
 

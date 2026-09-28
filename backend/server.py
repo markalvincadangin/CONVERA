@@ -25,7 +25,16 @@ warnings.filterwarnings("ignore")
 logging.getLogger("google.genai").setLevel(logging.ERROR)
 logging.getLogger("google.adk").setLevel(logging.ERROR)
 
-load_dotenv(Path(__file__).parent / ".env")
+# Load environment variables: baseline from root .env, overlaid by backend/.env if present
+root_env = Path(__file__).resolve().parent.parent / ".env"
+backend_env = Path(__file__).resolve().parent / ".env"
+
+if root_env.exists():
+    load_dotenv(root_env)
+if backend_env.exists():
+    load_dotenv(backend_env, override=True)
+elif not root_env.exists():
+    load_dotenv()
 
 # Initialize Storage Engine (SQLite WAL)
 from storage import get_storage
@@ -33,6 +42,10 @@ storage = get_storage()
 
 # Import Modular Routers
 from routers import (
+    auth_router,
+    workspaces_router,
+    settings_router,
+    integrations_router,
     traceability_router,
     knowledge_router,
     connectors_router,
@@ -55,16 +68,24 @@ app = FastAPI(
     version="3.0.0"
 )
 
-# Configure CORS for multi-device LAN access and Next.js frontend
+# Configure CORS with credential support for cookie-based authentication
+cors_origins_raw = os.getenv("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000")
+cors_origins = [o.strip() for o in cors_origins_raw.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=cors_origins,
+    allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1|0\.0\.0\.0)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Mount Domain Routers
+app.include_router(auth_router)
+app.include_router(workspaces_router)
+app.include_router(settings_router)
+app.include_router(integrations_router)
 app.include_router(connectors_router)
 app.include_router(inbox_router)
 app.include_router(agents_router)

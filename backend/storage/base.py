@@ -255,3 +255,162 @@ class BaseStorageAdapter(ABC):
         """Rebuild the FTS5 virtual table index from relational storage."""
         pass
 
+    # ------------------------------------------------------------------
+    # Identity, Progressive Auth, Workspaces & Integrations (SDD-012)
+    # ------------------------------------------------------------------
+
+    # Users
+    @abstractmethod
+    def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a new registered user account."""
+        pass
+
+    @abstractmethod
+    def get_user(self, user_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve user profile by user_id."""
+        pass
+
+    @abstractmethod
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        """Retrieve user profile by email address."""
+        pass
+
+    @abstractmethod
+    def update_user(self, user_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update user display name, avatar, or preferences."""
+        pass
+
+    @abstractmethod
+    def update_user_last_login(self, user_id: str) -> bool:
+        """Stamp last login timestamp on user account."""
+        pass
+
+    # Refresh Tokens
+    @abstractmethod
+    def store_refresh_token(self, token_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Store a hashed rotating refresh token."""
+        pass
+
+    @abstractmethod
+    def get_refresh_token(self, token_hash: str) -> Optional[Dict[str, Any]]:
+        """Retrieve refresh token record by token_hash."""
+        pass
+
+    @abstractmethod
+    def revoke_refresh_token(self, token_id: str) -> bool:
+        """Mark a specific refresh token as revoked."""
+        pass
+
+    @abstractmethod
+    def revoke_all_user_refresh_tokens(self, user_id: str) -> int:
+        """Revoke all refresh tokens for a user (logout all sessions)."""
+        pass
+
+    # Workspace Memberships & Invites
+    @abstractmethod
+    def create_workspace_membership(self, membership_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Add or bind a user to a workspace with a role."""
+        pass
+
+    @abstractmethod
+    def get_workspace_membership(self, workspace_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+        """Get membership record for a specific user in a workspace."""
+        pass
+
+    @abstractmethod
+    def list_workspace_memberships(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """List all members and their roles for a given workspace."""
+        pass
+
+    @abstractmethod
+    def list_user_workspaces(self, user_id: str) -> List[Dict[str, Any]]:
+        """List all workspaces a user belongs to."""
+        pass
+
+    @abstractmethod
+    def update_workspace_membership_role(self, membership_id: str, new_role: str) -> Optional[Dict[str, Any]]:
+        """Change a member's role in a workspace."""
+        pass
+
+    @abstractmethod
+    def delete_workspace_membership(self, membership_id: str) -> bool:
+        """Remove a member from a workspace."""
+        pass
+
+    @abstractmethod
+    def create_workspace_invite(self, invite_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a cryptographic invite token."""
+        pass
+
+    @abstractmethod
+    def get_workspace_invite(self, token: str) -> Optional[Dict[str, Any]]:
+        """Retrieve an invite token record."""
+        pass
+
+    @abstractmethod
+    def redeem_workspace_invite(self, token: str, user_id: str) -> Optional[Dict[str, Any]]:
+        """Redeem an invite token and grant membership."""
+        pass
+
+    @abstractmethod
+    def revoke_workspace_invite(self, invite_id: str) -> bool:
+        """Revoke an active invite token."""
+        pass
+
+    @abstractmethod
+    def list_workspace_invites(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """List pending invites for a workspace."""
+        pass
+
+    # AI Provider Registry
+    @abstractmethod
+    def upsert_ai_provider(self, provider_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Insert or update an AI provider configuration."""
+        pass
+
+    @abstractmethod
+    def get_ai_provider(self, provider_id: str, workspace_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """Retrieve an AI provider configuration."""
+        pass
+
+    @abstractmethod
+    def list_ai_providers(self, workspace_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List all AI providers ordered by cascade priority."""
+        pass
+
+    @abstractmethod
+    def delete_ai_provider(self, provider_id: str, workspace_id: Optional[str] = None) -> bool:
+        """Delete an AI provider configuration."""
+        pass
+
+    # Integrations & Sync Log
+    @abstractmethod
+    def upsert_integration(self, integration_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Register or update an external tool integration."""
+        pass
+
+    @abstractmethod
+    def get_integration(self, integration_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve integration configuration."""
+        pass
+
+    @abstractmethod
+    def list_integrations(self, workspace_id: str) -> List[Dict[str, Any]]:
+        """List integrations for a workspace."""
+        pass
+
+    @abstractmethod
+    def delete_integration(self, integration_id: str) -> bool:
+        """Remove an integration configuration."""
+        pass
+
+    @abstractmethod
+    def log_sync_event(self, log_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Record an ingestion or synchronization audit event."""
+        pass
+
+    @abstractmethod
+    def list_sync_logs(self, integration_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """List synchronization history for an integration."""
+        pass
+

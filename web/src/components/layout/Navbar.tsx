@@ -20,6 +20,7 @@ import {
   GitMerge,
   Zap,
   BookOpen,
+  Settings,
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { VentureHealthBar } from "@/components/common/VentureHealthBar";
@@ -30,6 +31,12 @@ import { RoomSecurityModal } from "@/components/auth/RoomSecurityModal";
 import { FrameworkSelectorModal } from "@/components/common/FrameworkSelectorModal";
 import { SessionState, UserProfile } from "@/lib/types";
 import { authService, DEFAULT_USER } from "@/services/authService";
+import Link from "next/link";
+import { useAuth } from "@/lib/auth-context";
+import { LogOut } from "lucide-react";
+import { WorkspaceSwitcher } from "@/components/workspaces/WorkspaceSwitcher";
+import { InviteMembersModal } from "@/components/workspaces/InviteMembersModal";
+import { MembersList } from "@/components/workspaces/MembersList";
 
 interface NavbarProps {
   session: SessionState | null;
@@ -60,12 +67,15 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenTraceability,
   onOpenCommandPalette,
 }) => {
+  const { user: authUser, isAuthenticated, logout } = useAuth();
   const [imageError, setImageError] = useState(false);
   const [userProfile, setUserProfile] = useState<UserProfile>(DEFAULT_USER);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [isSecurityModalOpen, setIsSecurityModalOpen] = useState(false);
   const [isFrameworkModalOpen, setIsFrameworkModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
 
   useEffect(() => {
     setUserProfile(authService.getCurrentUser());
@@ -192,26 +202,72 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* ========================================================= */}
           <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 overflow-visible">
             
-            {/* User Profile Command Card */}
-            <Tooltip content={`Active Identity: ${userProfile.name} • ${roleMeta.label} (Click to customize)`} position="bottom">
-              <button
-                onClick={() => setIsProfileModalOpen(true)}
-                className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
-              >
-                <div className="relative shrink-0 flex items-center justify-center">
-                  <IconAvatar iconKey={userProfile.avatar} size="sm" />
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-sm" />
-                </div>
-                <div className="flex flex-col text-left justify-center min-w-0 pr-0.5 hidden sm:flex">
-                  <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[90px]">
-                    {userProfile.name}
-                  </span>
-                  <span className={`text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none ${roleMeta.text}`}>
-                    {roleMeta.shortLabel}
-                  </span>
-                </div>
-              </button>
-            </Tooltip>
+            {/* User Profile Command Card & Progressive Auth */}
+            {isAuthenticated && authUser ? (
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <WorkspaceSwitcher
+                  currentWorkspaceId={projectId}
+                  onOpenInviteModal={() => setIsInviteModalOpen(true)}
+                  onOpenMembersModal={() => setIsMembersModalOpen(true)}
+                />
+                <Tooltip content={`Logged in as ${authUser.email} (${authUser.display_name})`} position="bottom">
+                  <button
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
+                  >
+                    <div className="relative shrink-0 flex items-center justify-center">
+                      <IconAvatar iconKey={authUser.avatar || "founder"} size="sm" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-cyan-400 border-2 border-slate-950 shadow-sm" />
+                    </div>
+                    <div className="flex flex-col text-left justify-center min-w-0 pr-0.5 hidden sm:flex">
+                      <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[90px]">
+                        {authUser.display_name}
+                      </span>
+                      <span className="text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none text-cyan-400">
+                        {authUser.system_role}
+                      </span>
+                    </div>
+                  </button>
+                </Tooltip>
+                <Tooltip content="Sign Out" position="bottom">
+                  <button
+                    onClick={() => logout()}
+                    className="p-2 rounded-xl text-slate-400 hover:text-red-400 hover:bg-red-500/10 border border-transparent hover:border-red-500/20 transition-all"
+                    title="Sign Out"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                  </button>
+                </Tooltip>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Tooltip content={`Active Persona: ${userProfile.name} • ${roleMeta.label} (Local Session)`} position="bottom">
+                  <button
+                    onClick={() => setIsProfileModalOpen(true)}
+                    className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 rounded-2xl bg-slate-900/90 hover:bg-slate-850 border border-slate-800 hover:border-cyan-500/40 text-xs transition-all duration-200 group shadow-sm hover:shadow-cyan-500/10 active:scale-[0.98]"
+                  >
+                    <div className="relative shrink-0 flex items-center justify-center">
+                      <IconAvatar iconKey={userProfile.avatar} size="sm" />
+                      <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-400 border-2 border-slate-950 shadow-sm" />
+                    </div>
+                    <div className="flex flex-col text-left justify-center min-w-0 pr-0.5 hidden sm:flex">
+                      <span className="text-xs font-bold text-slate-100 group-hover:text-white truncate leading-snug tracking-tight max-w-[90px]">
+                        {userProfile.name}
+                      </span>
+                      <span className={`text-[10px] font-mono font-semibold tracking-wide whitespace-nowrap leading-none ${roleMeta.text}`}>
+                        {roleMeta.shortLabel}
+                      </span>
+                    </div>
+                  </button>
+                </Tooltip>
+                <Link
+                  href={`/login${session?.project_id ? `?projectId=${encodeURIComponent(session.project_id)}` : ""}`}
+                  className="hidden sm:inline-flex items-center px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700/80 hover:border-cyan-500 text-xs font-medium text-slate-300 hover:text-white transition-all shadow-sm"
+                >
+                  Sign In
+                </Link>
+              </div>
+            )}
 
             {/* Venture Health Meter */}
             <VentureHealthBar session={session} />
@@ -283,6 +339,15 @@ export const Navbar: React.FC<NavbarProps> = ({
                   </button>
                 </Tooltip>
               )}
+
+              <Tooltip content="Settings & AI Providers" position="bottom">
+                <Link
+                  href="/settings/ai"
+                  className="p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800 transition-all inline-flex items-center"
+                >
+                  <Settings className="w-3.5 h-3.5" />
+                </Link>
+              </Tooltip>
 
               <Tooltip content="User Manual & 5-Phase Playbook" position="bottom">
                 <button
@@ -466,6 +531,23 @@ export const Navbar: React.FC<NavbarProps> = ({
             onFrameworkChanged(updated);
           }
         }}
+      />
+
+      {/* Workspace Collaboration Modals */}
+      <InviteMembersModal
+        isOpen={isInviteModalOpen}
+        onClose={() => setIsInviteModalOpen(false)}
+        workspaceId={projectId}
+        workspaceName={projectName}
+        userRole={authUser?.system_role === "SUPERADMIN" ? "OWNER" : "MEMBER"}
+      />
+
+      <MembersList
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
+        workspaceId={projectId}
+        workspaceName={projectName}
+        userRole={authUser?.system_role === "SUPERADMIN" ? "OWNER" : "MEMBER"}
       />
     </>
   );

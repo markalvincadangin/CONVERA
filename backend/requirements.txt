@@ -8,3 +8,9 @@ sse-starlette>=2.0.0
 pytest>=8.0.0
 httpx>=0.28.0
 pytest-asyncio
+cryptography>=43.0.0
+passlib[argon2]>=1.7.4
+pyjwt>=2.9.0
+pyzotero>=1.5.0
+email-validator>=2.0.0
+

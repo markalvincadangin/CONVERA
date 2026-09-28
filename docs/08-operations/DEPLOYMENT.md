@@ -78,11 +78,11 @@ FastAPI application (:8000)
 ### 3.3 Self-hosted container or VPS deployment (Profile 3)
 
 - **`[IMPLEMENTED]`** A self-hosted deployment packages the web server and backend as separate container services defined in `backend/Dockerfile` and `web/Dockerfile`, orchestrated via `docker-compose.yml`.
-- **`[IMPLEMENTED]` Dual-Environment Topology**: Host ports are mapped to `3001:3000` (web) and `8001:8000` (FastAPI), preserving ports `3000` and `8000` for simultaneous local development (`./start-dev.sh`).
+- **`[IMPLEMENTED]` Dual-Environment Topology**: Host ports are mapped to `3001:3000` (web) and `8001:8000` (FastAPI), preserving ports `3000` and `8000` for simultaneous local development (`./scripts/dev/start-dev.sh`).
 - **`[IMPLEMENTED]` Volume Durability**: SQLite WAL persistence is maintained through a named persistent volume `convera-data` mounted at `/data` (`SQLITE_PATH=/data/convera.db`).
-- **`[IMPLEMENTED]` Seeding Automation**: The team instance can be seeded with an initial workspace snapshot via [`scripts/seed-prod-db.sh`](../../scripts/seed-prod-db.sh).
-- **`[IMPLEMENTED]` 1-Click Sharing**: Public HTTPS access for teammates is automated via Cloudflare Quick Tunnel in [`scripts/share.sh`](../../scripts/share.sh).
-- **`[IMPLEMENTED]` Safe Promotion Pipeline**: Releasing updates from local dev to production is automated through the 5-stage pipeline in [`scripts/deploy-prod.sh`](../../scripts/deploy-prod.sh).
+- **`[IMPLEMENTED]` Seeding Automation**: The team instance can be seeded with an initial workspace snapshot via [`scripts/ops/seed-prod-db.sh`](../../scripts/ops/seed-prod-db.sh).
+- **`[IMPLEMENTED]` 1-Click Sharing**: Public HTTPS access for teammates is automated via Cloudflare Quick Tunnel in [`scripts/ops/share.sh`](../../scripts/ops/share.sh).
+- **`[IMPLEMENTED]` Safe Promotion Pipeline**: Releasing updates from local dev to production is automated through the 5-stage pipeline in [`scripts/ops/deploy-prod.sh`](../../scripts/ops/deploy-prod.sh).
 - **`[IMPLEMENTED]`** Health probes are enforced via `curl -f http://localhost:8000/api/health` and `curl -f http://localhost:3000/`.
 - **`[NORMATIVE]`** The container deployment preserves local data sovereignty; no external database subscriptions are required.
 
@@ -113,14 +113,16 @@ FastAPI application (:8000)
 ### 4.2 Backend startup
 
 ```powershell
-# from repository root
-cd backend
-python -m uvicorn server:app --host 127.0.0.1 --port 8000
+# from repository root (using standardized virtual environment)
+npm run dev:backend
+
+# or directly via detected virtual environment
+./backend/.venv/bin/uvicorn server:app --host 127.0.0.1 --port 8000 --reload
 ```
 
 - **`[IMPLEMENTED]`** `server:app` is the HTTP application entry point. `backend/main.py` is a separate interactive CLI entry point and is not the web-service runtime.
-- **`[NORMATIVE]`** Do not use reload mode for a production service. The repository development command includes `--reload`; the production command above intentionally does not.
-- **`[TARGET]`** Add a service manager or container entry point only with explicit lifecycle, restart, logging, and least-privilege semantics.
+- **`[NORMATIVE]`** Do not use reload mode for a production service. The repository development command includes `--reload`; the production container command uses `uvicorn server:app --host 0.0.0.0 --port 8000` without reload.
+- **`[IMPLEMENTED]`** Virtual environment isolation: Monorepo scripts (`npm run dev:backend`, `npm run dev:cli`, `npm run test:backend`) prioritize `./backend/.venv` over system Python to prevent host dependency divergence.
 
 ### 4.3 Frontend build and startup
 
@@ -135,6 +137,31 @@ npm run start --prefix web
 - **`[NORMATIVE]`** Set build-time public configuration deliberately. `NEXT_PUBLIC_*` values can be embedded in a client build and must never contain secrets.
 - **`[VERIFICATION]`** Load the web application and verify a representative API request uses either the configured `NEXT_PUBLIC_API_URL` or the relative rewrite path, without exposing provider credentials in browser assets.
 
+### 4.4 Monorepo Operational Lifecycle Scripts (`Makefile` & `npm`)
+
+A root `Makefile` provides an ergonomic, self-documenting command center (`make help`) wrapping all platform and monorepo scripts:
+
+| `Makefile` Target | `npm` Script Equivalent | Environment | Description |
+| :--- | :--- | :--- | :--- |
+| `make help` | — | CLI | Displays interactive, categorized command menu. |
+| `make dev` | `npm run dev:all` | Dev (Bare-Metal) | Runs 1-click startup script (`./scripts/dev/start-dev.sh`, shim `./start-dev.sh`) launching both backend and frontend. |
+| `make dev-backend` | `npm run dev:backend` | Dev (Bare-Metal) | Starts FastAPI backend in `backend/.venv` on port `8000` with `--reload`. |
+| `make dev-web` | `npm run dev` | Dev (Bare-Metal) | Starts Next.js dev server on port `3000`. |
+| `make prod-up` | `npm run prod:up` | Prod (Docker) | Starts team production stack in background (`docker compose up -d`). |
+| `make prod-down` | `npm run prod:down` | Prod (Docker) | Stops team production container stack (`docker compose down`). |
+| `make prod-status` | `npm run prod:status` | Prod (Docker) | Inspects running production container health (`docker compose ps`). |
+| `make prod-logs` | `npm run prod:logs` | Prod (Docker) | Streams production container logs (`docker compose logs -f`). |
+| `make prod-build` | `npm run prod:build` | Prod (Docker) | Rebuilds production container images (`docker compose build`). |
+| `make prod-deploy`| `npm run prod:deploy`| Prod (Pipeline) | Executes 5-stage safe promotion pipeline (`./scripts/ops/deploy-prod.sh`). |
+| `make prod-share` | `npm run prod:share` | Prod (Sharing) | Spawns secure Cloudflare Quick Tunnel to port `3001` (`./scripts/ops/share.sh`). |
+| `make prod-backup`| `npm run prod:backup`| Operations | Takes safe online SQLite WAL backup snapshot (`./scripts/ops/backup.sh`). |
+| `make prod-seed`  | `npm run prod:seed`  | Operations | Seeds production container database with dev snapshot (`./scripts/ops/seed-prod-db.sh`). |
+| `make test`       | `npm run test:all`   | CI / Verification | Executes full backend pytest suite and frontend typecheck. |
+| `make test-backend`| `npm run test:backend`| CI / Verification | Runs backend pytest suite (Tiers 1 & 2 offline tests). |
+| `make test-frontend`| `npm run test:frontend`| CI / Verification | Runs frontend TypeScript typecheck (`tsc --noEmit`). |
+| `make verify`     | — | CI / Verification | Runs full test suite and updates knowledge graph (`graphify update .`). |
+| `make clean`      | — | Housekeeping | Purges `__pycache__`, `.pytest_cache`, and `web/.next`. |
+
 ---
 
 ## 5. Configuration and Secrets
@@ -143,10 +170,18 @@ npm run start --prefix web
 
 | Variable | Purpose | Observed default or behavior |
 | :--- | :--- | :--- |
-| `SQLITE_PATH` | SQLite database location. | `<backend>/convera.db` when unset in `storage/factory.py`. |
+| `SQLITE_PATH` | SQLite database location. | `<backend>/convera.db` in dev; `/data/convera.db` in Docker container. |
 | `DATABASE_URL` | Requests a PostgreSQL adapter for `postgresql://` or `postgres://` URLs. | Adapter module is absent; import failure falls back to SQLite. |
 | `HOST`, `PORT` | Values read by `backend/server.py` when that file is run directly. | `0.0.0.0`, `8000`. |
-| `NEXT_PUBLIC_API_URL` | Browser-side backend base URL override. | Empty uses relative `/api` calls; rewrite targets loopback backend. |
+| `AUTH_ENABLED` | Enables progressive authentication & JWT route protection. | `false` in dev templates; `true` in container/production deployments. |
+| `JWT_SECRET` | 32+ character signing key for access tokens. | Auto-generated in-memory if left empty. |
+| `CONVERA_MASTER_KEY`| Fernet symmetric master key for Credential Vault encryption. | Auto-generated and stored in key file if empty. |
+| `CONVERA_KEY_PATH` | Storage path for symmetric master key. | `.convera_key` in dev; `/data/.convera_key` in Docker volume. |
+| `PROD_WEB_PORT` | Host port for containerized Next.js frontend. | `3001` (avoids collision with dev port `3000`). |
+| `PROD_BACKEND_PORT` | Host port for containerized FastAPI backend. | `8001` (avoids collision with dev port `8000`). |
+| `BACKEND_INTERNAL_URL` | Internal URL for Next.js server-side API proxy. | `http://127.0.0.1:8000` in dev; `http://backend:8000` in Docker. |
+| `NEXT_PUBLIC_API_URL` | Browser-side backend base URL override. | Empty uses relative `/api` calls; rewrite targets backend proxy. |
+| `PROD_NEXT_PUBLIC_API_URL` | Docker override for client-side API URL. | Empty by default so Next.js container proxy handles all tunnel/LAN calls. |
 | `LLM_PROVIDER` | Preferred provider selection. | `gemini`, `groq`, `cerebras`, `github`, `openrouter`, or `ollama`; defaults to `gemini`. |
 | `GEMINI_API_KEY` / `GOOGLE_API_KEY`, `GEMINI_MODEL` | Gemini credentials and model selection. | Key falls back from `GEMINI_API_KEY` to `GOOGLE_API_KEY`. Defaults to `gemini-3.5-flash-lite`. |
 | `GROQ_API_KEY`, `GROQ_MODEL` | Groq credentials and model selection. | Used when configured. Defaults to `openai/gpt-oss-20b`. |

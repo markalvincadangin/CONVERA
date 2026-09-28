@@ -1,56 +1,57 @@
-# Unified DSR-Informed Computing Research Ideation & Concept Development Framework
+# Unified RPD–DSR Computing Research Concept Development Framework
 
 ## A Comprehensive Guide for Discovering, Validating, Formulating, Evaluating, and Selecting Computing Research Concepts
 
-**Revised and expanded version**  
-**August 2026**
+**Operational Research Methodology Layer (RPD–DSR v1.0 / CCDS v2.0 Standard)**  
+**Revised and Expanded Edition — September 2026**
 
 Prepared as a practical group guidebook for concept development before formal proposal preparation.
 
-> **Governing rule**  
-> The validated problem, research gap, requirements, context, and evaluation needs should constrain and justify the technology choice.
+> **Governing Principle (RPD–DSR)**  
+> Do not begin with the artifact. Begin with the problem. Build only when evidence establishes that a meaningful unresolved problem exists and that a research artifact can make a necessary, novel, feasible, and evaluable contribution.  
+>  
+> *We use the Command Center for where we are, the RPD–DSR Framework for how we research, and the databases for what evidence we actually have.*
 
 ---
 
 ## Document Status and Use
 
-This guidebook defines a practical framework for developing and screening candidate Computing research concepts. It creates a shared reasoning process for research groups before a concept is developed into a formal proposal.
+**RPD–DSR (Research Problem Discovery → Design Science Research)** is our operational synthesis and research-team methodology layer for identifying, validating, challenging, and selecting research-worthy computing problems before committing to an artifact, then carrying the selected problem through a rigorous Design Science Research process.
 
-The framework is **Design Science Research (DSR)-informed**, but it is not Design Science Research Methodology (DSRM) itself. DSRM is a methodology for conducting and presenting design-science research through problem identification, solution objectives, design and development, demonstration, evaluation, and communication. This guidebook operates mainly at the earlier concept-development and screening stage. It does not require every eventual study to use DSR.
+> **Methodological Status Note:**  
+> RPD–DSR is our operational synthesis and group adaptation. It is **not** presented as an established, independently published academic methodology named “RPD–DSR.” Its DSR foundations are grounded in classical, peer-reviewed literature on Design Science Research: **Hevner et al. (2004)**, **Hevner (2007)**, **Peffers et al. (2007)**, and **March & Storey (2008)**.
 
-### What this guidebook does
+### What RPD–DSR Is
 
-- Creates a consistent process for discovering and validating research problems.
-- Adds a preliminary **Problem Bank** stage for collecting and shortlisting problem opportunities without proposing solutions prematurely.
-- Separates discovery signals, contextual evidence, and validation evidence.
-- Separates evidence that a problem exists from evidence of its magnitude or significance.
-- Distinguishes research gaps from missing product features and routine software-development work.
-- Requires an answerable research question before technology selection.
-- Requires the research question to guide the research purpose, design, evidence, measures, and analysis.
-- Requires technology, including emerging technology, to be justified against requirements and evaluation needs.
-- Makes evaluability, participant ethics, privacy, security, safety, fairness, research integrity, and feasibility part of concept selection.
-- Uses gates to determine eligibility and a weighted matrix to rank only eligible concepts.
+- An evidence-driven problem-discovery and DSR preparation framework.
+- An institutional guard against solution-first and tool-driven research ("Hammer Looking for a Nail").
+- A structured connection between:
+  - real-world environmental relevance (Hevner's Relevance Cycle);
+  - computing/computational relevance;
+  - emerging-technology necessity and fit.
+- A strict closed-loop traceability system from evidence → problem → gap → design → evaluation.
+- An operational research workflow for the student research team, faculty adviser, and computational tools.
 
-### What this guidebook does not do
+### What RPD–DSR Is Not
 
-- It does not prove that a concept is original. Originality remains provisional until a sufficiently broad literature and prior-art review is completed.
-- It does not replace an adviser, ethics review, institutional research policy, data-protection requirements, or formal proposal requirements.
-- It does not require every Computing study to use DSR as its eventual methodology.
-- It does not treat an SDG, national priority, news report, social-media post, or emerging technology as proof that a local research problem exists.
-- It does not prescribe one research design for every concept.
-- It does not treat technical difficulty as proof of research worthiness.
-- It does not guarantee that the highest-scoring concept should be selected if a critical gate has failed.
+- It is not a replacement for established DSR methodology.
+- It is not a claim that “RPD–DSR” is an established independent academic methodology.
+- It is not a guarantee that a candidate is novel without exhaustive literature and prior-art search.
+- It is not a reason to force AI onto every problem.
+- It is not a substitute for stakeholder validation, peer-reviewed literature review, ethics review, or rigorous empirical evaluation.
 
-### Revision scope
+### Revision Scope (RPD–DSR v1.0 Integration)
 
-This revision preserves the original six-phase and four-gate structure while adding:
+This edition preserves the established six-phase and four-gate structure while integrating:
 
-- a formal preliminary Problem Bank stage;
-- research-purpose and methodological-alignment checks;
-- a clearer distinction between routine design and research;
-- stronger guidance for online and social-media evidence;
-- explicit participant-ethics and research-integrity controls;
-- improved documentation templates for evidence, methods, and decisions.
+- the **Dual-Space RPD–DSR Architecture** (Problem Space RPD Stages 1–12 → DSR Space Stages 13–17);
+- the **SLOK (Specific Lack of Knowledge)** problem discovery mechanism;
+- the **Technology Necessity Test** and **Duplication Audit Kill Rule**;
+- the **14 Critical Research Anti-Patterns & Defenses Catalog**;
+- the **Eight Epistemic Rules of Computing Research**;
+- the **Closed-Loop 8-Node Lineage Traceability Model**;
+- the **13 DSR Opportunity Gates (G1–G13)** mapped directly to system gates;
+- the **Team Operating Model** governing collaboration between researchers, advisers, and AI tools.
 
 ---
 
@@ -62,22 +63,32 @@ This revision preserves the original six-phase and four-gate structure while add
 4. [Key Terminology](#4-key-terminology)
 5. [Core Principles](#5-core-principles)
 6. [Framework Overview](#6-framework-overview)
-7. [Phase A - Problem Discovery](#7-phase-a---problem-discovery)
-8. [Phase B - Problem Validation](#8-phase-b---problem-validation)
-9. [Phase C - Research Opportunity](#9-phase-c---research-opportunity)
-10. [Phase D - Solution Formulation](#10-phase-d---solution-formulation)
-11. [Phase E - Evaluation Design](#11-phase-e---evaluation-design)
+7. [Phase A - Problem Discovery (Scouting Phase & Locating SLOK)](#7-phase-a---problem-discovery-scouting-phase--locating-slok)
+8. [Phase B - Problem Validation (Funneling & Feasibility)](#8-phase-b---problem-validation-funneling--feasibility)
+9. [Phase C - Research Opportunity (Computational Opportunity & Kill Rule)](#9-phase-c---research-opportunity-computational-opportunity--kill-rule)
+10. [Phase D - Solution Formulation (Abductive Artifact Design)](#10-phase-d---solution-formulation-abductive-artifact-design)
+11. [Phase E - Evaluation Design (The "Trapping" Phase)](#11-phase-e---evaluation-design-the-trapping-phase)
 12. [Phase F - Relevance and Feasibility](#12-phase-f---relevance-and-feasibility)
 13. [Gate System](#13-gate-system)
 14. [Screening and Ranking System](#14-screening-and-ranking-system)
-15. [Evidence and Source Quality Guidelines](#15-evidence-and-source-quality-guidelines)
-16. [Participant Ethics, Privacy, and Research Integrity](#16-participant-ethics-privacy-and-research-integrity)
-17. [Required Documentation](#17-required-documentation)
-18. [Worked Example](#18-worked-example)
-19. [Group Usage Procedure](#19-group-usage-procedure)
-20. [Final Workflow and Quick Reference](#20-final-workflow-and-quick-reference)
-21. [References](#21-references)
-22. [Appendices](#appendix-a---revised-concept-canvas)
+15. [Research Anti-Patterns and Defensive Controls](#15-research-anti-patterns-and-defensive-controls)
+16. [Evidence and Source Quality Guidelines](#16-evidence-and-source-quality-guidelines)
+17. [Participant Ethics, Privacy, and Research Integrity](#17-participant-ethics-privacy-and-research-integrity)
+18. [Lineage Traceability and Team Operating Model](#18-lineage-traceability-and-team-operating-model)
+19. [Required Documentation](#19-required-documentation)
+20. [Worked Example](#20-worked-example)
+21. [Group Usage Procedure](#21-group-usage-procedure)
+22. [Final Workflow and Quick Reference](#22-final-workflow-and-quick-reference)
+23. [References](#23-references)
+24. [Appendices](#24-appendices)
+    - [Appendix A - Revised Concept Canvas](#appendix-a---revised-concept-canvas)
+    - [Appendix B - Gate Checklist](#appendix-b---gate-checklist)
+    - [Appendix C - Screening and Ranking Sheet](#appendix-c---screening-and-ranking-sheet)
+    - [Appendix D - Problem Bank Template](#appendix-d---problem-bank-template)
+    - [Appendix E - Evidence Card Template](#appendix-e---evidence-card-template)
+    - [Appendix F - Methodological and Ethics Alignment Record](#appendix-f---methodological-and-ethics-alignment-record)
+    - [Appendix G - Decision and Change Log](#appendix-g---decision-and-change-log)
+    - [Appendix H - Practical Step-by-Step Worksheet for WVSU Capstone Ideation (LO1)](#appendix-h---practical-step-by-step-worksheet-for-wvsu-capstone-ideation-lo1)
 
 ---
 
@@ -202,9 +213,38 @@ Research methodology is the reasoned justification for how the research will ans
 
 ## 3.3 Design Science Research
 
-Design science studies purposeful artifacts and the knowledge produced through their design, construction, use, and evaluation. Hevner et al. emphasize problem relevance, artifact creation, rigorous evaluation, research contribution, rigor, search as an iterative process, and communication. Peffers et al. organize DSRM around problem identification and motivation, solution objectives, design and development, demonstration, evaluation, and communication.
+Design science studies purposeful artifacts and the knowledge produced through their design, construction, use, and evaluation. Hevner et al. (2004) emphasize problem relevance, artifact creation, rigorous evaluation, research contribution, rigor, search as an iterative process, and communication. Peffers et al. (2007) organize DSRM around problem identification and motivation, solution objectives, design and development, demonstration, evaluation, and communication. March and Storey (2008) establish design science as a disciplined paradigm for building and evaluating innovations that solve identified problems.
 
-Vaishnavi and Kuechler further emphasize that DSR should be distinguished from routine design by its knowledge contribution and meaningful unknowns. Routine design generally applies established knowledge to a familiar problem. DSR addresses an intellectual uncertainty: something important is not yet known about what design will work, how well it will work, for whom, under what conditions, or why.
+### DSR's Three Cycles (Hevner, 2007)
+
+Research groups must understand and execute across the three constituent cycles of Design Science Research:
+
+```text
+┌─────────────────────────┐       ┌─────────────────────────┐       ┌─────────────────────────┐
+│       ENVIRONMENT       │       │    DESIGN SCIENCE       │       │     KNOWLEDGE BASE      │
+│  (Application Domain)   │       │       RESEARCH          │       │  (Foundational Rigor)   │
+│                         │       │                         │       │                         │
+│ People, Organizations,  │ ────> │ Build Artifact          │ <───> │ Scientific Theories,    │
+│ Systems, Technical &    │  Relevance  │                         │  Rigor  │ Computational Models,   │
+│ Operational Problems    │ Cycle │ Evaluate Artifact       │ Cycle │ Prior State of the Art, │
+│                         │ <──── │                         │       │ Methodologies           │
+└─────────────────────────┘       └─────────────────────────┘       └─────────────────────────┘
+                                               │
+                                               │ Design Cycle
+                                               ▼
+                                      ┌─────────────────┐
+                                      │ Build <───────┐ │
+                                      │   │           │ │
+                                      │   ▼           │ │
+                                      │ Evaluate ─────┘ │
+                                      └─────────────────┘
+```
+
+1. **The Relevance Cycle (Environment $\leftrightarrow$ Research):** Connects the contextual environment of the research project with the research activities. It initiates research by providing the real-world problem context, business needs, operational friction, and acceptance criteria, and returns the evaluated artifact to the environment for field testing.
+2. **The Rigor Cycle (Knowledge Base $\leftrightarrow$ Research):** Connects the research project to the broader knowledge base of scientific theories, computational models, technical methods, and prior art. It ensures that the project draws upon state-of-the-art foundations and contributes reusable design knowledge (constructs, models, methods, design principles) back to the scientific literature.
+3. **The Design Cycle (Build $\leftrightarrow$ Evaluate):** The core internal engine of DSR that iterates continuously between constructing the artifact and evaluating its performance against defined research questions and requirements until satisfactory utility is achieved.
+
+Vaishnavi and Kuechler (2015) further emphasize that DSR must be rigorously distinguished from routine design by its knowledge contribution and meaningful unknowns. Routine design generally applies established knowledge to a familiar problem. DSR addresses an intellectual uncertainty: something important is not yet known about what design will work, how well it will work, for whom, under what conditions, or why.
 
 Technical difficulty alone is not enough. A system may be difficult to build but still constitute routine development if its relevant principles and expected behavior are already established. Conversely, a relatively small artifact may support strong research when it is used to test a consequential and defensible uncertainty.
 
@@ -334,6 +374,35 @@ At **West Visayas State University (WVSU)**, computing research is anchored in i
 - **Creativity:** Executing rigorous abductive reasoning and innovative artifact design to address authentic computational bottlenecks.
 - **Service:** Transforming local communities, regional industries, and public welfare through impactful, ethical, and verifiable computing contributions.
 
+## 3.15 The Eight Epistemic Rules of Computing Research
+
+To maintain scientific integrity and prevent epistemic corruption, every computing researcher and student group must adhere to eight non-negotiable epistemic rules throughout the concept development lifecycle:
+
+### Rule 1 — Evidence Before Assertion
+Do not make a strong research claim unless the underlying evidence directly supports that strength. Speculation, developer optimism, or vendor marketing statements must never substitute for empirical observation or peer-reviewed literature.
+
+### Rule 2 — Missing Is Not Absent
+> **An unrecorded event is not automatically an event that did not occur.**  
+Represent data missingness, unmeasured variables, and contextual uncertainty explicitly. Never assume an operational friction does not exist simply because local systems failed to log it.
+
+### Rule 3 — Contradictions Are Evidence
+Evidence that weakens, narrows, or contradicts our preferred candidate concept must be rigorously preserved and documented. Negative findings and boundary conditions are valuable scientific insights, not inconveniences to discard.
+
+### Rule 4 — “Nobody Researched It” Is Insufficient
+Failure to find a paper during an initial keyword search does not establish a genuine research gap. It frequently indicates poor search syntax, terminology mismatch, or that the problem is trivial or commercially solved. A valid gap requires systematic literature and prior-art mapping.
+
+### Rule 5 — Existing Software Must Be Audited
+“There is an app for that” does not automatically mean the scientific problem is solved. However, all existing commercial products, open-source utilities, and published prototypes must be thoroughly mapped and audited before claiming an unresolved technical gap.
+
+### Rule 6 — Technology Does Not Create Novelty
+“Uses AI,” “integrates blockchain,” or “built with LLMs” is not itself a research contribution. Technology is an instrument of implementation. Novelty resides in the formulation of the problem, the computational mechanism, the knowledge generated, or the validated utility.
+
+### Rule 7 — Stakeholder Validation Is Not Literature Evidence
+Peer-reviewed literature establishes that a general computational phenomenon or problem class exists in the scientific domain. Primary stakeholder validation establishes how the specific operational breakdown manifests in the target local context. Neither substitutes for the other; both are mandatory.
+
+### Rule 8 — Do Not Automate Scientific Judgment
+Computational tools, search engines, and AI assistants can retrieve, organize, deduplicate, synthesize, and compare evidence. However, the human research team and faculty adviser remain solely responsible for epistemic critique, ethical discernment, and methodological decisions.
+
 ---
 
 # 4. Key Terminology
@@ -378,6 +447,13 @@ At **West Visayas State University (WVSU)**, computing research is anchored in i
 | Participant vulnerability | A condition that may limit a person's ability to understand, freely decide, decline, withdraw, or protect their interests in research. |
 | Research integrity | Honest, transparent, traceable, and responsible conduct in evidence collection, data handling, analysis, attribution, authorship, and reporting. |
 | Feasibility | The practical ability to complete the study within constraints involving time, cost, skills, equipment, data, participants, approvals, deployment access, and risk controls. |
+| RPD–DSR | Research Problem Discovery to Design Science Research; our operational methodology layer connecting evidence-backed problem discovery to validated DSR opportunities, artifact design, empirical evaluation, and defensible knowledge contribution. |
+| Specific Lack of Knowledge (SLOK) | A precise technical, algorithmic, or operational boundary where current solutions fail or reach their limit, marking the official beginning of research problem awareness. |
+| Technology Necessity Test | A diagnostic threshold asking whether an artifact's central capability substantially disappears or degrades if the emerging technology is removed, distinguishing genuine technical solutions from AI decoration. |
+| Duplication Audit & Kill Rule | A mandatory novelty check comparing candidate solutions across problem, users, context, data, technology, capability, and output to kill or reframe duplicate proposals. |
+| AI Decoration | The anti-pattern of gratuitously attaching AI/ML/LLMs to a problem that standard deterministic or rule-based computing could solve effectively. |
+| CRUD Research | Routine software development masquerading as research without an intellectual uncertainty or computational contribution. |
+| Lineage Traceability | The closed-loop, unbroken chain connecting empirical evidence through problem, gap, requirements, design, artifact, evaluation, and empirical claims. |
 
 ---
 
@@ -403,6 +479,9 @@ At **West Visayas State University (WVSU)**, computing research is anchored in i
 18. **Public availability does not automatically eliminate ethical duties.** Online content must be considered in context, especially when individuals or vulnerable groups may be identifiable.
 19. **Gates determine eligibility; scores rank eligible concepts.** Numerical strengths cannot compensate for a failed critical gate.
 20. **Originality and contribution remain provisional at the concept stage.** The group should avoid claiming that either has already been established.
+21. **Emerging technology must satisfy the Technology Necessity Test.** If removing the emerging technology leaves the core capability substantially intact, the technology is decorative and unjustified.
+22. **Duplicate proposals must be KILLED or materially reframed.** Changing only the UI, database, framework, model name, or locality does not establish research novelty.
+23. **Preserve epistemic integrity throughout.** Never automate scientific judgment; computational tools organize and challenge evidence, but human researchers and advisers defend decisions.
 
 ---
 
@@ -480,82 +559,124 @@ A problem may move to Phase A when:
 
 **Required output:** Problem Bank Register.
 
-## 6.2 Six-phase framework
+## 6.2 The RPD–DSR Dual-Space Architecture
 
-| Phase | Main decision | Required output | Formal gate |
-|---|---|---|---|
-| A - Problem Discovery | Can the group describe a concrete problem in a real context? | Problem Brief | None |
-| B - Problem Validation | Does the problem exist, matter, and appear ethically and practically investigable? | Evidence and Impact Brief | Gate 1 |
-| C - Research Opportunity | Is there a defensible unknown and answerable research question? | Gap Statement and Research Question | Gate 2 |
-| D - Solution Formulation | What objectives, requirements, artifact, and technology are justified? | Requirements and Proposed-Solution Brief | None |
-| E - Evaluation Design | Can the research question be answered with obtainable evidence and a credible method? | Evaluation Protocol | Gate 3 |
-| F - Relevance and Feasibility | Is the complete concept responsible, worthwhile, and executable? | Completed Concept Package | Gate 4 |
-
-## 6.3 Detailed logic
+RPD–DSR partitions the research journey into two distinct, epistemically decoupled spaces: the **Problem Space (RPD Layer, Stages 1–12)** and the **DSR Space (DSR Layer, Stages 13–17)**, separated by a rigorous screening decision point:
 
 ```text
-Explore application domains
-        ↓
-Build and maintain Problem Bank
-        ↓
-Apply shortlisting filter
-        ↓
-Stakeholders + context + current process
-        ↓
-Candidate problem + preliminary consequences
-        ↓
-Problem evidence + magnitude + access + early ethics
-        ↓
-Gate 1: Problem Validity
-        ↓
-Existing solutions + literature + limitations
-        ↓
-Research gap + intellectual uncertainty + research question
-        ↓
-Research purpose + preliminary methodological direction
-        ↓
-Gate 2: Research Worthiness
-        ↓
-Solution objectives + requirements
-        ↓
-Artifact options + technology selection + contribution type
-        ↓
-Demonstration plan + evaluation plan
-        ↓
-Gate 3: Evaluability
-        ↓
-Expected contribution + relevance + feasibility + final ethics/integrity review
-        ↓
-Gate 4: Final Eligibility
-        ↓
-Score eligible concepts + adviser/stakeholder review + selection
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                           PROBLEM SPACE — RPD (Stages 1–12)                             │
+│                                                                                         │
+│  1. Domain Exploration ──────> 2. Problem Discovery (Signals)                           │
+│  3. Relevance & Evidence ────> 4. Context, Actors & Consequences                        │
+│  5. Current Practice ────────> 6. Limitations & Unresolved Gap (SLOK)                   │
+│  7. Computing Opportunity ───> 8. Emerging-Technology Fit (Necessity Test)             │
+│  9. Novelty & Duplication Audit (Kill Rule) ─> 10. Feasibility, Data & Ethics           │
+│  11. Stakeholder Validation (Independent of Tool)                                       │
+└───────────────────────────────────────────┬─────────────────────────────────────────────┘
+                                            │
+                                            ▼ Stage 12: Opportunity Screening Gate
+                                 ┌───────────────────────┐
+                                 │ KEEP / REFRAME / HOLD │ (KILL stops immediately)
+                                 └──────────┬────────────┘
+                                            │
+                                            ▼
+┌─────────────────────────────────────────────────────────────────────────────────────────┐
+│                       DSR SPACE — ARTIFACT & RIGOR (Stages 13–17)                       │
+│                                                                                         │
+│  13. Problem & Objectives ───> 14. Design & Development (Construct/Model/Method/Inst.)   │
+│  15. Demonstration ──────────> 16. Controlled Evaluation (Trapping Phase)               │
+│  17. Contribution & Communication ───> ↺ Circumscription / Iteration Loop                │
+└─────────────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-## 6.4 Iteration rule
+## 6.3 Harmonization Matrix: RPD–DSR Stages to CONVERA Macro Phases & System Gates
 
-If evidence, research gap, methodological alignment, evaluability, ethics, privacy, security, safety, access, integrity, or feasibility is inadequate, the concept returns to the relevant earlier stage. The group should record what failed, why it failed, what changed, and which evidence justified the new decision.
+To guarantee operational compatibility across CONVERA's system contracts (`RESEARCH_CONTRACT`), data engines, and student workstations, the 17 granular RPD–DSR stages map directly into CONVERA's 6 macro-phases and 4 system clearance gates:
 
-## 6.5 Decision discipline
+| CONVERA Macro Phase | Constituent RPD–DSR Stages | Operational Core & Deliverables | System Clearance Gate & Mapped Criteria |
+|---|---|---|---|
+| **Phase A: Problem Discovery** (`stage_a_scouting`) | **Stage 1:** Domain Exploration<br>**Stage 2:** Problem Discovery<br>**Stage 3:** Relevance & Evidence<br>**Stage 4:** Context, Actors & Consequences | Scouting phenomena; identifying variables; isolating the initial **Specific Lack of Knowledge (SLOK)**. Technology-neutral problem formulations.<br>*Deliverable: Problem Brief* | *None* (Controlled by Problem Bank Shortlisting Filter) |
+| **Phase B: Problem Validation** (`stage_b_validation`) | **Stage 5:** Current Practice & Existing Solutions<br>**Stage 10:** Feasibility, Data & Ethics<br>**Stage 11:** Independent Stakeholder Validation | Establishing empirical problem existence and magnitude; mapping non-academic workflows; verifying ethics and data reachability.<br>*Deliverable: Evidence and Impact Brief* | **Gate 1: Problem Validity**<br>• G1 (Problem Existence)<br>• G2 (Significance/Loss)<br>• G3 (Actor/Context Definition)<br>• G4 (Current Practice Audit)<br>• G10 (Feasibility/Data Access)<br>• G12 (Stakeholder Value) |
+| **Phase C: Research Opportunity** (`stage_c_opportunity`) | **Stage 6:** Limitations & Unresolved Gap (SLOK)<br>**Stage 7:** Computing Opportunity<br>**Stage 8:** Emerging-Technology Fit<br>**Stage 9:** Novelty & Duplication Audit<br>**Stage 12:** DSR Opportunity Screening | Auditing prior research; isolating computational mechanisms; running Technology Necessity Test; enforcing **Duplication Kill Rule**.<br>*Deliverable: Gap Statement & Research Question* | **Gate 2: Research Worthiness**<br>• G5 (Existing Solutions Landscape)<br>• G6 (Unresolved Gap / SLOK)<br>• G7 (Computational Formulation)<br>• G8 (Technology Necessity)<br>• G9 (Novelty / Kill Rule Clearance)<br>• G13 (DSR Knowledge Contribution) |
+| **Phase D: Solution Formulation** (`stage_d_formulation`) | **Stage 13:** Problem & Objectives<br>**Stage 14:** Design & Development | Performing **Abductive Suggestion** grounded in Kernel Theories; categorizing DSR Artifact (Construct, Model, Method, Instantiation); architecting technical intervention.<br>*Deliverable: Requirements & Proposed-Solution Brief* | *None* (Design specification clearance) |
+| **Phase E: Evaluation Design** (`stage_e_evaluation`) | **Stage 15:** Demonstration<br>**Stage 16:** Controlled Evaluation | Trapping Phase execution; separating demonstration from evaluation; defining formal experimental designs (CRD, RBD, LSD); running pilot test.<br>*Deliverable: Evaluation Protocol & Benchmark Report* | **Gate 3: Evaluability**<br>• G11 (Evaluation Design, Calibrated Metrics, Rigorous Baselines) |
+| **Phase F: Relevance and Feasibility** (`stage_f_feasibility`) | **Stage 17:** Contribution & Communication | Synthesizing reusable design knowledge, boundary conditions, circumscription lessons, and defense readiness.<br>*Deliverable: Completed Concept Package & Monograph* | **Gate 4: Final Eligibility / Concept Clearance**<br>• Comprehensive defense readiness across all 13 gates and ethics review |
 
-At every stage, record one of the following:
+## 6.4 Detailed Execution Logic
 
-- **Continue:** current requirements are met.
-- **Revise:** return to the relevant earlier activity with a defined correction.
-- **Defer:** retain the work but pause until a dependency or condition changes.
-- **Reject or remove:** stop because the underlying problem, research opportunity, ethics, or feasibility is not defensible.
+```text
+Explore Application Domains (Stage 1)
+        ↓
+Build and Maintain Problem Bank (Stage 2)
+        ↓
+Apply Shortlisting Filter (Scope, Reachability, Technology-Neutral)
+        ↓
+Phase A: Map Stakeholders + Context + Workflow + Isolate SLOK (Stages 2–4)
+        ↓
+Phase B: Gather Validation Evidence + Magnitude + Feasibility + Ethics (Stages 5, 10, 11)
+        ↓
+[GATE 1: Problem Validity Clearance] (G1, G2, G3, G4, G10, G12)
+        ↓
+Phase C: Map Literature + Computing Opportunity + Tech Necessity + Novelty Audit (Stages 6–9)
+        ↓
+[Stage 12 Screening: KEEP / REFRAME / HOLD / KILL]
+        ↓
+[GATE 2: Research Worthiness Clearance] (G5, G6, G7, G8, G9, G13)
+        ↓
+Phase D: Abductive Artifact Formulation + Kernel Theories + Architecture (Stages 13–14)
+        ↓
+Phase E: Trapping Phase + Experimental Protocol + Pilot Pre-Run (Stages 15–16)
+        ↓
+[GATE 3: Evaluability Clearance] (G11)
+        ↓
+Phase F: Reusable Design Knowledge + Boundary Conditions + Final Ethics Audit (Stage 17)
+        ↓
+[GATE 4: Concept Clearance & Defense Readiness]
+        ↓
+Weighted Ranking (Eligible Concepts Only) → Adviser Defense Review → Proposal Development
+```
+
+## 6.5 Iteration and Circumscription Rule
+
+If evidence, research gap, methodological alignment, evaluability, ethics, privacy, security, safety, access, integrity, or feasibility is inadequate, the concept returns to the relevant earlier stage. In Design Science Research, this is the **Circumscription Loop**: unexpected experimental friction or failed assumptions are treated as newly discovered constraint knowledge, channeling the concept back to formulation for refinement.
+
+## 6.6 Decision Discipline
+
+At every stage and gate, the research team records one of four formal determinations:
+
+- **KEEP (Continue):** Requirements are robustly evidenced; proceed to next stage.
+- **REFRAME (Revise):** The underlying friction is real, but the framing, gap boundary, or technology scope requires defined correction.
+- **HOLD (Defer):** The opportunity is promising, but a critical dependency, dataset access, or stakeholder validation is missing.
+- **KILL (Reject):** Stop permanently because the candidate is a duplicate, trivial twist, ungrounded speculation, technologically decorative, or practically infeasible.
 
 ---
 
-# 7. Phase A - Problem Discovery (Scouting Phase)
+# 7. Phase A - Problem Discovery (Scouting Phase & Locating SLOK)
 
-**Purpose:** Convert a shortlisted Problem Bank entry into a clear, operationalized description of a meaningful real-world problem in a defined context, executing the **Scouting Mechanism** without designing a technology first.
+**Purpose:** Convert a shortlisted Problem Bank entry into a clear, operationalized description of a meaningful real-world problem in a defined context, executing the **Scouting Mechanism** and pinpointing the **Specific Lack of Knowledge (SLOK)** without designing a technology first.
 
-### The Scouting Mechanism
-Following the Bordens & Abbott (2018) process approach, **Scouting** is the researcher’s initial transition from casual observation to systematic scientific inquiry. It is the disciplined process where an observed phenomenon—a specific system failure, inefficiency, or human-computer interaction event—triggers focused inquiry.
-> *Case Illustration:* Consider the real-world case of Christopher Cepeda, whose fatal pedestrian collision while distracted on a mobile phone catalyzed the foundational research by Byington and Schwebel (2013). Rather than treating it as an isolated news event, the researchers scouted the underlying phenomenon of "distraction-induced attention disruption," recreating the environment in an interactive Virtual Environment (VE) to systematically observe pedestrian crossing decisions under cognitive load.
+### The Scouting Mechanism and Locating the "SLOK" First
+In Design Science Research (DSR), all legitimate innovation begins in the **Awareness of Problem** phase (Vaishnavi & Kuechler). As cited across research standards, researchers must spend **more time defining the problem before deciding to build a tool**.
+
+1. **Environmental Relevance (Hevner's Relevance Cycle):** Look for real-world anomalies, user frustrations, or industry operational bottlenecks in a specific domain.
+2. **Identify a Specific Lack of Knowledge (SLOK):** Problem awareness officially begins when you pinpoint a precise technical or operational boundary where current solutions fail or reach their limit.
+3. **Execute the Problem Funneling Strategy:** Take your initial area of curiosity and narrow it systematically:
+   $$\text{Broad Interest Area} \longrightarrow \text{Specific Sub-Domain} \longrightarrow \text{Precise Research Problem (SLOK)}$$
+4. **Conduct an Initial Literature Review:** Before proposing any computational solution, review the literature to ensure:
+   - The problem has **not already been solved** (preventing "reinventing the wheel").
+   - The problem is **widespread and interesting** to the computing community.
+   - The root causes of the problem are clearly defined.
+
+### Candidate Problem Formulations: The "Problem Phenomenon" Rule
+A candidate should describe an empirical **problem phenomenon**, never a proposed application or software feature:
+- ❌ **Bad (Tool-First):** *"Build an AI app that predicts hospital demand."*
+- ✅ **Better (Problem Phenomenon):** *"Primary-care managers experience difficulty anticipating recurring service-capacity mismatches despite having historical service records."*
+- ❌ **Bad (Tool-First):** *"Develop a mobile app with YOLO for vegetable disease detection."*
+- ✅ **Better (Problem Phenomenon):** *"Smallholder vegetable farmers misidentify foliar fungal lesions with visually overlapping chlorotic spots, leading to mistimed fungicidal application and crop yield loss."*
 
 ### Variable Identification in Scouting
-During the scouting phase, researchers must decompose the observed phenomenon into identifiable parameters:
+Following the Bordens & Abbott (2018) process approach, **Scouting** is the researcher’s initial transition from casual observation to systematic scientific inquiry. During the scouting phase, researchers decompose the observed phenomenon into identifiable parameters:
 - **Variable:** Any characteristic, attribute, or quantity that can take on two or more values (e.g., system latency, packet error rate, cognitive load index, response time under varying concurrency).
 - **Constant:** Any characteristic that remains fixed across the context of the study (e.g., processor architecture, operating system version, baseline environmental lighting).
 - **Observation vectors for computing variables include:**
@@ -643,6 +764,19 @@ Broad scouting observations must be systematically "funneled" into an operationa
    - *Empirical Literature:* Reviewing recent peer-reviewed studies and experimental papers that attempted similar problem solutions.
 3. **Operational Rephrasing:** Transforming a general, ambiguous problem statement into a precise, operationalized inquiry that cleanly discriminates between relevant and irrelevant data.
 
+### The Evidence Hierarchy for Validation
+Claims regarding problem existence, frequency, and severity must be anchored in defensible source tiers:
+1. **Tier 1 — Primary Stakeholder Evidence:** Structured interviews, direct workflow observation, institutional log traces, domain measurements, and verified operational records.
+2. **Tier 2 — Peer-Reviewed Empirical Studies:** Indexed journal articles, systematic reviews, and conference proceedings establishing verified computational friction.
+3. **Tier 3 — Official Institutional & Government Reports:** Authoritative whitepapers (e.g., DOST, WHO, PSA, IEEE Standards) providing macro-level baselines.
+4. **Tier 4 — Public Discussion & Media (Discovery Only):** News items, forums, and social posts. These can signal an area of curiosity but **can never validate an empirical claim by themselves**.
+
+### Independent Stakeholder Validation Rule
+When interviewing domain actors, **validate the problem completely independently of any proposed artifact or software tool**:
+- Inquire about actual daily workflows, workarounds, error frequencies, and quantified losses.
+- Identify what information is missing, where decisions stall, and why current commercial tools are abandoned.
+- ❌ **Fatal Mistake:** Never ask stakeholders: *"If we built an AI app that did X, would you use it?"* This violates Mom-Test principles, inviting polite acquiescence and false validation.
+
 ### The Non-Negotiable Feasibility Matrix
 Before advancing, the candidate problem must be screened against four strict feasibility constraints:
 - **Hardware & Software Resources:** Does the team possess or have verified access to necessary compute resources, testbeds, SDKs, and toolchains?
@@ -717,9 +851,30 @@ Suppose local interviews and agricultural-extension records support that selecte
 
 ---
 
-# 9. Phase C - Research Opportunity
+# 9. Phase C - Research Opportunity (Computational Opportunity & Kill Rule)
 
 **Purpose:** Determine what existing work already knows, what meaningful limitation remains, and whether the concept contains a genuine research uncertainty rather than only a missing software feature or routine implementation task.
+
+### Defining the Computational Opportunity
+Only after establishing the problem and its real-world consequences should researchers isolate what part of the unresolved friction is **genuinely computational**. The study must address a problem where computer science, data science, or engineering capabilities are essential:
+- **Complex Pattern Discovery:** Detecting non-linear or multi-scale correlations obscured by noisy operational data.
+- **Temporal Sequence Reconstruction:** Modeling or predicting chronological state transitions under sparse sampling.
+- **Multimodal Information Integration:** Fusing tabular, textual, imagery, or acoustic sensor streams into a unified representation.
+- **Prediction Under Uncertainty:** Estimating risk, demand, or system failure with bounded confidence intervals.
+- **Algorithmic Optimization:** Solving constrained routing, allocation, scheduling, or pruning problems where heuristic search is required.
+- **Difficult Classification Under Noise:** Categorizing ambiguous inputs where simple rule-based thresholds fail.
+- **Natural Language & Cognitive Extraction:** Extracting semantic structure from unstructured clinical, legal, or technical narratives.
+
+### Novelty & Duplication Audit: The Kill Rule
+Every candidate concept must be audited against existing peer-reviewed studies, patent literature, and commercial systems across seven core dimensions:
+$$\text{Problem} \times \text{Users/Actors} \times \text{Context} \times \text{Data} \times \text{Technology} \times \text{Core Capability} \times \text{Output}$$
+
+> **The Duplication Kill Rule**  
+> If an existing study or deployed system already demonstrates substantially the same:  
+> **Problem + Users + Context + Data + Technology + Core Capability + Output**  
+> $\longrightarrow$ The candidate concept must normally be **KILLED or materially reframed**.  
+>  
+> Changing only the user interface (UI), database engine, web framework, model name (e.g., swapping ResNet50 for MobileNet), or geographic locality does **not** establish scientific research novelty.
 
 ## Key questions
 
@@ -816,12 +971,26 @@ Computing researchers formulate solutions through three distinct logic models:
 - **Inductive Path (Observation-to-Theory):** Ground-up synthesis where empirical observation of system execution traces leads to a generalized workflow model.
 - **Abductive Path (The DSR Creative Leap):** Generating an informed, creative suggestion of an artifact design (Construct, Model, Method, or Instantiation) that bridges the gap between the validated problem and the desired system state.
 
+### Where AI and Emerging Technologies Belong
+AI, machine learning models, large language models, computer vision, and distributed ledgers should **never** be the starting point of your research. They belong strictly in the **Suggestion / Formulation** phase via abductive reasoning. AI is an algorithmic instrument to be deployed only when the validated root cause and computational complexity demand it.
+
+### The Technology Necessity Test
+To prevent superficial "AI decoration" and technological hype, every candidate solution proposing an emerging technology must pass the **Technology Necessity Test**:
+
+> **Technology Necessity Test**  
+> *"If we remove the emerging technology, does the central capability of the proposed artifact substantially disappear or become materially weaker?"*  
+>  
+> - **NO $\longrightarrow$ Likely AI Decoration:** If a basic SQL query, lookup table, heuristic regex, or deterministic script could achieve comparable utility, forcing AI onto the problem is scientifically unjustified.  
+> - **YES $\longrightarrow$ Technology Justified:** The computational bottleneck genuinely requires probabilistic modeling, continuous representations, or machine learning.  
+>  
+> *(Note: Passing the Technology Necessity Test justifies technology adoption, but technology necessity alone does NOT establish research novelty).*
+
 ### Grounding in Kernel Theories
 The proposed solution must be theoretically grounded in one or more **Kernel Theories** (e.g., *Cognitive Load Theory* for HCI/visualization tools, *Information Theory* or *Entropy Models* for compression/security, *Queueing Theory* for scheduling, *Distributed Consensus Models* for peer networks). The kernel theory provides the explanatory foundation justifying *why* the proposed mechanism is expected to succeed.
 
 ### DSR Artifact Categorization
-The group must classify its primary deliverable into one of the four DSR artifact classes (March & Smith, 1995):
-1. **Construct:** A domain ontology, semantic schema, or formal syntax.
+The group must classify its primary deliverable into one of the four DSR artifact classes (March & Smith, 1995; Vaishnavi & Kuechler, 2015):
+1. **Construct:** The specialized vocabulary, concepts, ontologies, and symbols defining the problem/solution domain.
 2. **Model:** A formal representation of relationships, state machines, or architectural workflows.
 3. **Method:** An algorithm, optimization technique, heuristic, or formal step-by-step procedure.
 4. **Instantiation:** An executable research prototype, testbed, or working software system demonstrating feasibility.
@@ -904,13 +1073,17 @@ Proceed only when the proposed artifact and technologies are necessary, proporti
 
 ### The "Trapping" Protocol
 Evaluation is the ruthless arena of empirical testing where hypotheses and artifact capabilities are validated, bounded, or falsified:
+- **Demonstration ≠ Evaluation (Crucial Boundary):**
+  - **Demonstration:** Answers *“Can the artifact perform the intended task?”* It confirms operational functioning within a simulated or staging environment.
+  - **Evaluation:** Answers *“How well does it perform relative to a baseline, and does empirical evidence substantiate the claimed research contribution?”* Evaluation requires formal comparison, calibrated metrics, and controlled observations.
+- **Metric Derivation Rule:** Evaluation metrics (e.g., accuracy, precision, recall, F1, latency, throughput, energy dissipation, task completion time, SUS) must derive strictly from the artifact's claims and research questions. Do **not** select metrics merely because an open-source library calculates them automatically.
 - **Variable Isolation:** Explicitly operationalize the **Independent Variable (Treatment)** (e.g., baseline vs. novel pruning algorithm) and the **Dependent Variable (Outcome)** (e.g., memory footprint, inference latency, classification F1-score), using calibrated instruments that minimize measurement bias (Patten).
 - **The Circumscription Loop (Vaishnavi & Kuechler):** If the artifact fails to meet predefined acceptance criteria during evaluation, the failure is treated as a generator of **"Missing Constraint Knowledge."** The Circumscription Loop routes this insight back to Phase D to refine artifact parameters and constraints.
 - **Kothari Experimental Design Selection:**
   - *Informal Designs:* Before-and-After comparison without control; After-only with control group.
   - *Completely Randomized Design (CRD):* Independent random allocation of inputs across homogeneous test nodes.
   - *Randomized Block Design (RBD):* Stratifying test cases into homogeneous blocks (e.g., low-resolution vs. high-resolution image sets) prior to benchmark execution.
-  - *Latin Square Design (LSD):* A $k 	imes k$ matrix controlling for two simultaneous nuisance factors (e.g., Network Bandwidth $	imes$ Client Device Model).
+  - *Latin Square Design (LSD):* A $k \times k$ matrix controlling for two simultaneous nuisance factors (e.g., Network Bandwidth $\times$ Client Device Model).
 - **The Mandatory Pilot Study:** A required preliminary dry-run of the evaluation protocol to verify script logging integrity, test suite calibration, and instrument reliability before full-scale data capture.
 
 ## Key questions
@@ -1071,7 +1244,7 @@ For every gate, record one result:
 - **REVISE:** Return to the relevant earlier phase with a specified correction.
 - **FAIL:** Defer or reject unless the underlying constraint changes.
 
-## Gate 1 - Problem Validity
+## 13.1 Gate 1 - Problem Validity
 
 Pass only when:
 
@@ -1088,7 +1261,7 @@ Pass only when:
 
 **Required record:** Result + evidence-based reason + required revision + responsible person + target date.
 
-## Gate 2 - Research Worthiness
+## 13.2 Gate 2 - Research Worthiness
 
 Pass only when:
 
@@ -1105,7 +1278,7 @@ Pass only when:
 
 **Required record:** Result + evidence-based reason + routine-design finding + required revision + responsible person + target date.
 
-## Gate 3 - Evaluability
+## 13.3 Gate 3 - Evaluability
 
 Pass only when:
 
@@ -1122,7 +1295,7 @@ Pass only when:
 
 **Required record:** Result + methodological-alignment reason + required revision + responsible person + target date.
 
-## Gate 4 - Final Eligibility
+## 13.4 Gate 4 - Final Eligibility
 
 Pass only when:
 
@@ -1147,6 +1320,29 @@ Pass only when:
 
 > **Non-negotiable rule**  
 > Gates determine eligibility; scores help rank eligible concepts.
+
+## 13.5 The 13 Granular DSR Opportunity Gates (G1–G13)
+
+Before entering or clearing stages within the DSR Space, the candidate concept must be systematically screened against thirteen granular opportunity criteria. These criteria provide the operational checklist underlying CONVERA's four macro clearance gates:
+
+| Gate | Criterion Question | Evidence Required | Mapped CONVERA System Gate |
+|---|---|---|---|
+| **G1 — Problem** | Is there a real, verifiable problem? | Primary and/or strong secondary empirical evidence | Gate 1 (Problem Validity) |
+| **G2 — Significance** | Does the problem matter? | Quantified consequences, prevalence, operational loss | Gate 1 (Problem Validity) |
+| **G3 — Actor** | Who is affected and under what conditions? | Explicit stakeholder, context, and operational boundary definition | Gate 1 (Problem Validity) |
+| **G4 — Current Practice** | How is the problem currently handled? | Documented workflows, observations, workarounds, legacy tools | Gate 1 (Problem Validity) |
+| **G5 — Existing Solutions** | What systems, products, and studies already exist? | Solution and academic research landscape audit | Gate 2 (Research Worthiness) |
+| **G6 — Gap (SLOK)** | What remains unresolved in existing knowledge? | Comparative gap analysis isolating the Specific Lack of Knowledge | Gate 2 (Research Worthiness) |
+| **G7 — Computing** | Is there a meaningful, genuine computing problem? | Computational formulation (complexity, representation, optimization) | Gate 2 (Research Worthiness) |
+| **G8 — Technology** | Is emerging technology necessary? | Verified passage of the Technology Necessity Test | Gate 2 (Research Worthiness) |
+| **G9 — Novelty** | Is the contribution materially different? | Exact overlap audit and clearance of the Duplication Kill Rule | Gate 2 (Research Worthiness) |
+| **G10 — Feasibility** | Can the team actually execute and deliver it? | Verified compute, dataset access, team skills, ethics clearance | Gate 1 & Gate 4 |
+| **G11 — Evaluation** | Can we objectively and empirically test it? | Calibrated metrics, formal test design (CRD/RBD/LSD), baseline gold standard | Gate 3 (Evaluability) |
+| **G12 — Stakeholder Value** | Would solving the problem produce meaningful utility? | Independent stakeholder validation (without leading pitches) | Gate 1 & Gate 4 |
+| **G13 — DSR Contribution** | Is this more than routine CRUD / software delivery? | Articulated artifact class + reusable design/algorithmic knowledge | Gate 2 & Gate 4 |
+
+> **The Evaluator's Axiom**  
+> *Scores are sorting aids. The evidence trail is what we defend.*
 
 ---
 
@@ -1207,11 +1403,48 @@ The total score is comparative rather than absolute. A score does not guarantee 
 
 ---
 
-# 15. Evidence and Source Quality Guidelines
+# 15. Research Anti-Patterns and Defensive Controls
+
+To keep ideation scientifically sound and defend candidate concepts during defense examinations, the research team must continuously audit their proposals against the **Fourteen Critical Computing Research Anti-Patterns**:
+
+## 15.1 The 14 Critical Research Anti-Patterns Matrix
+
+| Anti-Pattern | How It Occurs in Computing / Tech Research | Methodological Defense |
+|---|---|---|
+| **1. Hammer Looking for a Nail** | Picking an AI or emerging tech stack first (e.g., *"We want to build an LLM app"*), then hunting for any arbitrary problem to slap it onto. | Enforce **Awareness of Problem** first. Ensure the problem creates a demand for AI, passing the Technology Necessity Test. |
+| **2. Solution-Scope Mismatch** | Attempting to solve a massive, ill-defined socio-technical problem with a tool that is far too narrow, or over-scoping beyond team resources. | Scope the research problem strictly to available resources and testbeds while preserving its core scientific interestingness. |
+| **3. Hyper-Hypothesis** | Cramming too many variables, AI models, and feature sets into a single project, making controlled empirical evaluation impossible. | Isolate specific independent and dependent variables so you can prove causality and statistical significance during evaluation. |
+| **4. The Trivial Twist / Reinventing Wheel** | Applying a standard model to an identical problem already well-documented in literature with only minor hyperparameter changes. | Verify novelty through a Systematic Literature Review; prove the architecture addresses an unresolved boundary condition. |
+| **5. Already-Established Question** | Investigating a question whose answer is already definitively known in computing literature. | Comprehensive state-of-the-art literature audit prior to committing to research questions. |
+| **6. Trivial Variable Effect** | Selecting independent variables whose effects on the dependent variable are obvious, trivial, or theoretically inconsequential. | Require theoretical justification grounded in Kernel Theories explaining why the variable relationship matters. |
+| **7. Fishing Expedition** | Collecting large quantities of system logs or user data without clear hypotheses, hoping statistical correlations magically appear. | Predefine research questions, hypotheses, and analytical models before empirical data collection. |
+| **8. Pseudoexplanation** | Inventing post-hoc ad-hoc rationalizations for unexpected system behaviors without measuring actual underlying constructs. | Measure internal state variables directly (e.g., memory cache misses, attention weights, gradient norms). |
+| **9. Secondary-Source Dependence** | Citing tertiary summaries, blogs, or second-hand descriptions rather than verifying original benchmark studies and datasets. | Trace all pivotal claims, performance baselines, and architectural limitations back to primary peer-reviewed studies. |
+| **10. AI Decoration** | Grafting machine learning onto a simple problem that a deterministic rule-based script, SQL query, or lookup table solves better. | Execute the Technology Necessity Test: if removing AI does not degrade capability, kill the AI component. |
+| **11. CRUD Research** | Submitting routine software development (forms, database storage, basic UI delivery) as academic computing research. | Require intellectual uncertainty, reusable design principles, or algorithmic contributions beyond basic engineering. |
+| **12. Novelty-by-Location** | Claiming a project is novel solely because *"nobody built this system in our local municipality or school before."* | Enforce the Duplication Kill Rule: local contextual adaptation must introduce nontrivial algorithmic or computational adaptations. |
+| **13. Novelty-by-Technology** | Claiming scientific novelty solely because *"we applied a brand new 2026 framework or model."* | Technology alone does not establish novelty; research contribution requires advancing problem understanding or design knowledge. |
+| **14. Solution-First Validation** | Pitching the proposed application to stakeholders and mistaking polite enthusiasm for evidence of problem validity. | Validate the problem independently of the artifact; focus on current workflows, workarounds, and quantified losses. |
+
+## 15.2 The AI & Emerging-Technology Pitfall: "Hammer Looking for a Nail"
+
+The single most prevalent failure mode in contemporary undergraduate and graduate computing research is the **"Hammer Looking for a Nail"** anti-pattern. Students select an exciting, trendy technology (e.g., Generative AI, YOLOv11, LangChain, Ethereum smart contracts, Flutter) and search backwards for a problem.
+
+To permanently guard against this trap, every research group must execute this 5-point audit:
+
+1. **Identify the Domain Pain Point:** What real-world operational bottleneck, human error pattern, or system failure are you investigating?
+2. **Pinpoint the SLOK:** Why do current tools, commercial systems, or algorithmic methods fail to solve this problem effectively?
+3. **Funnel the Scope:** Narrow the broad interest area down to a tight, testable research problem with bounded variables.
+4. **Apply Abduction for the Solution:** How does AI or an emerging technology specifically address the root causes of this SLOK in a way traditional computing cannot?
+5. **Anti-Pattern Check:** Did we pick the problem because it is real and consequential, or did we pick it just to showcase an AI tool?
+
+---
+
+# 16. Evidence and Source Quality Guidelines
 
 Concept quality depends on evidence quality. Sources should be selected according to the claim being made, and important claims should be verified against original sources whenever possible.
 
-## 15.1 Evidence classification
+## 16.1 Evidence classification
 
 | Classification | Purpose | Examples | What it cannot establish alone |
 |---|---|---|---|
@@ -1221,7 +1454,7 @@ Concept quality depends on evidence quality. Sources should be selected accordin
 
 The same source may serve different roles for different claims. The Evidence Card must state the exact claim for which the source is being used.
 
-## 15.2 Source types and cautions
+## 16.2 Source types and cautions
 
 | Evidence type | Typical use | Main caution |
 |---|---|---|
@@ -1236,7 +1469,7 @@ The same source may serve different roles for different claims. The Evidence Car
 | Social-media or community content | Discovery, lived experience, terminology, and emerging concerns | Public visibility does not prove representativeness or remove ethical obligations. |
 | AI-generated summaries | Search assistance, brainstorming, and preliminary synthesis | Verify every important claim against the original source; do not cite the summary as the academic foundation. |
 
-## 15.3 Evidence-scope rule
+## 16.3 Evidence-scope rule
 
 > **Evidence must match the scope of the claim.**  
 > If the claim is local, include local evidence. If it is national, use evidence supporting national scope. Broader evidence may provide context but should not silently be treated as proof of a narrower, different, or more specific population.
@@ -1251,7 +1484,7 @@ Record at least:
 - material exclusions or missingness;
 - appropriate and inappropriate uses of the evidence.
 
-## 15.4 Triangulation and independence
+## 16.4 Triangulation and independence
 
 Triangulation combines meaningfully different evidence lines to test whether a claim remains credible across sources or methods. Three articles repeating the same press release do not constitute three independent evidence lines.
 
@@ -1266,7 +1499,7 @@ When practical, combine two or more of the following:
 
 Triangulation does not require agreement. Disagreement may expose differences in definitions, populations, periods, incentives, or conditions.
 
-## 15.5 Conflicting-evidence rule
+## 16.5 Conflicting-evidence rule
 
 The group must not remove or hide credible evidence merely because it weakens a preferred problem or concept. Record:
 
@@ -1276,7 +1509,7 @@ The group must not remove or hide credible evidence merely because it weakens a 
 - whether the main claim should be retained, narrowed, reframed, or rejected;
 - what further evidence could resolve the uncertainty.
 
-## 15.6 Online and social-media evidence
+## 16.6 Online and social-media evidence
 
 Online content may reveal current concerns not yet represented in formal records. Use it carefully:
 
@@ -1289,7 +1522,7 @@ Online content may reveal current concerns not yet represented in formal records
 - Verify factual claims through stronger sources when they are central to Gate 1.
 - Seek adviser or ethics-review guidance when people, sensitive topics, vulnerable groups, or private communities are involved.
 
-## 15.7 Source hierarchy for research-gap claims
+## 16.7 Source hierarchy for research-gap claims
 
 1. Begin with recent peer-reviewed surveys, systematic reviews, or strong state-of-the-art papers when available.
 2. Search recent primary studies directly testing the most relevant approaches.
@@ -1299,17 +1532,17 @@ Online content may reveal current concerns not yet represented in formal records
 6. Use patent or prior-art searches when originality depends on implementation novelty.
 7. Document databases, keywords, date ranges, inclusion logic, and important search limitations.
 
-## 15.8 Evidence update rule
+## 16.8 Evidence update rule
 
 Evidence can become stale. Record the date each source or dependency was last checked. Recheck time-sensitive laws, policies, software capabilities, datasets, prices, access conditions, standards, and institutional procedures before final proposal submission.
 
 ---
 
-# 16. Participant Ethics, Privacy, and Research Integrity
+# 17. Participant Ethics, Privacy, and Research Integrity
 
 Ethics is not a final form to complete after the design is finished. It shapes which problems may be studied, which data may be collected, who may participate, how the artifact behaves, and what may be reported.
 
-## 16.1 Respect for persons
+## 17.1 Respect for persons
 
 Where informed consent is required, prospective participants should receive understandable information about:
 
@@ -1326,13 +1559,13 @@ Where informed consent is required, prospective participants should receive unde
 
 Consent should be an ongoing process, not merely a signature. When participants have limited autonomy or capacity, appropriate assent, guardian permission, and additional protection may be required under institutional rules.
 
-## 16.2 Beneficence and risk proportionality
+## 17.2 Beneficence and risk proportionality
 
 Identify foreseeable physical, psychological, social, reputational, economic, informational, legal, accessibility, and cybersecurity risks as relevant. Reduce data collection and intervention burden to what the research question actually requires.
 
 Potential social value does not automatically justify avoidable risk. High-risk designs should be revised, independently reviewed, or rejected when protections are inadequate.
 
-## 16.3 Justice and fair selection
+## 17.3 Justice and fair selection
 
 Participant groups should be chosen because they are relevant to the research question, not merely because they are easy to recruit or less able to refuse. Consider:
 
@@ -1345,7 +1578,7 @@ Participant groups should be chosen because they are relevant to the research qu
 
 Provide a credible alternative when participation is connected to course credit, employment, service access, or another power relationship.
 
-## 16.4 Privacy, confidentiality, and data lifecycle
+## 17.4 Privacy, confidentiality, and data lifecycle
 
 Plan the complete data lifecycle before collection:
 
@@ -1362,7 +1595,7 @@ Plan the complete data lifecycle before collection:
 
 Anonymization claims should be cautious. Removing names may not prevent identification when locations, dates, roles, images, or rare characteristics remain.
 
-## 16.5 Online research
+## 17.5 Online research
 
 For forums, social networks, chat groups, messaging channels, platform logs, and other digital environments, examine:
 
@@ -1374,7 +1607,7 @@ For forums, social networks, chat groups, messaging channels, platform logs, and
 - whether platform terms, institutional policies, consent, or permission apply;
 - whether paraphrasing or aggregation can preserve meaning while reducing harm.
 
-## 16.6 Research integrity
+## 17.6 Research integrity
 
 The group must:
 
@@ -1389,7 +1622,7 @@ The group must:
 - report null, negative, or unexpected results honestly;
 - maintain code, model, dataset, and document versions sufficient for review.
 
-## 16.7 Ethics and integrity decision
+## 17.7 Ethics and integrity decision
 
 Record one of the following at each relevant phase:
 
@@ -1403,7 +1636,116 @@ This framework does not itself determine whether a project is exempt from instit
 
 ---
 
-# 17. Required Documentation
+# 18. Lineage Traceability and Team Operating Model
+
+A hallmark of rigorous computing research is continuous, unbroken traceability from the empirical phenomenon to the final published research claim.
+
+## 18.1 The Closed-Loop Lineage Traceability Model
+
+Every candidate concept must maintain an explicit, auditable traceability trail:
+
+```text
+EVIDENCE
+   ↓ (Grounded in primary observations or literature)
+PROBLEM
+   ↓ (Operationalized undesirable condition)
+GAP (SLOK)
+   ↓ (Specific Lack of Knowledge in existing solutions)
+RESEARCH REQUIREMENT
+   ↓ (Functional, algorithmic, or contextual condition)
+DESIGN DECISION
+   ↓ (Abductive artifact choice grounded in Kernel Theory)
+ARTIFACT COMPONENT
+   ↓ (Construct, Model, Method, or Instantiation)
+EVALUATION METHOD
+   ↓ (Controlled experiment, benchmark, or user evaluation)
+RESULT
+   ↓ (Measured metric or empirical observation)
+RESEARCH CLAIM
+   (Defensible, bounded knowledge contribution)
+```
+
+### Traceability Example: Longitudinal Health Trajectory Analytics
+
+```text
+EVIDENCE: Primary care records show non-communicable disease consultations are fragmented across visits.
+   ↓
+PROBLEM: Clinicians cannot reconstruct patient progression trajectories accurately during short consultations.
+   ↓
+GAP (SLOK): Existing EHR systems lack automated temporal state reconstruction under irregularly sampled visit intervals.
+   ↓
+RESEARCH REQUIREMENT: Reconstruct chronological patient state trajectories from sparse longitudinal records.
+   ↓
+DESIGN DECISION: Adopt Hidden Markov Models fused with attention mechanisms grounded in State-Transition Theory.
+   ↓
+ARTIFACT COMPONENT: A temporal trajectory reconstruction algorithm (Method).
+   ↓
+EVALUATION METHOD: Synthetic & de-identified historical record benchmark comparing sequence reconstruction accuracy.
+   ↓
+RESULT: 18.4% improvement in trajectory reconstruction precision over baseline nearest-neighbor interpolation.
+   ↓
+RESEARCH CLAIM: Demonstrates bounded effectiveness of attention-weighted Markov state reconstruction under irregular sampling.
+```
+
+## 18.2 Required Research Record (19 Core Fields)
+
+Every serious candidate concept must record:
+
+1. **Domain:** Sector or industry of inquiry.
+2. **Context:** Operational setting, devices, network, and environmental constraints.
+3. **Actors:** Primary sufferers and interacting stakeholders.
+4. **Activity / Decision:** The specific task or workflow affected.
+5. **Problem Phenomenon:** Operationalized friction (technology-neutral).
+6. **Consequences:** Quantified loss, error rate, latency, or inefficiency.
+7. **Evidence:** Grounded source trail (interviews, literature, records).
+8. **Existing Research:** Summary of peer-reviewed precedents.
+9. **Existing Systems:** Summary of commercial tools and manual workarounds.
+10. **Exact Overlap Analysis:** Direct comparison table against closest precedents.
+11. **Limitations:** Failure modes of existing solutions.
+12. **Candidate Gap (SLOK):** Precise boundary where knowledge/tools end.
+13. **Emerging Technology:** Proposed technology intervention.
+14. **Technology Necessity Justification:** Output of Technology Necessity Test.
+15. **Data Requirements:** Data schema, availability, collection ethics, and permissions.
+16. **Evaluation Strategy:** Calibrated metrics, independent/dependent variables, baselines.
+17. **Stakeholder Validation:** Independent problem confirmation (without tool pitches).
+18. **Contradictions & Unknowns:** Documented conflicting evidence and boundary risks.
+19. **DSR Opportunity Assessment:** Formal status (`KEEP` / `REFRAME` / `HOLD` / `KILL`).
+
+## 18.3 Team Operating Model: Human-in-the-Loop AI Collaboration
+
+Computing research projects within the CONVERA ecosystem operate under a strictly governed division of responsibilities:
+
+```text
+┌───────────────────────┐
+│     RESEARCH TEAM     │  Observe ──> Interview ──> Search ──> Capture raw evidence
+└──────────┬────────────┘
+           │
+           ▼
+┌───────────────────────┐
+│ CONVERA PLATFORM      │  Retrieve ──> Organize ──> Deduplicate ──> Graph Structure
+└──────────┬────────────┘
+           │
+           ▼
+┌───────────────────────┐
+│ AI RESEARCH ASSISTANT │  Compare ──> Challenge ──> Synthesize ──> Audit Anti-Patterns
+└──────────┬────────────┘
+           │
+           ▼
+┌───────────────────────┐
+│ TEAM + FACULTY ADVISER│  Validate ──> Interpret ──> Decide: KEEP / REFRAME / HOLD / KILL
+└───────────────────────┘
+```
+
+> **The Operating Principle:**  
+> Automate collection, indexing, and organization where useful. Keep scientific, ethical, and methodological judgment with the research team.
+
+## 18.4 The Framework in One Sentence
+
+> **RPD–DSR moves from evidence-backed problem discovery to validated research opportunity, then from justified artifact design to measurable evaluation and defensible DSR contribution.**
+
+---
+
+# 19. Required Documentation
 
 | Stage | Required output | Purpose |
 |---|---|---|
@@ -1426,11 +1768,11 @@ Do not duplicate information unnecessarily. Evidence Cards should feed the Evide
 
 ---
 
-# 18. Worked Example
+# 20. Worked Example
 
 The following example illustrates how the framework transforms an initial observation into a researchable concept. It is not evidence that the problem exists in any actual locality. A group using this topic must conduct its own validation.
 
-## 18.1 Preliminary Problem Bank entry
+## 20.1 Preliminary Problem Bank entry
 
 | Field | Illustrative entry |
 |---|---|
@@ -1447,7 +1789,7 @@ The following example illustrates how the framework transforms an initial observ
 
 The entry does not name a preferred technology. It records a problem opportunity and the evidence still needed.
 
-## 18.2 Phase-by-phase development
+## 20.2 Phase-by-phase development
 
 | Phase | Illustrative development | Evidence or decision still required |
 |---|---|---|
@@ -1458,7 +1800,7 @@ The entry does not name a preferred technology. It records a problem opportunity
 | E - Evaluation Design | Predefine demonstration conditions, baseline or comparator, measures, participants or datasets, analysis, and acceptance criteria. | Show that evidence can answer the research question and that success is not defined after seeing results. |
 | F - Relevance and Feasibility | Verify access, schedule, skills, cost, equipment, data, approvals, ethical controls, maintenance implications, and expected contribution. | Narrow or reject the concept if access, ethics, measurement, or completion risk is unacceptable. |
 
-## 18.3 From weak to stronger formulation
+## 20.3 From weak to stronger formulation
 
 **Weak formulation:**
 
@@ -1472,7 +1814,7 @@ This statement begins with a technology, does not define the stakeholder problem
 
 The stronger formulation is still provisional. The exact artifact, variables, comparator, population, and claim must be determined from evidence gathered during the phases.
 
-## 18.4 Why the example may become research-worthy
+## 20.4 Why the example may become research-worthy
 
 The concept may qualify as research if the group can show all of the following:
 
@@ -1488,19 +1830,19 @@ If the only objective is to digitize an established process using a conventional
 
 ---
 
-# 19. Group Usage Procedure
+# 21. Group Usage Procedure
 
-## 19.1 Recommended sequence
+## 21.1 Recommended sequence
 
 1. Agree on broad domains or stakeholder settings worth exploring.
 2. Add candidate problems to the Problem Bank without assigning technologies.
 3. Record the discovery signal, source role, assumptions, stakeholder-access status, and evidence needs for every entry.
 4. Apply the Problem Bank shortlisting filter and select a manageable set for deeper investigation.
-5. Complete Phase A and produce a clear Problem Brief.
+5. Complete Phase A and produce a clear Problem Brief isolating the Specific Lack of Knowledge (SLOK).
 6. Complete Phase B, prepare Evidence Cards and an Evidence and Impact Brief, and decide Gate 1.
-7. Complete Phase C, including the literature and prior-art review, gap statement, intellectual-uncertainty statement, research question, methodological direction, and routine-design test; then decide Gate 2.
-8. Complete Phase D by deriving objectives and requirements, comparing alternatives, selecting an artifact direction, justifying technology, and identifying the proposed contribution type.
-9. Complete Phase E by predefining the demonstration and evaluation design; then decide Gate 3.
+7. Complete Phase C, including the literature and prior-art review, computational opportunity formulation, gap statement, intellectual-uncertainty statement, research question, methodological direction, and routine-design/kill-rule test; then decide Gate 2.
+8. Complete Phase D by deriving objectives and requirements, running the Technology Necessity Test, comparing alternatives, selecting an artifact direction, justifying technology, and identifying the proposed contribution type.
+9. Complete Phase E by predefining the demonstration and evaluation design, separating demonstration from evaluation, and running a pilot pre-run; then decide Gate 3.
 10. Complete Phase F by checking relevance, access, ethics, privacy, integrity, feasibility, resources, risks, and expected knowledge contribution; then decide Gate 4.
 11. Return weak concepts to the phase where the weakness originated. Record the reason and revision.
 12. Score only concepts that passed all four gates.
@@ -1508,7 +1850,7 @@ If the only objective is to digitize an established process using a conventional
 14. Seek adviser, stakeholder, technical, and ethics input where appropriate.
 15. Transfer the selected concept and its evidence trail into the formal proposal process.
 
-## 19.2 Suggested group roles
+## 21.2 Suggested group roles
 
 Roles may be combined in small groups, but accountability should remain explicit.
 
@@ -1525,7 +1867,7 @@ Roles may be combined in small groups, but accountability should remain explicit
 
 The group should rotate or cross-check roles when possible. No single member should be the only person who understands the evidence, methods, code, or decision basis.
 
-## 19.3 Group decision protocol
+## 21.3 Group decision protocol
 
 For every gate and final selection:
 
@@ -1533,11 +1875,11 @@ For every gate and final selection:
 2. Let the responsible member present the evidence and its limitations.
 3. Invite a designated reviewer to challenge assumptions and seek contrary evidence.
 4. Discuss unresolved disagreement at the criterion level rather than averaging immediately.
-5. Record a decision of **Pass**, **Revise**, **Defer**, or **Reject**, with reasons and responsible persons.
+5. Record a decision of **KEEP / PASS**, **REFRAME / REVISE**, **HOLD / DEFER**, or **KILL / REJECT**, with reasons and responsible persons.
 6. Record conditions that must be satisfied before the next review.
 7. Update the Decision and Change Log and all affected documents.
 
-## 19.4 Version and evidence control
+## 21.4 Version and evidence control
 
 - Give every candidate concept a stable identifier.
 - Date every Evidence Card, gate decision, and major revision.
@@ -1550,43 +1892,45 @@ For every gate and final selection:
 
 ---
 
-# 20. Final Workflow and Quick Reference
+# 22. Final Workflow and Quick Reference
 
-## 20.1 Official workflow
+## 22.1 Official workflow
 
 ```text
-Explore domains and stakeholders
+Explore domains and stakeholders (Stage 1)
         |
-Build and shortlist the Problem Bank
+Build and shortlist the Problem Bank (Stage 2)
         |
-Phase A: Discover and define the problem
+Phase A: Discover problem, map context & isolate SLOK (Stages 2–4)
         |
-Phase B: Validate existence, magnitude, scope, access, and early ethics
+Phase B: Validate existence, magnitude, scope, access, and early ethics (Stages 5, 10, 11)
         |
-Gate 1: Problem valid?
+Gate 1: Problem valid? (G1, G2, G3, G4, G10, G12)
         |
-Phase C: Establish existing work, gap, uncertainty, question, and methodological direction
+Phase C: Establish existing work, computational opportunity, gap, uncertainty & Kill Rule (Stages 6–9)
         |
-Gate 2: Research-worthy?
+[Stage 12 Screening: KEEP / REFRAME / HOLD / KILL]
         |
-Phase D: Derive objectives and requirements; compare solutions; justify artifact and technology
+Gate 2: Research-worthy? (G5, G6, G7, G8, G9, G13)
         |
-Phase E: Design demonstration, measures, comparison, analysis, and acceptance criteria
+Phase D: Derive objectives & requirements; run Tech Necessity Test; abductive design (Stages 13–14)
         |
-Gate 3: Evaluable?
+Phase E: Design demonstration vs evaluation, measures, experimental design & pilot run (Stages 15–16)
         |
-Phase F: Check relevance, contribution, ethics, privacy, access, resources, risks, and feasibility
+Gate 3: Evaluable? (G11)
         |
-Gate 4: Eligible?
+Phase F: Check relevance, reusable design knowledge, ethics, privacy, resources & feasibility (Stage 17)
+        |
+Gate 4: Eligible? (Concept Clearance)
         |
 Score and rank eligible concepts only
         |
-Adviser and stakeholder review
+Adviser and stakeholder defense review
         |
-Select, revise, or return to an earlier phase
+Select, reframe, or return via Circumscription Loop
 ```
 
-## 20.2 Current-stage rule
+## 22.2 Current-stage rule
 
 During Problem Bank work, the group should concentrate on:
 
@@ -1598,7 +1942,7 @@ During Problem Bank work, the group should concentrate on:
 
 Technology exploration is acceptable for awareness, but it should not control which problem is selected.
 
-## 20.3 Five alignment checks
+## 22.3 Five alignment checks
 
 Before final selection, read the concept from left to right:
 
@@ -1610,7 +1954,7 @@ Before final selection, read the concept from left to right:
 
 A serious break in any one alignment should trigger revision even when the total score is high.
 
-## 20.4 Quick stop rules
+## 22.4 Quick stop rules
 
 Stop, defer, reject, or return the concept when:
 
@@ -1618,6 +1962,8 @@ Stop, defer, reject, or return the concept when:
 - the intended stakeholder or setting cannot be accessed credibly;
 - the claimed gap is only a missing feature or an unsupported statement of novelty;
 - the work is routine design with no meaningful uncertainty or transferable contribution;
+- the candidate violates the Duplication Kill Rule;
+- the proposed technology fails the Technology Necessity Test (AI decoration);
 - the research question cannot be answered using the available participants, data, measures, time, or resources;
 - the technology is chosen first and cannot be justified against alternatives;
 - the evaluation lacks a suitable comparator, measure, or analysis plan;
@@ -1625,27 +1971,33 @@ Stop, defer, reject, or return the concept when:
 - critical dependencies or permissions remain unavailable;
 - the proposed claim exceeds what the design can establish.
 
-## 20.5 Final concept test
+## 22.5 Final concept test
 
 A concept is ready for formal proposal development only when the group can complete this statement with evidence:
 
-> For **[defined stakeholders or setting]**, credible evidence indicates **[bounded problem and consequence]**. Existing approaches are limited because **[evidenced limitation]**, leaving uncertainty about **[research gap or question]**. We therefore propose to investigate **[artifact, intervention, method, or comparison]**, selected because **[requirements and alternatives analysis]**. We will evaluate it using **[design, data, measures, comparator, and analysis]**. The expected contribution is **[invention, improvement, adaptation, or other knowledge output]**. The work is relevant, ethical, privacy-aware, and feasible because **[key evidence and controls]**.
+> For **[defined stakeholders or setting]**, credible evidence indicates **[bounded problem and consequence]**. Existing approaches are limited because **[evidenced limitation / SLOK]**, leaving uncertainty about **[research gap or question]**. We therefore propose to investigate **[artifact, intervention, method, or comparison]**, selected because **[requirements and alternatives analysis passing Technology Necessity Test]**. We will evaluate it using **[design, data, measures, comparator, and analysis]**. The expected contribution is **[invention, improvement, adaptation, or other knowledge output]**. The work is relevant, ethical, privacy-aware, and feasible because **[key evidence and controls]**.
 
 ---
 
-# 21. References
+# 23. References
+
+Bordens, K. S., & Abbott, B. B. (2018). *Research design and methods: A process approach* (10th ed.). McGraw-Hill Education. [Publisher page](https://www.mheducation.com/highered/product/research-designs-and-methods-bordens.html)
 
 Byington, K. W., & Schwebel, D. C. (2013). Effects of mobile Internet use on college student pedestrian injury risk. *Accident Analysis & Prevention, 51*, 78-83.
 
 Cialdini, R. B. (1994). A full-cycle approach to social psychology. In G. G. Brannigan & M. R. Merrens (Eds.), *The art of exploration in psychological research* (pp. 52-72).
 
-Bordens, K. S., & Abbott, B. B. (2018). *Research design and methods: A process approach* (10th ed.). McGraw-Hill Education. [Publisher page](https://www.mheducation.com/highered/product/research-designs-and-methods-bordens.html)
+Hevner, A. R. (2007). A three cycle view of design science research. *Scandinavian Journal of Information Systems*, 19(2), 87–92. [AIS eLibrary](https://aisel.aisnet.org/sjis/vol19/iss2/4/)
 
 Hevner, A. R., March, S. T., Park, J., & Ram, S. (2004). Design science in information systems research. *MIS Quarterly, 28*(1), 75-105. [AIS eLibrary](https://aisel.aisnet.org/misq/vol28/iss1/6/)
 
 International Organization for Standardization. (2023). *ISO/IEC 25010:2023: Systems and software engineering - Systems and software quality requirements and evaluation (SQuaRE) - Product quality model*. [ISO](https://www.iso.org/standard/78176.html)
 
 Kothari, C. R. (2004). *Research methodology: Methods and techniques* (2nd rev. ed.). New Age International.
+
+March, S. T., & Smith, G. F. (1995). Design and natural science research on information technology. *Decision Support Systems*, 15(4), 251-266. [DOI](https://doi.org/10.1016/0167-9236%2894%2900041-2)
+
+March, S. T., & Storey, V. C. (2008). Design science in the information systems discipline: An introduction to the special issue on design science research. *MIS Quarterly*, 32(4), 725-730. [AIS eLibrary](https://aisel.aisnet.org/misq/vol32/iss4/3/)
 
 National Institute of Standards and Technology. (2023). *Artificial Intelligence Risk Management Framework (AI RMF 1.0)*. [NIST](https://www.nist.gov/itl/ai-risk-management-framework)
 
@@ -1661,6 +2013,8 @@ Philippine Council for Industry, Energy and Emerging Technology Research and Dev
 
 Philippine Department of Science and Technology. (2022). *Harmonized National Research and Development Agenda 2022-2028*. [DOST](https://www.dost.gov.ph/knowledge-resources/downloads/file/5669-harmonized-national-r-d-agenda-2022-2028.html)
 
+Simon, H. A. (1996). *The Sciences of the Artificial* (3rd ed.). MIT Press.
+
 United Nations. (n.d.). *Sustainable Development Goals*. [United Nations](https://sdgs.un.org/goals)
 
 Vaishnavi, V. K., & Kuechler, W., Jr. (2015). *Design science research methods and patterns: Innovating information and communication technology* (2nd ed.). CRC Press. [Publisher page](https://www.routledge.com/Design-Science-Research-Methods-and-Patterns-Innovating-Information-and-Communication-Technology-2nd-Edition/Vaishnavi-Vaishnavi-Kuechler/p/book/9781498715256)
@@ -1671,7 +2025,9 @@ The named sources provide foundations for research methodology, DSR, evaluation 
 
 ---
 
-# Appendix A - Revised Concept Canvas
+# 24. Appendices
+
+## Appendix A - Revised Concept Canvas
 
 Complete one canvas for every concept that reaches Phase F. Use supporting documents for detail; do not compress uncertainty into unsupported one-line claims.
 
@@ -1714,7 +2070,7 @@ Complete one canvas for every concept that reaches Phase F. Use supporting docum
 
 ---
 
-# Appendix B - Gate Checklist
+## Appendix B - Gate Checklist
 
 ## Gate 1 - Problem Validity
 
@@ -1785,7 +2141,7 @@ Complete one canvas for every concept that reaches Phase F. Use supporting docum
 
 ---
 
-# Appendix C - Screening and Ranking Sheet
+## Appendix C - Screening and Ranking Sheet
 
 Complete this sheet only after all four gates have passed.
 
@@ -1817,7 +2173,7 @@ Weighted points = (rating / 5) x criterion weight
 
 ---
 
-# Appendix D - Problem Bank Template
+## Appendix D - Problem Bank Template
 
 Use one row for every candidate problem. Add links or identifiers rather than placing sensitive raw information in the register.
 
@@ -1848,7 +2204,7 @@ Use one row for every candidate problem. Add links or identifiers rather than pl
 
 ---
 
-# Appendix E - Evidence Card Template
+## Appendix E - Evidence Card Template
 
 Create a separate card for every material claim or tightly related group of claims.
 
@@ -1888,7 +2244,7 @@ Create a separate card for every material claim or tightly related group of clai
 
 ---
 
-# Appendix F - Methodological and Ethics Alignment Record
+## Appendix F - Methodological and Ethics Alignment Record
 
 ## F.1 Research alignment
 
@@ -1942,7 +2298,7 @@ Create a separate card for every material claim or tightly related group of clai
 
 ---
 
-# Appendix G - Decision and Change Log
+## Appendix G - Decision and Change Log
 
 Use this log whenever a claim, phase output, gate result, score, scope, method, artifact, evaluation, risk control, or final decision changes.
 
@@ -1965,7 +2321,7 @@ Every material decision should answer:
 
 
 
-# Appendix H - Practical Step-by-Step Worksheet for WVSU Capstone Ideation (LO1)
+## Appendix H - Practical Step-by-Step Worksheet for WVSU Capstone Ideation (LO1)
 
 *Use this worksheet as a living document to satisfy Course Outcome LO1 (Formulating objectives, scope, and evaluation metrics).*
 
@@ -2019,9 +2375,9 @@ Every material decision should answer:
 
 ### Step 5: Proposed Solution Logic Path
 *Select the primary cognitive reasoning path.*
-- [ ] **Deduction:** Top-Down Hypothesis Testing (Theory $ightarrow$ Hypothesis $ightarrow$ Experiment)
-- [ ] **Induction:** Ground-Up Theory Formulation (Observation $ightarrow$ Pattern $ightarrow$ Generalization)
-- [ ] **Abduction (DSR):** Creative Leap / Abductive Suggestion (Problem Awareness $ightarrow$ Novel Artifact Design)
+- [ ] **Deduction:** Top-Down Hypothesis Testing (Theory → Hypothesis → Experiment)
+- [ ] **Induction:** Ground-Up Theory Formulation (Observation → Pattern → Generalization)
+- [ ] **Abduction (DSR):** Creative Leap / Abductive Suggestion (Problem Awareness → Novel Artifact Design)
 
 ---
 

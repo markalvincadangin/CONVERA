@@ -71,6 +71,82 @@ class MethodologyContract(BaseModel):
         """Validates if a stage belongs to this methodology."""
         return stage_id in self.stage_sequence or stage_id == "studio"
 
+    def create_initial_stage_progress(self) -> Dict[str, Any]:
+        """
+        Generate canonical initial stage_progress for a new session.
+        Pure function: zero I/O, zero side effects.
+        
+        Rules:
+        - Stage 0 in stage_sequence begins as IN_PROGRESS.
+        - All subsequent stages begin as LOCKED.
+        - gate_id is resolved from self.gate_map.
+        - gate_status initialized to NOT_REQUIRED.
+        - Terminal 'studio' is excluded from the stages dict.
+        """
+        non_terminal = [s for s in self.stage_sequence if s != "studio"]
+        stages = {}
+        for i, stage_id in enumerate(non_terminal):
+            stages[stage_id] = {
+                "status": "IN_PROGRESS" if i == 0 else "LOCKED",
+                "gate_id": self.gate_map.get(stage_id),
+                "gate_status": "NOT_REQUIRED",
+            }
+        return {
+            "schema_version": 1,
+            "framework_id": self.id,
+            "current_stage_id": non_terminal[0] if non_terminal else "studio",
+            "stages": stages,
+        }
+
+    def synthesize_stage_progress(self, completion_flags: List[bool]) -> Dict[str, Any]:
+        """
+        Synthesize canonical stage_progress from clean boolean completion flags.
+        Pure function: zero I/O, zero side effects.
+        
+        RESPONSIBILITY BOUNDARY (LEGACY COMPATIBILITY ADAPTER BEHAVIOR):
+        This method receives clean pre-processed boolean flags.
+        The caller (synthesize_canonical_stage_progress in sqlite_adapter.py) is
+        responsible for inferring completion from historical field names.
+        
+        Args:
+            completion_flags: Ordered booleans corresponding to stage progression.
+        """
+        non_terminal = [s for s in self.stage_sequence if s != "studio"]
+        stages = {}
+        for i, s_id in enumerate(non_terminal):
+            flag = completion_flags[i] if i < len(completion_flags) else (completion_flags[-1] if completion_flags else False)
+            gate_id = self.gate_map.get(s_id)
+            if i == 0:
+                status = "COMPLETED" if flag else "IN_PROGRESS"
+                gate_status = "NOT_REQUIRED"
+            else:
+                prev_flag = completion_flags[i - 1] if (i - 1) < len(completion_flags) else completion_flags[-1]
+                if self.id == "RESEARCH" and i == 5:
+                    # Stage F availability requires stage_d (p4) complete
+                    prev_flag = completion_flags[3]
+                status = "COMPLETED" if flag else ("AVAILABLE" if prev_flag else "LOCKED")
+                gate_status = ("PASSED" if flag else "NOT_REQUIRED") if gate_id is not None else "NOT_REQUIRED"
+            stages[s_id] = {
+                "status": status,
+                "gate_id": gate_id,
+                "gate_status": gate_status,
+            }
+
+        curr = "studio"
+        for s_id in non_terminal:
+            if stages[s_id]["status"] != "COMPLETED":
+                curr = s_id
+                if stages[s_id]["status"] == "AVAILABLE":
+                    stages[s_id]["status"] = "IN_PROGRESS"
+                break
+
+        return {
+            "schema_version": 1,
+            "framework_id": self.id,
+            "current_stage_id": curr,
+            "stages": stages,
+        }
+
 
 # ---------------------------------------------------------------------------
 # Compatibility Implementations: Innovation & Research Tracks
@@ -297,8 +373,4 @@ def get_methodology_contract(framework_id: Optional[str]) -> Optional[Methodolog
         return None
     if normalized in METHODOLOGY_REGISTRY:
         return METHODOLOGY_REGISTRY[normalized]
-    if normalized.startswith("INNOVATION"):
-        return INNOVATION_CONTRACT
-    if normalized.startswith("RESEARCH"):
-        return RESEARCH_CONTRACT
     return None
