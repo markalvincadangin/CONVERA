@@ -107,11 +107,27 @@ async def create_session(req: SessionCreateRequest):
     project_name = req.project_name.strip() if req.project_name else "Iloilo Technopreneurship Project"
     project_id = req.project_id or f"proj_{session_id}"
     
+    # SDD-02: Strict framework validation — no silent defaulting
+    framework_id = (req.framework_id or "").strip().upper()
+    if not framework_id:
+        raise HTTPException(
+            status_code=400,
+            detail="framework_id is required and cannot be empty."
+        )
+
+    from contracts.methodology import get_methodology_contract
+    contract = get_methodology_contract(framework_id)
+    if contract is None:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unknown framework '{req.framework_id}': no methodology contract registered."
+        )
+
     initial_state = {
         "session_id": session_id,
         "project_id": project_id,
         "project_name": project_name,
-        "framework_id": req.framework_id or "INNOVATION",
+        "framework_id": contract.id,
         "phase1_response": None,
         "phase2_response": None,
         "phase3_problem": None,
