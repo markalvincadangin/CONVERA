@@ -20,6 +20,7 @@ export async function fetchApi<T>(endpoint: string, options?: RequestInit): Prom
 
   try {
     const res = await fetch(url, {
+      credentials: "include",
       ...options,
       headers,
     });

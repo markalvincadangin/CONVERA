@@ -1,0 +1,55 @@
+# CONVERA Monorepo Root Docker Ignore File
+# Prevents cache, local environments, and temporary artifacts from bloating build contexts
+
+# Version control
+.git
+.gitignore
+.github
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.venv/
+backend/.venv/
+env/
+venv/
+
+# Node & Frontend artifacts
+node_modules/
+web/node_modules/
+.next/
+web/.next/
+*.tsbuildinfo
+web/*.tsbuildinfo
+
+# SQLite databases, WAL files, and keys (use volume mounts instead)
+*.db
+*.db-wal
+*.db-shm
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
+.convera_key
+backend/.convera_key
+/data
+
+# Local Environment Secrets (never bake secrets into images)
+.env
+.env.local
+.env.*.local
+backend/.env
+web/.env*.local
+
+# Documentation & Specifications (not needed in runtime images)
+docs/
+specs/
+audits/
+backups/
+graphify-out/
+.agents/
+.specify/

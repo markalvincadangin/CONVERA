@@ -18,8 +18,16 @@ from .traceability import router as traceability_router
 from .evaluation import router as evaluation_router
 from .gates import router as gates_router
 from .export import router as export_router
+from .auth import router as auth_router
+from .workspaces import router as workspaces_router
+from .settings import router as settings_router
+from .integrations import router as integrations_router
 
 __all__ = [
+    "auth_router",
+    "workspaces_router",
+    "settings_router",
+    "integrations_router",
     "connectors_router",
     "inbox_router",
     "agents_router",

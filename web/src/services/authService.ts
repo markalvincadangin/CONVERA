@@ -1,4 +1,4 @@
-import { UserProfile, UserRole, TeamMember, ProblemComment, MentorSignoff } from "@/lib/types";
+import { UserProfile, UserRole, TeamMember, ProblemComment, MentorSignoff, AuthUser, UserWorkspace } from "@/lib/types";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 const USER_STORAGE_KEY = "ratchetai_user_profile";
@@ -10,7 +10,62 @@ export const DEFAULT_USER: UserProfile = {
   avatar: "founder",
 };
 
+import { fetchApi } from "@/lib/api-client";
+
 export const authService = {
+  // --- Progressive Identity & Authentication Endpoints ---
+
+  async register(
+    email: string,
+    password: string,
+    displayName: string,
+    activeProjectId?: string
+  ): Promise<{ status: string; user: AuthUser; tokens: any; claimed_workspace?: any }> {
+    return fetchApi("/api/auth/register", {
+      method: "POST",
+      body: JSON.stringify({
+        email,
+        password,
+        display_name: displayName,
+        active_project_id: activeProjectId || undefined,
+      }),
+    });
+  },
+
+  async login(
+    email: string,
+    password: string
+  ): Promise<{ status: string; user: AuthUser; tokens: any }> {
+    return fetchApi("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  async refresh(): Promise<{ status: string; user: AuthUser; tokens: any }> {
+    return fetchApi("/api/auth/refresh", {
+      method: "POST",
+    });
+  },
+
+  async logout(): Promise<{ status: string; message: string }> {
+    return fetchApi("/api/auth/logout", {
+      method: "POST",
+    });
+  },
+
+  async getMe(): Promise<{
+    authenticated: boolean;
+    user: AuthUser | null;
+    workspaces: UserWorkspace[];
+  }> {
+    return fetchApi("/api/auth/me", {
+      method: "GET",
+    });
+  },
+
+  // --- Local Session Profile Management (Anonymous / Progressive) ---
+
   getCurrentUser(): UserProfile {
     if (typeof window === "undefined") return DEFAULT_USER;
     try {

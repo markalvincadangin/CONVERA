@@ -1,7 +1,52 @@
-# CONVERA Operational Deployment Topology (Profile 3: Self-Hosted Docker / VPS)
-# Reference: docs/08-operations/DEPLOYMENT.md (CONVERA-OPS-001)
+# ===================================================================
+# CONVERA Local Docker Deployment Topology (Profile 3: Self-Hosted)
+# Reference: specs/012-tool-integrations-and-progressive-identity
+# Governance: Free-First, 100% Offline Baseline (Articles I-VIII)
+# ===================================================================
 
 services:
+  # -----------------------------------------------------------------
+  # 1. Local Sovereign Intelligence Engine (Ollama)
+  # -----------------------------------------------------------------
+  ollama:
+    image: ollama/ollama:latest
+    container_name: convera-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama-models:/root/.ollama
+    environment:
+      - OLLAMA_KEEP_ALIVE=24h
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - convera-net
+
+  # -----------------------------------------------------------------
+  # 2. Automated Model Bootstrapper (Pulls default model on init)
+  # -----------------------------------------------------------------
+  model-bootstrap:
+    image: curlimages/curl:latest
+    container_name: convera-model-bootstrap
+    restart: "no"
+    depends_on:
+      ollama:
+        condition: service_healthy
+    command: >
+      sh -c "echo 'Bootstrapping local model: ${OLLAMA_MODEL:-llama3.2:3b}...' &&
+             curl -s -X POST http://ollama:11434/api/pull -d '{\"name\": \"${OLLAMA_MODEL:-llama3.2:3b}\"}' &&
+             echo 'Model bootstrap completed successfully.'"
+    networks:
+      - convera-net
+
+  # -----------------------------------------------------------------
+  # 3. CONVERA Intelligence Backend (FastAPI + SQLite WAL + Vault)
+  # -----------------------------------------------------------------
   backend:
     build:
       context: ./backend
@@ -9,23 +54,41 @@ services:
     container_name: convera-backend
     restart: unless-stopped
     ports:
-      - "${PROD_BACKEND_PORT:-8001}:8000"
+      - "${PROD_BACKEND_PORT:-${BACKEND_PORT:-8001}}:8000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     env_file:
-      - path: ./backend/.env
-        required: false
       - path: ./.env
+        required: false
+      - path: ./.env.docker
+        required: false
+      - path: ./docker/.env.docker
         required: false
     environment:
       - SQLITE_PATH=/data/convera.db
+      - CONVERA_KEY_PATH=/data/.convera_key
+      - AUTH_ENABLED=${AUTH_ENABLED:-true}
+      - JWT_SECRET=${JWT_SECRET:-}
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-llama3.2:3b}
+      - CORS_ORIGINS=http://localhost:${PROD_WEB_PORT:-${WEB_PORT:-3001}},http://127.0.0.1:${PROD_WEB_PORT:-${WEB_PORT:-3001}},http://localhost:3000,http://127.0.0.1:3000,http://localhost:3001,http://127.0.0.1:3001
     volumes:
       - convera-data:/data
+    depends_on:
+      ollama:
+        condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/health || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 3
-      start_period: 5s
+      start_period: 10s
+    networks:
+      - convera-net
 
+  # -----------------------------------------------------------------
+  # 4. CONVERA Research Web Interface (Next.js 15 SSR/Client)
+  # -----------------------------------------------------------------
   web:
     build:
       context: ./web
@@ -33,15 +96,34 @@ services:
     container_name: convera-web
     restart: unless-stopped
     ports:
-      - "${PROD_WEB_PORT:-3001}:3000"
+      - "${PROD_WEB_PORT:-${WEB_PORT:-3001}}:3000"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
       - BACKEND_INTERNAL_URL=http://backend:8000
-      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-}
+      - NEXT_PUBLIC_API_URL=${PROD_NEXT_PUBLIC_API_URL:-}
     depends_on:
       backend:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - convera-net
 
-
+# -------------------------------------------------------------------
+# Persistent Storage Volumes & Network Bridge
+# -------------------------------------------------------------------
 volumes:
   convera-data:
     name: convera-data
+  ollama-models:
+    name: convera-ollama-models
+
+networks:
+  convera-net:
+    name: convera-network
+    driver: bridge

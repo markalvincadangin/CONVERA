@@ -12,11 +12,14 @@ import os
 import random
 import string
 import uuid
+import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from .base import BaseStorageAdapter
 from engines.evidence_scorer import calculate_score_breakdown
 import re
+
+logger = logging.getLogger(__name__)
 
 def clean_text(val: Optional[str]) -> str:
     if not val:
@@ -642,6 +645,129 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     INSERT INTO scholarly_works_fts(rowid, title, abstract, venue)
                     VALUES (new.rowid, new.title, new.abstract, new.venue);
                 END;
+
+                -- -----------------------------------------------------------
+                -- Identity, Progressive Auth, Workspaces & Integrations (SDD-012)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    email TEXT UNIQUE NOT NULL,
+                    display_name TEXT NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    avatar TEXT DEFAULT '👩‍💻',
+                    system_role TEXT NOT NULL DEFAULT 'USER',
+                    is_active INTEGER DEFAULT 1,
+                    preferences_json TEXT DEFAULT '{}',
+                    last_login_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS refresh_tokens (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    token_hash TEXT NOT NULL,
+                    expires_at TIMESTAMP NOT NULL,
+                    device_info TEXT,
+                    is_revoked INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                );
+                CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
+                CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens(token_hash);
+
+                CREATE TABLE IF NOT EXISTS workspace_memberships (
+                    id TEXT PRIMARY KEY,
+                    workspace_id TEXT NOT NULL,
+                    user_id TEXT,
+                    role TEXT NOT NULL DEFAULT 'MEMBER',
+                    display_name TEXT,
+                    invited_by TEXT,
+                    joined_via TEXT DEFAULT 'SHARE_CODE',
+                    is_active INTEGER DEFAULT 1,
+                    last_active_at TIMESTAMP,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (workspace_id) REFERENCES projects(id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+                    UNIQUE(workspace_id, user_id)
+                );
+                CREATE INDEX IF NOT EXISTS idx_ws_memberships_workspace ON workspace_memberships(workspace_id);
+                CREATE INDEX IF NOT EXISTS idx_ws_memberships_user ON workspace_memberships(user_id);
+
+                CREATE TABLE IF NOT EXISTS workspace_invites (
+                    id TEXT PRIMARY KEY,
+                    workspace_id TEXT NOT NULL,
+                    token TEXT UNIQUE NOT NULL,
+                    invited_email TEXT,
+                    assigned_role TEXT NOT NULL DEFAULT 'MEMBER',
+                    invited_by_user_id TEXT,
+                    max_uses INTEGER DEFAULT 1,
+                    use_count INTEGER DEFAULT 0,
+                    expires_at TIMESTAMP NOT NULL,
+                    is_revoked INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (workspace_id) REFERENCES projects(id) ON DELETE CASCADE,
+                    FOREIGN KEY (invited_by_user_id) REFERENCES users(id) ON DELETE SET NULL
+                );
+                CREATE INDEX IF NOT EXISTS idx_ws_invites_token ON workspace_invites(token);
+                CREATE INDEX IF NOT EXISTS idx_ws_invites_workspace ON workspace_invites(workspace_id);
+
+                CREATE TABLE IF NOT EXISTS ai_provider_registry (
+                    id TEXT PRIMARY KEY,
+                    workspace_id TEXT,
+                    display_name TEXT NOT NULL,
+                    provider_type TEXT NOT NULL,
+                    base_url TEXT,
+                    api_key_encrypted TEXT,
+                    model_id TEXT NOT NULL,
+                    is_enabled INTEGER DEFAULT 1,
+                    cascade_priority INTEGER DEFAULT 99,
+                    max_tokens INTEGER DEFAULT 8192,
+                    temperature REAL DEFAULT 0.7,
+                    last_health_check_at TIMESTAMP,
+                    last_health_status TEXT,
+                    config_json TEXT DEFAULT '{}',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (workspace_id) REFERENCES projects(id) ON DELETE CASCADE
+                );
+
+                CREATE TABLE IF NOT EXISTS integration_registry (
+                    id TEXT PRIMARY KEY,
+                    workspace_id TEXT NOT NULL,
+                    user_id TEXT,
+                    display_name TEXT NOT NULL,
+                    connector_type TEXT NOT NULL,
+                    api_key_encrypted TEXT,
+                    config_json TEXT NOT NULL DEFAULT '{}',
+                    is_enabled INTEGER DEFAULT 0,
+                    last_sync_at TIMESTAMP,
+                    last_sync_status TEXT,
+                    items_synced_count INTEGER DEFAULT 0,
+                    sync_interval_minutes INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (workspace_id) REFERENCES projects(id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+                );
+
+                CREATE TABLE IF NOT EXISTS sync_log (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    integration_id TEXT NOT NULL,
+                    workspace_id TEXT,
+                    sync_type TEXT NOT NULL,
+                    direction TEXT NOT NULL,
+                    items_processed INTEGER DEFAULT 0,
+                    items_created INTEGER DEFAULT 0,
+                    items_updated INTEGER DEFAULT 0,
+                    items_failed INTEGER DEFAULT 0,
+                    error_message TEXT,
+                    started_at TIMESTAMP NOT NULL,
+                    completed_at TIMESTAMP,
+                    duration_ms INTEGER,
+                    FOREIGN KEY (integration_id) REFERENCES integration_registry(id) ON DELETE CASCADE
+                );
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -1411,6 +1537,21 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             if not row:
                 return None
             return dict(row)
+
+    def get_project(self, project_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute("""
+                SELECT p.id, p.share_code, p.name, p.created_at, s.session_id
+                FROM projects p
+                LEFT JOIN sessions s ON s.project_id = p.id
+                WHERE p.id = ?
+                LIMIT 1
+            """, (project_id,)).fetchone()
+            if not row:
+                return None
+            return dict(row)
+
+    get_project_by_share_code = get_project_by_code
 
     # ------------------------------------------------------------------
 
@@ -4411,4 +4552,560 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             "scanned_rows": len(rows),
             "persisted_works": len(persisted)
         }
+
+    # ------------------------------------------------------------------
+    # Identity, Progressive Auth, Workspaces & Integrations (SDD-012)
+    # ------------------------------------------------------------------
+
+    # --- Users ---
+    def create_user(self, user_data: Dict[str, Any]) -> Dict[str, Any]:
+        user_id = user_data.get("id") or f"usr_{uuid.uuid4().hex[:12]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO users (id, email, display_name, password_hash, avatar, system_role, is_active, preferences_json, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                user_id,
+                user_data["email"].strip().lower(),
+                user_data.get("display_name", "Researcher"),
+                user_data["password_hash"],
+                user_data.get("avatar", "👩‍💻"),
+                user_data.get("system_role", "USER"),
+                user_data.get("is_active", 1),
+                json.dumps(user_data.get("preferences", {})),
+                now,
+                now,
+            ))
+        return self.get_user(user_id) # type: ignore
+
+    def get_user(self, user_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM users WHERE id = ?", (user_id,)).fetchone()
+            if not row:
+                return None
+            res = dict(row)
+            try:
+                res["preferences"] = json.loads(res.get("preferences_json") or "{}")
+            except Exception:
+                res["preferences"] = {}
+            return res
+
+    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+        norm = email.strip().lower()
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM users WHERE LOWER(email) = ?", (norm,)).fetchone()
+            if not row:
+                return None
+            res = dict(row)
+            try:
+                res["preferences"] = json.loads(res.get("preferences_json") or "{}")
+            except Exception:
+                res["preferences"] = {}
+            return res
+
+    def update_user(self, user_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        fields = []
+        values = []
+        if "display_name" in updates:
+            fields.append("display_name = ?")
+            values.append(updates["display_name"])
+        if "avatar" in updates:
+            fields.append("avatar = ?")
+            values.append(updates["avatar"])
+        if "password_hash" in updates:
+            fields.append("password_hash = ?")
+            values.append(updates["password_hash"])
+        if "is_active" in updates:
+            fields.append("is_active = ?")
+            values.append(1 if updates["is_active"] else 0)
+        if "preferences" in updates:
+            fields.append("preferences_json = ?")
+            values.append(json.dumps(updates["preferences"]))
+
+        if not fields:
+            return self.get_user(user_id)
+
+        now = datetime.now(timezone.utc).isoformat()
+        fields.append("updated_at = ?")
+        values.append(now)
+        values.append(user_id)
+
+        with self._get_connection() as conn:
+            conn.execute(f"UPDATE users SET {', '.join(fields)} WHERE id = ?", tuple(values))
+        return self.get_user(user_id)
+
+    def update_user_last_login(self, user_id: str) -> bool:
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            cur = conn.execute("UPDATE users SET last_login_at = ?, updated_at = ? WHERE id = ?", (now, now, user_id))
+            return cur.rowcount > 0
+
+    # --- Refresh Tokens ---
+    def store_refresh_token(self, token_data: Dict[str, Any]) -> Dict[str, Any]:
+        token_id = token_data.get("id") or f"rtk_{uuid.uuid4().hex[:12]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO refresh_tokens (id, user_id, token_hash, expires_at, device_info, is_revoked, created_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                token_id,
+                token_data["user_id"],
+                token_data["token_hash"],
+                token_data["expires_at"],
+                token_data.get("device_info"),
+                0,
+                now,
+            ))
+        return {
+            "id": token_id,
+            "user_id": token_data["user_id"],
+            "token_hash": token_data["token_hash"],
+            "expires_at": token_data["expires_at"],
+            "is_revoked": 0,
+            "created_at": now,
+        }
+
+    def get_refresh_token(self, token_hash: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM refresh_tokens WHERE token_hash = ?", (token_hash,)).fetchone()
+            return dict(row) if row else None
+
+    def revoke_refresh_token(self, token_id: str) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute("UPDATE refresh_tokens SET is_revoked = 1 WHERE id = ?", (token_id,))
+            return cur.rowcount > 0
+
+    def revoke_all_user_refresh_tokens(self, user_id: str) -> int:
+        with self._get_connection() as conn:
+            cur = conn.execute("UPDATE refresh_tokens SET is_revoked = 1 WHERE user_id = ? AND is_revoked = 0", (user_id,))
+            return cur.rowcount
+
+    # --- Workspace Memberships & Invites ---
+    def create_workspace_membership(self, membership_data: Dict[str, Any]) -> Dict[str, Any]:
+        membership_id = membership_data.get("id") or f"wsm_{uuid.uuid4().hex[:12]}"
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO workspace_memberships (
+                    id, workspace_id, user_id, role, display_name, invited_by, joined_via, is_active, last_active_at, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(workspace_id, user_id) DO UPDATE SET
+                    role = excluded.role,
+                    display_name = COALESCE(excluded.display_name, workspace_memberships.display_name),
+                    is_active = excluded.is_active,
+                    updated_at = excluded.updated_at
+            """, (
+                membership_id,
+                membership_data["workspace_id"],
+                membership_data.get("user_id"),
+                membership_data.get("role", "MEMBER"),
+                membership_data.get("display_name"),
+                membership_data.get("invited_by"),
+                membership_data.get("joined_via", "SHARE_CODE"),
+                membership_data.get("is_active", 1),
+                now,
+                now,
+                now,
+            ))
+        return self.get_workspace_membership(membership_data["workspace_id"], membership_data.get("user_id", "")) # type: ignore
+
+    def get_workspace_membership(self, workspace_id: str, user_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM workspace_memberships WHERE workspace_id = ? AND user_id = ? AND is_active = 1",
+                (workspace_id, user_id),
+            ).fetchone()
+            return dict(row) if row else None
+
+    def list_workspace_memberships(self, workspace_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT m.*, u.email, u.avatar
+                FROM workspace_memberships m
+                LEFT JOIN users u ON m.user_id = u.id
+                WHERE m.workspace_id = ? AND m.is_active = 1
+                ORDER BY m.created_at ASC
+            """, (workspace_id,)).fetchall()
+            return [dict(r) for r in rows]
+
+    list_workspace_members = list_workspace_memberships
+
+    def list_user_workspaces(self, user_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT p.*, m.role, m.joined_via, m.created_at as joined_at
+                FROM workspace_memberships m
+                JOIN projects p ON m.workspace_id = p.id
+                WHERE m.user_id = ? AND m.is_active = 1
+                ORDER BY m.last_active_at DESC
+            """, (user_id,)).fetchall()
+            return [dict(r) for r in rows]
+
+    def update_workspace_membership_role(
+        self,
+        membership_id_or_workspace_id: str,
+        new_role_or_user_id: str,
+        new_role: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            if new_role is not None:
+                # Called as (workspace_id, user_id, new_role)
+                cur = conn.execute(
+                    "UPDATE workspace_memberships SET role = ?, updated_at = ? WHERE workspace_id = ? AND user_id = ?",
+                    (new_role, now, membership_id_or_workspace_id, new_role_or_user_id),
+                )
+                if cur.rowcount == 0:
+                    return None
+                row = conn.execute(
+                    "SELECT * FROM workspace_memberships WHERE workspace_id = ? AND user_id = ?",
+                    (membership_id_or_workspace_id, new_role_or_user_id)
+                ).fetchone()
+            else:
+                # Called as (membership_id, new_role)
+                cur = conn.execute(
+                    "UPDATE workspace_memberships SET role = ?, updated_at = ? WHERE id = ?",
+                    (new_role_or_user_id, now, membership_id_or_workspace_id),
+                )
+                if cur.rowcount == 0:
+                    return None
+                row = conn.execute("SELECT * FROM workspace_memberships WHERE id = ?", (membership_id_or_workspace_id,)).fetchone()
+            return dict(row) if row else None
+
+    def remove_workspace_membership(self, workspace_id_or_id: str, user_id: Optional[str] = None) -> bool:
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            if user_id is not None:
+                cur = conn.execute("UPDATE workspace_memberships SET is_active = 0, updated_at = ? WHERE workspace_id = ? AND user_id = ?", (now, workspace_id_or_id, user_id))
+            else:
+                cur = conn.execute("UPDATE workspace_memberships SET is_active = 0, updated_at = ? WHERE id = ?", (now, workspace_id_or_id))
+            return cur.rowcount > 0
+
+    def delete_workspace_membership(self, membership_id: str) -> bool:
+        return self.remove_workspace_membership(membership_id)
+
+    def create_workspace_invite(self, invite_data: Dict[str, Any]) -> Dict[str, Any]:
+        invite_id = invite_data.get("id") or f"inv_{uuid.uuid4().hex[:12]}"
+        token = invite_data.get("token") or f"INV-{uuid.uuid4().hex[:16]}"
+        now = datetime.now(timezone.utc).isoformat()
+        assigned_role = invite_data.get("assigned_role") or invite_data.get("role", "MEMBER")
+        invited_by = invite_data.get("invited_by_user_id") or invite_data.get("invited_by")
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO workspace_invites (
+                    id, workspace_id, token, invited_email, assigned_role, invited_by_user_id, max_uses, use_count, expires_at, is_revoked, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                invite_id,
+                invite_data["workspace_id"],
+                token,
+                invite_data.get("invited_email"),
+                assigned_role,
+                invited_by,
+                invite_data.get("max_uses", 1),
+                0,
+                invite_data["expires_at"],
+                0,
+                now,
+            ))
+        return self.get_workspace_invite(token) # type: ignore
+
+    def get_workspace_invite(self, token: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute("""
+                SELECT i.*, p.name as workspace_name
+                FROM workspace_invites i
+                LEFT JOIN projects p ON i.workspace_id = p.id
+                WHERE i.token = ?
+            """, (token,)).fetchone()
+            if not row:
+                return None
+            res = dict(row)
+            res["role"] = res.get("assigned_role") or "MEMBER"
+            res["invited_by"] = res.get("invited_by_user_id")
+            return res
+
+    def redeem_workspace_invite(self, token: str, user_id: str) -> Optional[Dict[str, Any]]:
+        invite = self.get_workspace_invite(token)
+        if not invite:
+            return None
+        if invite["is_revoked"]:
+            raise ValueError("Invite link has been revoked")
+
+        now = datetime.now(timezone.utc).isoformat()
+        if invite["expires_at"] < now:
+            raise ValueError("Invite link has expired")
+
+        if invite["max_uses"] is not None and invite["use_count"] >= invite["max_uses"]:
+            raise ValueError("Invite link has already reached maximum redemption limit")
+
+        user = self.get_user(user_id)
+        if not user:
+            raise ValueError("User not found")
+
+        # Restrict by email if specified
+        if invite["invited_email"] and invite["invited_email"].lower() != user["email"].lower():
+            raise ValueError(f"Invite is restricted to {invite['invited_email']}")
+
+        # Increment use count
+        with self._get_connection() as conn:
+            conn.execute("UPDATE workspace_invites SET use_count = use_count + 1 WHERE id = ?", (invite["id"],))
+
+        # Create or update membership
+        membership = self.create_workspace_membership({
+            "workspace_id": invite["workspace_id"],
+            "user_id": user_id,
+            "role": invite["assigned_role"],
+            "display_name": user["display_name"],
+            "invited_by": invite["invited_by_user_id"],
+            "joined_via": "INVITE_LINK",
+        })
+        return {
+            "membership": membership,
+            "workspace_id": invite["workspace_id"],
+            "workspace_name": invite["workspace_name"],
+            "role": invite["assigned_role"],
+        }
+
+    def revoke_workspace_invite(self, invite_id: str) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute("UPDATE workspace_invites SET is_revoked = 1 WHERE id = ?", (invite_id,))
+            return cur.rowcount > 0
+
+    def list_workspace_invites(self, workspace_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM workspace_invites WHERE workspace_id = ? AND is_revoked = 0 ORDER BY created_at DESC",
+                (workspace_id,),
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    # --- AI Provider Registry ---
+    def upsert_ai_provider(self, provider_data: Dict[str, Any]) -> Dict[str, Any]:
+        pid = provider_data.get("id") or provider_data.get("provider_name") or f"aip_{uuid.uuid4().hex[:8]}"
+        now = datetime.now(timezone.utc).isoformat()
+        disp_name = provider_data.get("display_name") or provider_data.get("provider_name") or "AI Provider"
+        api_key = provider_data.get("api_key_encrypted") or provider_data.get("api_key_ciphertext")
+        model = provider_data.get("model_id") or provider_data.get("model_name") or ""
+        prio = provider_data.get("cascade_priority") if "cascade_priority" in provider_data else provider_data.get("priority", 99)
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO ai_provider_registry (
+                    id, workspace_id, display_name, provider_type, base_url, api_key_encrypted,
+                    model_id, is_enabled, cascade_priority, max_tokens, temperature,
+                    last_health_check_at, last_health_status, config_json, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    workspace_id = excluded.workspace_id,
+                    display_name = excluded.display_name,
+                    provider_type = excluded.provider_type,
+                    base_url = excluded.base_url,
+                    api_key_encrypted = COALESCE(excluded.api_key_encrypted, ai_provider_registry.api_key_encrypted),
+                    model_id = excluded.model_id,
+                    is_enabled = excluded.is_enabled,
+                    cascade_priority = excluded.cascade_priority,
+                    max_tokens = excluded.max_tokens,
+                    temperature = excluded.temperature,
+                    last_health_check_at = COALESCE(excluded.last_health_check_at, ai_provider_registry.last_health_check_at),
+                    last_health_status = COALESCE(excluded.last_health_status, ai_provider_registry.last_health_status),
+                    config_json = excluded.config_json,
+                    updated_at = excluded.updated_at
+            """, (
+                pid,
+                provider_data.get("workspace_id"),
+                disp_name,
+                provider_data.get("provider_type", "FREE_CLOUD"),
+                provider_data.get("base_url"),
+                api_key,
+                model,
+                provider_data.get("is_enabled", 1),
+                prio,
+                provider_data.get("max_tokens", 8192),
+                provider_data.get("temperature", 0.7),
+                provider_data.get("last_health_check_at"),
+                provider_data.get("last_health_status"),
+                json.dumps(provider_data.get("config", {})),
+                now,
+                now,
+            ))
+        return self.get_ai_provider(pid, provider_data.get("workspace_id")) # type: ignore
+
+    def get_ai_provider(self, provider_id: str, workspace_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        clean_id = provider_id.strip()
+        with self._get_connection() as conn:
+            if workspace_id:
+                row = conn.execute(
+                    "SELECT * FROM ai_provider_registry WHERE (id = ? OR lower(id) = ? OR display_name = ? OR lower(display_name) = ?) AND workspace_id = ?",
+                    (clean_id, clean_id.lower(), clean_id, clean_id.lower(), workspace_id)
+                ).fetchone()
+            else:
+                row = conn.execute(
+                    "SELECT * FROM ai_provider_registry WHERE id = ? OR lower(id) = ? OR display_name = ? OR lower(display_name) = ?",
+                    (clean_id, clean_id.lower(), clean_id, clean_id.lower())
+                ).fetchone()
+            if not row:
+                return None
+            res = dict(row)
+            res["provider_name"] = res.get("id")
+            res["api_key_ciphertext"] = res.get("api_key_encrypted")
+            res["model_name"] = res.get("model_id")
+            res["priority"] = res.get("cascade_priority")
+            try:
+                res["config"] = json.loads(res.get("config_json") or "{}")
+            except Exception:
+                res["config"] = {}
+            return res
+
+    def list_ai_providers(self, workspace_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            if workspace_id:
+                rows = conn.execute(
+                    "SELECT * FROM ai_provider_registry WHERE (workspace_id = ? OR workspace_id IS NULL) AND is_enabled = 1 ORDER BY cascade_priority ASC",
+                    (workspace_id,),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM ai_provider_registry WHERE is_enabled = 1 ORDER BY cascade_priority ASC",
+                ).fetchall()
+            result = []
+            for r in rows:
+                item = dict(r)
+                item["provider_name"] = item.get("id")
+                item["api_key_ciphertext"] = item.get("api_key_encrypted")
+                item["model_name"] = item.get("model_id")
+                item["priority"] = item.get("cascade_priority")
+                try:
+                    item["config"] = json.loads(item.get("config_json") or "{}")
+                except Exception:
+                    item["config"] = {}
+                result.append(item)
+            return result
+
+    def delete_ai_provider(self, provider_id: str, workspace_id: Optional[str] = None) -> bool:
+        clean_id = provider_id.strip()
+        with self._get_connection() as conn:
+            if workspace_id:
+                cur = conn.execute(
+                    "DELETE FROM ai_provider_registry WHERE (id = ? OR lower(id) = ? OR display_name = ?) AND workspace_id = ?",
+                    (clean_id, clean_id.lower(), clean_id, workspace_id)
+                )
+            else:
+                cur = conn.execute(
+                    "DELETE FROM ai_provider_registry WHERE id = ? OR lower(id) = ? OR display_name = ?",
+                    (clean_id, clean_id.lower(), clean_id)
+                )
+            return cur.rowcount > 0
+
+    # --- Integrations & Sync Log ---
+    def upsert_integration(self, integration_data: Dict[str, Any]) -> Dict[str, Any]:
+        iid = integration_data["id"]
+        now = datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO integration_registry (
+                    id, workspace_id, user_id, display_name, connector_type, api_key_encrypted,
+                    config_json, is_enabled, last_sync_at, last_sync_status, items_synced_count,
+                    sync_interval_minutes, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ON CONFLICT(id) DO UPDATE SET
+                    display_name = excluded.display_name,
+                    connector_type = excluded.connector_type,
+                    api_key_encrypted = COALESCE(excluded.api_key_encrypted, integration_registry.api_key_encrypted),
+                    config_json = excluded.config_json,
+                    is_enabled = excluded.is_enabled,
+                    last_sync_at = COALESCE(excluded.last_sync_at, integration_registry.last_sync_at),
+                    last_sync_status = COALESCE(excluded.last_sync_status, integration_registry.last_sync_status),
+                    items_synced_count = COALESCE(excluded.items_synced_count, integration_registry.items_synced_count),
+                    sync_interval_minutes = excluded.sync_interval_minutes,
+                    updated_at = excluded.updated_at
+            """, (
+                iid,
+                integration_data["workspace_id"],
+                integration_data.get("user_id"),
+                integration_data["display_name"],
+                integration_data["connector_type"],
+                integration_data.get("api_key_encrypted"),
+                json.dumps(integration_data.get("config", {})),
+                integration_data.get("is_enabled", 0),
+                integration_data.get("last_sync_at"),
+                integration_data.get("last_sync_status"),
+                integration_data.get("items_synced_count", 0),
+                integration_data.get("sync_interval_minutes", 0),
+                now,
+                now,
+            ))
+        return self.get_integration(iid) # type: ignore
+
+    def get_integration(self, integration_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM integration_registry WHERE id = ?", (integration_id,)).fetchone()
+            if not row:
+                return None
+            res = dict(row)
+            try:
+                res["config"] = json.loads(res.get("config_json") or "{}")
+            except Exception:
+                res["config"] = {}
+            return res
+
+    def list_integrations(self, workspace_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM integration_registry WHERE workspace_id = ? ORDER BY created_at ASC",
+                (workspace_id,),
+            ).fetchall()
+            result = []
+            for r in rows:
+                item = dict(r)
+                try:
+                    item["config"] = json.loads(item.get("config_json") or "{}")
+                except Exception:
+                    item["config"] = {}
+                result.append(item)
+            return result
+
+    def delete_integration(self, integration_id: str) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute("DELETE FROM integration_registry WHERE id = ?", (integration_id,))
+            return cur.rowcount > 0
+
+    def log_sync_event(self, log_data: Dict[str, Any]) -> Dict[str, Any]:
+        started = log_data.get("started_at") or datetime.now(timezone.utc).isoformat()
+        with self._get_connection() as conn:
+            cur = conn.execute("""
+                INSERT INTO sync_log (
+                    integration_id, workspace_id, sync_type, direction, items_processed,
+                    items_created, items_updated, items_failed, error_message, started_at, completed_at, duration_ms
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                log_data["integration_id"],
+                log_data.get("workspace_id"),
+                log_data.get("sync_type", "PULL"),
+                log_data.get("direction", "INBOUND"),
+                log_data.get("items_processed", 0),
+                log_data.get("items_created", 0),
+                log_data.get("items_updated", 0),
+                log_data.get("items_failed", 0),
+                log_data.get("error_message"),
+                started,
+                log_data.get("completed_at"),
+                log_data.get("duration_ms"),
+            ))
+            log_id = cur.lastrowid
+        return {
+            "id": log_id,
+            **log_data,
+            "started_at": started,
+        }
+
+    def list_sync_logs(self, integration_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM sync_log WHERE integration_id = ? ORDER BY started_at DESC LIMIT ?",
+                (integration_id, limit),
+            ).fetchall()
+            return [dict(r) for r in rows]
 

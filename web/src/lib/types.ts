@@ -446,6 +446,55 @@ export interface MentorSignoff {
   created_at?: string;
 }
 
+export interface AuthUser {
+  id: string;
+  email: string;
+  display_name: string;
+  avatar?: string;
+  system_role: "SUPERADMIN" | "USER";
+  is_active: number;
+  preferences_json?: string;
+  created_at?: string;
+}
+
+export type WorkspaceRole = "OWNER" | "ADMIN" | "MEMBER" | "ADVISOR" | "VIEWER";
+
+export interface WorkspaceMembership {
+  id: string;
+  workspace_id: string;
+  user_id?: string;
+  role: WorkspaceRole;
+  display_name?: string;
+  invited_by?: string;
+  joined_via?: string;
+  is_active: number;
+  last_active_at?: string;
+  created_at?: string;
+}
+
+export interface UserWorkspace {
+  workspace_id: string;
+  role: WorkspaceRole;
+  display_name?: string;
+  joined_at?: string;
+  project_name?: string;
+  framework_id?: string;
+}
+
+export interface WorkspaceInvite {
+  id: string;
+  workspace_id: string;
+  token: string;
+  role: WorkspaceRole;
+  invited_by?: string;
+  expires_at: string;
+  max_uses: number;
+  use_count: number;
+  is_revoked: number;
+  created_at: string;
+}
+
+
 
 export type ClaimType =
   | "FRICTION_REALITY"
@@ -686,3 +735,59 @@ export interface IngestedDocumentResult {
   raw_chunk_count: number;
   provenance: ProvenanceMetadata;
 }
+
+// ===========================================================================
+// AI PROVIDER & CREDENTIAL SETTINGS TYPES (Feature 012)
+// ===========================================================================
+
+export type AIProviderType = "LOCAL" | "CLOUD_FREE" | "CLOUD_PAID";
+
+export interface AIProviderConfig {
+  id?: string;
+  provider_name: string;
+  display_name: string;
+  provider_type: AIProviderType;
+  base_url?: string;
+  model_name: string;
+  priority: number;
+  is_enabled: boolean | number;
+  has_api_key?: boolean;
+  masked_key?: string;
+  last_health_status?: "HEALTHY" | "UNHEALTHY" | "UNKNOWN" | string;
+  last_health_check_at?: string;
+  config?: Record<string, any>;
+}
+
+export interface AIProviderUpsertPayload {
+  provider_name: string;
+  display_name?: string;
+  provider_type?: AIProviderType;
+  base_url?: string;
+  model_name?: string;
+  api_key?: string;
+  priority?: number;
+  is_enabled?: boolean;
+  config?: Record<string, any>;
+}
+
+export interface ConnectivityTestResult {
+  provider: string;
+  success: boolean;
+  message: string;
+  latency_ms?: number;
+  model_tested?: string;
+}
+
+export interface IntegrationCredentialConfig {
+  integration_type: "zotero" | "notion" | "hypothesis" | "orcid" | string;
+  display_name: string;
+  is_configured: boolean;
+  has_secret: boolean;
+  masked_secret?: string;
+  secret_source?: "vault" | "env" | "none";
+  user_identifier?: string;
+  sync_enabled: boolean;
+  last_synced_at?: string;
+  metadata?: Record<string, any>;
+}
+

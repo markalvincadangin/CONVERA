@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ToastProvider } from "@/components/common/ToastProvider";
+import { AuthProvider } from "@/lib/auth-context";
 
 export const viewport: Viewport = {
   width: "device-width",
@@ -31,7 +32,9 @@ export default function RootLayout({
         className="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-cyan-500/30 selection:text-cyan-200 overflow-x-hidden w-full max-w-full"
       >
         <ToastProvider>
-          {children}
+          <AuthProvider>
+            {children}
+          </AuthProvider>
         </ToastProvider>
       </body>
     </html>

@@ -52,6 +52,8 @@ backups/
 backend/.env
 !.env.example
 !backend/.env.example
+.convera_key
+*.convera_key
 
 # OS / Editor
 .DS_Store
