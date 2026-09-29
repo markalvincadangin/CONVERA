@@ -111,4 +111,129 @@ export const connectorService = {
     if (!res.ok) throw new Error("Similarity check failed");
     return await res.json();
   },
+
+  /**
+   * Check connectivity and latency status of registered academic connectors.
+   */
+  async checkConnectorsHealth(): Promise<{ status: string; connectors: Record<string, { healthy: boolean; latency_ms?: number; error?: string }> }> {
+    try {
+      const res = await fetch(`${API_BASE}/api/connectors/health`);
+      if (!res.ok) throw new Error("Health check failed");
+      return await res.json();
+    } catch (err: any) {
+      return {
+        status: "DEGRADED",
+        connectors: {
+          openalex: { healthy: false, error: err.message },
+          semantic_scholar: { healthy: false, error: err.message },
+        },
+      };
+    }
+  },
+
+  /**
+   * Ingest a scholarly paper into CONVERA as an official Problem Source.
+   */
+  async ingestScholarlyWork(params: {
+    problem_id: string;
+    scholarly_work_id?: string;
+    work_payload?: Partial<NormalizedScholarlyWork>;
+    source_tier?: string;
+    evidence_type?: string;
+    quote_or_summary?: string;
+  }): Promise<{ status: string; source_id: string; scholarly_work_id: string; message: string }> {
+    const res = await fetch(`${API_BASE}/api/connectors/ingest`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to ingest scholarly work");
+    }
+    return await res.json();
+  },
+
+  /**
+   * Link an ingested problem source to a problem claim as supporting or contradictory evidence.
+   */
+  async linkClaimEvidence(params: {
+    claim_id: string;
+    source_id: string;
+    relation_type?: "SUPPORTS" | "CONTRADICTS" | "CONTEXTUALIZES";
+    evidence_strength?: number;
+    rationale?: string;
+  }): Promise<{ status: string; link_id: string; claim_id: string; source_id: string; relation_type: string; evidence_strength: number }> {
+    const res = await fetch(`${API_BASE}/api/connectors/link-claim`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to link claim evidence");
+    }
+    return await res.json();
+  },
+
+  /**
+   * Get all ingested sources and their linked claims for a problem.
+   */
+  async getProblemSources(problemId: string): Promise<{
+    problem_id: string;
+    sources_count: number;
+    sources: Array<{
+      id: string;
+      problem_id: string;
+      source_tier: string;
+      evidence_type: string;
+      quote_or_summary?: string;
+      scholarly_work_id?: string;
+      doi?: string;
+      title?: string;
+      authors?: string[];
+      year?: number;
+      citation_count?: number;
+      is_open_access?: boolean;
+      open_access_url?: string;
+      venue?: string;
+      claim_links?: Array<{
+        claim_id: string;
+        relation_type: string;
+        evidence_strength: number;
+        rationale?: string;
+      }>;
+    }>;
+  }> {
+    const res = await fetch(`${API_BASE}/api/connectors/problem/${encodeURIComponent(problemId)}/sources`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to fetch problem sources");
+    }
+    return await res.json();
+  },
+
+  /**
+   * Get all claims for a given problem.
+   */
+  async getProblemClaims(problemId: string): Promise<{
+    problem_id: string;
+    count: number;
+    claims: Array<{
+      id: string;
+      problem_id: string;
+      claim_type: string;
+      claim_text: string;
+      status: string;
+      confidence_score?: number;
+    }>;
+  }> {
+    const res = await fetch(`${API_BASE}/api/connectors/problem/${encodeURIComponent(problemId)}/claims`);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || "Failed to fetch problem claims");
+    }
+    return await res.json();
+  },
 };
+

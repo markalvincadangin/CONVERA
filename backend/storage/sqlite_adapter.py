@@ -1922,6 +1922,67 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         p = self.get_problem(problem_id)
         return p.get("sources", []) if p else []
 
+    def add_problem_source(self, problem_id: str, source: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Attach a single evidence source to a problem and return the created record with ID.
+        """
+        with self._get_connection() as conn:
+            cur = conn.execute("""
+                INSERT INTO problem_sources (
+                    problem_id, source_name, source_url, source_tier, evidence_type, quote_or_summary, scholarly_work_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (
+                problem_id,
+                source.get("source_name") or source.get("description") or "Scholarly Source",
+                source.get("source_url") or source.get("url"),
+                source.get("source_tier") or "A",
+                source.get("evidence_type") or "ACADEMIC_LITERATURE",
+                source.get("quote_or_summary") or "",
+                source.get("scholarly_work_id")
+            ))
+            new_id = cur.lastrowid
+            row = conn.execute("""
+                SELECT s.*, sw.title AS scholarly_title, sw.doi AS scholarly_doi,
+                       sw.authors AS scholarly_authors, sw.year AS scholarly_year,
+                       sw.venue AS scholarly_venue, sw.citation_count AS scholarly_citations
+                FROM problem_sources s
+                LEFT JOIN scholarly_works sw ON s.scholarly_work_id = sw.id
+                WHERE s.id = ?
+            """, (new_id,)).fetchone()
+            return dict(row) if row else {"id": new_id, "problem_id": problem_id}
+
+    def get_problem_sources_with_links(self, problem_id: str) -> List[Dict[str, Any]]:
+        """
+        Retrieve all sources attached to a problem with joined scholarly_works metadata
+        and their associated claim_evidence_links.
+        """
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT s.*, sw.title AS scholarly_title, sw.doi AS scholarly_doi,
+                       sw.authors AS scholarly_authors, sw.year AS scholarly_year,
+                       sw.venue AS scholarly_venue, sw.citation_count AS scholarly_citations,
+                       sw.abstract AS scholarly_abstract
+                FROM problem_sources s
+                LEFT JOIN scholarly_works sw ON s.scholarly_work_id = sw.id
+                WHERE s.problem_id = ?
+                ORDER BY s.id DESC
+            """, (problem_id,)).fetchall()
+            sources = [dict(r) for r in rows]
+
+            # Attach linked claims to each source
+            for s in sources:
+                link_rows = conn.execute("""
+                    SELECT l.*, c.claim_text, c.claim_type
+                    FROM claim_evidence_links l
+                    JOIN problem_claims c ON l.claim_id = c.id
+                    WHERE l.source_id = ?
+                    ORDER BY l.created_at DESC
+                """, (s["id"],)).fetchall()
+                s["claim_links"] = [dict(lr) for lr in link_rows]
+
+            return sources
+
+
 
     def seed_starter_problems(self, project_id: str) -> List[Dict[str, Any]]:
         """Clones the 15 canonical seed problems into a specific project workspace."""
