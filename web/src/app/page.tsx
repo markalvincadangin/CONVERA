@@ -19,6 +19,7 @@ import { Button } from "@/components/common/Button";
 import { Spinner } from "@/components/common/Spinner";
 import { Card } from "@/components/common/Card";
 import { MethodologyHudCard } from "@/components/common/MethodologyHudCard";
+import { ResearchCockpit } from "@/components/research/cockpit";
 import { CommandPaletteModal } from "@/components/common/CommandPaletteModal";
 import { SessionState, ProblemRecord } from "@/lib/types";
 import { sessionService } from "@/services/sessionService";
@@ -326,26 +327,43 @@ export default function Home() {
             </Card>
           </div>
         ) : session ? (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${session.session_id}_${session.framework_id}_${activePhase}`}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -8 }}
-              transition={{ duration: 0.16, ease: "easeOut" }}
-            >
-              <WorkspaceResolver
-                session={session}
-                problems={problems}
-                activePhase={activePhase}
-                onUpdateSession={handleUpdateSession}
-                onSelectPhase={handleSelectPhase}
-                onSendToPhase2={handleSendToPhase2}
-                onExportDossier={handleExportDossier}
-                phase2SelectedIds={phase2SelectedIds}
-              />
-            </motion.div>
-          </AnimatePresence>
+          <>
+            <ResearchCockpit
+              session={session}
+              activeProblemId={session.phase3_problem}
+              onRefreshSession={() => {
+                if (session.session_id && !session.session_id.startsWith("offline_")) {
+                  sessionService
+                    .getSession(session.session_id)
+                    .then(setSession)
+                    .catch(console.warn);
+                }
+              }}
+              onNavigatePhase={handleSelectPhase}
+              onOpenScorecard={() => setIsScorecardOpen(true)}
+            />
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${session.session_id}_${session.framework_id}_${activePhase}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.16, ease: "easeOut" }}
+              >
+                <WorkspaceResolver
+                  session={session}
+                  problems={problems}
+                  activePhase={activePhase}
+                  onUpdateSession={handleUpdateSession}
+                  onSelectPhase={handleSelectPhase}
+                  onSendToPhase2={handleSendToPhase2}
+                  onExportDossier={handleExportDossier}
+                  phase2SelectedIds={phase2SelectedIds}
+                />
+              </motion.div>
+            </AnimatePresence>
+          </>
         ) : null}
       </main>
 
