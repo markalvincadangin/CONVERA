@@ -23,6 +23,7 @@ from .auth import router as auth_router
 from .workspaces import router as workspaces_router
 from .settings import router as settings_router
 from .integrations import router as integrations_router
+from .orchestrator import router as orchestrator_router
 
 __all__ = [
     "auth_router",
@@ -44,4 +45,5 @@ __all__ = [
     "evaluation_router",
     "gates_router",
     "export_router",
+    "orchestrator_router",
 ]
