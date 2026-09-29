@@ -24,9 +24,29 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronUp,
+  Layers,
 } from "lucide-react";
 import { Tooltip } from "@/components/common/Tooltip";
 import { SessionState, ProblemRecord } from "@/lib/types";
+import { getMethodologyContract } from "@/lib/contracts/methodology";
+
+const ICON_RESOLVER: Record<string, React.FC<{ className?: string }>> = {
+  Compass,
+  Filter,
+  ShieldCheck,
+  Lightbulb,
+  Activity,
+  Sparkles,
+  FolderOpen,
+  Search,
+  FileSearch,
+  BookOpen,
+  Cpu,
+  BarChart2,
+  FileCheck,
+  Zap,
+  Layers,
+};
 
 interface PipelineStepperProps {
   activePhase: number;
@@ -43,209 +63,90 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
 }) => {
   const [isTelemetryExpanded, setIsTelemetryExpanded] = useState<boolean>(true);
 
-  const frameworkId = session?.framework_id?.toUpperCase() || "INNOVATION";
-  const isResearch = frameworkId.includes("RESEARCH") || frameworkId.includes("CRCDP");
+  const contract = getMethodologyContract(session?.framework_id);
+  const isResearch = contract.id === "RESEARCH";
 
-  const completedCount = [
+  const legacyCompleteFlags = [
     session?.phase1_complete,
     session?.phase2_complete,
     session?.phase3_complete,
     session?.phase4_complete,
     session?.phase5_complete,
-  ].filter(Boolean).length;
+  ];
 
-  const progressPercent = Math.round((completedCount / 5) * 100);
+  const totalStages = contract.stages.length;
+  const completedStagesCount = contract.stages.filter((stage, idx) => {
+    const sp = session?.stage_progress?.stages?.[stage.id];
+    if (sp) return sp.status === "COMPLETED";
+    return Boolean(legacyCompleteFlags[idx]);
+  }).length;
 
-  // Innovation framework phases
-  const innovationPhases = [
+  const progressPercent = Math.round((completedStagesCount / totalStages) * 100);
+
+  const totalGates = contract.gates.length;
+  const clearedGatesCount = session?.stage_progress
+    ? Object.values(session.stage_progress.stages).filter((s) => s.gate_status === "PASSED").length
+    : legacyCompleteFlags.filter(Boolean).length;
+
+  // Build contract-driven stepper items dynamically
+  const phases = [
+    // Slot 0: Problem Bank (Universal Platform Primitive)
     {
       id: 0,
       name: "Bank",
       title: "Problem Bank",
-      desc: "Intake & scoring",
+      desc: isResearch ? "Intake & discovery" : "Intake & scoring",
       icon: FolderOpen,
       isComplete: false,
       isAvailable: true,
       lockReason: "",
       isBank: true,
+      isStudio: false,
     },
+    // Slots 1..N: Methodology Stages derived from active contract
+    ...contract.stages.map((stage, idx) => {
+      const stageProgress = session?.stage_progress?.stages?.[stage.id];
+      let isComplete = false;
+      let isAvailable = false;
+
+      if (stageProgress) {
+        isComplete = stageProgress.status === "COMPLETED";
+        isAvailable = stageProgress.status !== "LOCKED";
+      } else {
+        // Fallback for legacy unhydrated sessions
+        isComplete = Boolean(legacyCompleteFlags[idx]);
+        isAvailable = idx === 0 ? true : Boolean(legacyCompleteFlags[idx - 1]);
+      }
+
+      const IconComponent = ICON_RESOLVER[stage.icon_key] || Layers;
+
+      return {
+        id: idx + 1,
+        name: stage.code,
+        title: stage.short_title || stage.label.split(" ")[0] || stage.code,
+        desc: stage.stepper_desc || stage.short_description.slice(0, 20),
+        icon: IconComponent,
+        isComplete,
+        isAvailable,
+        lockReason: stage.lock_reason_template || "Prerequisites Incomplete.",
+        isBank: false,
+        isStudio: false,
+      };
+    }),
+    // Slot N+1: Deliverables Studio (Universal Output Hub)
     {
-      id: 1,
-      name: "Phase 1",
-      title: "Discovery",
-      desc: "Landscape signals",
-      icon: Compass,
-      isComplete: Boolean(session?.phase1_complete),
-      isAvailable: true,
-      lockReason: "",
-      isBank: false,
-    },
-    {
-      id: 2,
-      name: "Phase 2",
-      title: "Screening",
-      desc: "Triage & matrix",
-      icon: Filter,
-      isComplete: Boolean(session?.phase2_complete),
-      isAvailable: true,
-      lockReason: "",
-      isBank: false,
-    },
-    {
-      id: 3,
-      name: "Phase 3",
-      title: "Validation",
-      desc: "6-Level Mom Test",
-      icon: ShieldCheck,
-      isComplete: Boolean(session?.phase3_complete),
-      isAvailable: Boolean(session?.phase1_complete || session?.phase2_complete || session?.phase3_problem),
-      lockReason: "Prerequisites Incomplete. Complete Phase 1 or Phase 2 problem screening first.",
-      isBank: false,
-    },
-    {
-      id: 4,
-      name: "Phase 4",
-      title: "Ideation",
-      desc: "15 Mechanism SVB",
-      icon: Lightbulb,
-      isComplete: Boolean(session?.phase4_complete),
-      isAvailable: Boolean(session?.phase3_complete),
-      lockReason: "Prerequisites Incomplete. Complete all 6 Mom Test levels in Phase 3 first.",
-      isBank: false,
-    },
-    {
-      id: 5,
-      name: "Phase 5",
-      title: "MVP Audit",
-      desc: "Skin-in-game test",
-      icon: Activity,
-      isComplete: Boolean(session?.phase5_complete),
-      isAvailable: Boolean(session?.phase4_complete),
-      lockReason: "Prerequisites Incomplete. Map mechanism & SVB in Phase 4 first.",
-      isBank: false,
-    },
-    {
-      id: 6,
+      id: contract.stages.length + 1,
       name: "Studio",
       title: "Deliverables",
-      desc: "Pitch deck & SRS",
+      desc: isResearch ? "Proposal Suite" : "Pitch deck & SRS",
       icon: Sparkles,
-      isComplete: Boolean(session?.phase5_complete),
+      isComplete: completedStagesCount === totalStages,
       isAvailable: true,
       lockReason: "",
       isBank: false,
       isStudio: true,
     },
   ];
-
-  // Research framework stages (8 slots total: Bank, Stages A through F, Deliverables Studio)
-  const researchPhases = [
-    {
-      id: 0,
-      name: "Bank",
-      title: "Problem Bank",
-      desc: "Intake & discovery",
-      icon: FolderOpen,
-      isComplete: false,
-      isAvailable: true,
-      lockReason: "",
-      isBank: true,
-    },
-    {
-      id: 1,
-      name: "Stage A",
-      title: "Scouting",
-      desc: "Empirical signals",
-      icon: Search,
-      isComplete: Boolean(session?.phase1_complete),
-      isAvailable: true,
-      lockReason: "",
-      isBank: false,
-    },
-    {
-      id: 2,
-      name: "Stage B",
-      title: "Validation [G1]",
-      desc: "Lit & DOI evidence",
-      icon: FileSearch,
-      isComplete: Boolean(session?.phase2_complete),
-      isAvailable: true,
-      lockReason: "",
-      isBank: false,
-    },
-    {
-      id: 3,
-      name: "Stage C",
-      title: "Opportunity [G2]",
-      desc: "Gaps & RQ matrix",
-      icon: BookOpen,
-      isComplete: Boolean(session?.phase3_complete),
-      isAvailable: Boolean(session?.phase1_complete || session?.phase2_complete || session?.phase3_problem),
-      lockReason: "Validate research problem in Stage B first.",
-      isBank: false,
-    },
-    {
-      id: 4,
-      name: "Stage D",
-      title: "Formulation",
-      desc: "4 DSR Artifacts",
-      icon: Cpu,
-      isComplete: Boolean(session?.phase4_complete),
-      isAvailable: Boolean(session?.phase3_complete),
-      lockReason: "Establish research gap & questions in Stage C first.",
-      isBank: false,
-    },
-    {
-      id: 5,
-      name: "Stage E",
-      title: "Evaluation [G3]",
-      desc: "Kothari Trapping",
-      icon: BarChart2,
-      // REQ-CCDS-001-DEFECT-2 FIX: Stage E is now independently resolved via canonical stage_progress.
-      // Fallback to legacy phase5_complete only for pre-migration (LEGACY) sessions.
-      isComplete: Boolean(
-        session?.stage_progress?.stages?.["stage_e_evaluation"]?.status === "COMPLETED" ||
-        (!session?.stage_progress && session?.phase5_complete)
-      ),
-      isAvailable: Boolean(session?.phase4_complete),
-      lockReason: "Formulate computing artifact in Stage D first.",
-      isBank: false,
-    },
-    {
-      id: 6,
-      name: "Stage F",
-      title: "Feasibility [G4]",
-      desc: "Ethics & DOST/SDG",
-      icon: ShieldCheck,
-      // REQ-CCDS-001-DEFECT-2 FIX: Stage F is now independently resolved via canonical stage_progress.
-      // Previously shared phase5_complete with Stage E, making them indistinguishable.
-      // Fallback: for LEGACY sessions (no stage_progress yet), treat as incomplete so Stage F
-      // is gated behind Stage E completion — preserving existing LEGACY ordering semantics.
-      isComplete: Boolean(
-        session?.stage_progress?.stages?.["stage_f_feasibility"]?.status === "COMPLETED"
-      ),
-      isAvailable: Boolean(
-        session?.stage_progress?.stages?.["stage_e_evaluation"]?.status === "COMPLETED" ||
-        (!session?.stage_progress && session?.phase4_complete)
-      ),
-      lockReason: "Complete Kothari experimental evaluation in Stage E first.",
-      isBank: false,
-    },
-    {
-      id: 7,
-      name: "Studio",
-      title: "Deliverables",
-      desc: "Proposal Suite",
-      icon: Sparkles,
-      isComplete: Boolean(session?.phase5_complete),
-      isAvailable: true,
-      lockReason: "",
-      isBank: false,
-      isStudio: true,
-    },
-  ];
-
-  const phases = isResearch ? researchPhases : innovationPhases;
 
   // -------------------------------------------------------------------------
   // Telemetry Metrics Calculation
@@ -332,11 +233,11 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
         <div className="flex items-center justify-between px-1 text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <span className="font-bold uppercase tracking-wider text-[10px] text-slate-300 font-mono">
-              {isResearch ? "Computing Research Track (CRCDP)" : "Venture Innovation Track (Ratchet)"}
+              {contract.name}
             </span>
             <span className="text-slate-600">•</span>
             <span className="text-slate-400 font-mono text-[11px]">
-              {completedCount} of 5 Gates Cleared
+              {clearedGatesCount} of {totalGates} Gates Cleared
             </span>
           </div>
 
@@ -362,8 +263,7 @@ export const PipelineStepper: React.FC<PipelineStepperProps> = ({
           </div>
         </div>
 
-        {/* Row 2: Stepper Pills (7 Tabs) */}
-        <div className={`grid grid-cols-2 sm:grid-cols-4 ${isResearch ? "md:grid-cols-8 lg:grid-cols-8" : "md:grid-cols-7 lg:grid-cols-7"} gap-1.5`}>
+        <div className={`grid grid-cols-2 sm:grid-cols-4 ${phases.length === 8 ? "md:grid-cols-8 lg:grid-cols-8" : "md:grid-cols-7 lg:grid-cols-7"} gap-1.5`}>
           {phases.map((phase) => {
             const Icon = phase.icon;
             const isActive = activePhase === phase.id;

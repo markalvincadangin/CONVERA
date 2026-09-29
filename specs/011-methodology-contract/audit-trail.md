@@ -106,7 +106,7 @@
 **Ratified SDD:** `SPEC-METHODOLOGY-CONTRACT-002-SDD-02-REV-01` (`specs/011-methodology-contract/sdd-slice-2.md`)  
 **Dedicated Working Branch:** `feature/011-methodology-contract-slice-2`  
 **Target Branch:** `develop`  
-**Document Status:** 🟢 INTEGRATED INTO DEVELOP — PROCEEDING TO PROMOTION GATE  
+**Document Status:** 🟢 PROMOTED TO MAIN — SPEC-METHODOLOGY-CONTRACT-002 CLOSED  
 
 ---
 
@@ -122,7 +122,7 @@
 | **Automated Verification Gate** | 2026-09-28 19:00:10+08:00 | Pytest Suites, Web Typecheck & Web Build | Antigravity AI | Pytest (259 passed, 0 failures), Next.js build (0 errors) | **PASSED** |
 | **Human Acceptance Gate** | 2026-09-28 19:05:53+08:00 | Human Acceptance Review | Human Leadership | Explicit prompt authorization ("proceed") after comprehensive review and validation | **ACCEPTED** |
 | **Merge Gate** | 2026-09-28 19:06:46+08:00 | Merge to develop | Human Leadership | Clean merge of feature/011-methodology-contract-slice-2 into develop | **MERGED** |
-| **Promotion Gate** | Pending | Promotion to main | Human Leadership | Pending Promotion Execution | **AUTHORIZED** |
+| **Promotion Gate** | 2026-09-28 19:07:08+08:00 | Promotion to main | Human Leadership | Clean promotion of develop to main | **PROMOTED** |
 
 ---
 
@@ -146,4 +146,67 @@
    - **Frontend TypeScript Typecheck**: `npm run test:frontend`: **0 errors**.
    - **Frontend Production Build**: `npm run build`: **0 errors (8/8 routes)**.
    - **Knowledge Graph**: `graphify update .`: **6,237 nodes, 9,034 edges, 484 communities indexed**.
+
+---
+
+# PART III: SPEC-METHODOLOGY-CONTRACT-003 (Vertical Slice 3)
+
+**Specification ID:** `SPEC-METHODOLOGY-CONTRACT-003`  
+**Feature Title:** Methodology Contract Architecture — Vertical Slice 3: Unified Methodology Discovery API & Contract-Driven Frontend Parameterization  
+**Governing Standard:** CONVERA Concept Development Standard (CCDS v2.0) — *“Knowledge != Workflow”*  
+**Parent Architectural Authority:** `ADR-METHODOLOGY-CONTRACT-001-REV-01`  
+**Candidate SDD:** `SPEC-METHODOLOGY-CONTRACT-003-SDD-03` (`specs/011-methodology-contract/sdd-slice-3.md`)  
+**Dedicated Working Branch:** `feature/011-methodology-contract-slice-3`  
+**Target Branch:** `develop`  
+**Document Status:** 🟢 IMPLEMENTED & VERIFIED — READY FOR PROMOTION TO MAIN  
+
+---
+
+## 7. Slice 3 Lifecycle Events & Audit Record
+
+| Stage | Date / Timestamp | Event / Gate | Authorized By | Evidence Artifacts | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Architecture Discovery** | 2026-09-29 | Discovery & Problem Isolation | Human Mandate | `ARCH-DISCOVERY-METHODOLOGY-CONTRACT-003-REV-01` | **ACCEPTED** |
+| **SDD Formulation & Precision** | 2026-09-29 | SDD Formulation & Precision Review | Human Mandate | `SPEC-METHODOLOGY-CONTRACT-003-SDD-03` | **RATIFIED** |
+| **Implementation Authorization Gate** | 2026-09-29 17:45:42+08:00 | Human Implementation Authorization | Human Leadership | Explicit prompt authorization ("PROCEED FOR THE NEXT PHASE EXECUTION...") | **AUTHORIZED** |
+| **Implementation & Delivery** | 2026-09-29 17:56:00+08:00 | Full Slice 3 Engineering Execution | System Pair Programmer | Backend contract enrichment, unified discovery router, frontend contracts mirror, WorkspaceResolver, contract-driven PipelineStepper | **COMPLETED** |
+| **Automated Verification Gate** | 2026-09-29 17:59:05+08:00 | Automated Test & Build Suite | System Verification Suite | 266 Pytest tests (0 failures), Next.js 15 build (8/8 static routes clean), tsc --noEmit (0 errors), Graphify rebuild (6,300 nodes) | **PASSED** |
+
+---
+
+## 8. Slice 3 Implemented Scope & Invariant Preservation
+
+1. **Implemented Scope**:
+   - `backend/contracts/methodology.py`:
+     - Added UI presentation metadata to `StageContract` (`icon_key`, `lock_reason_template`).
+     - Added high-level methodology metadata to `MethodologyContract` (`category`, `tagline`, `description`, `target_audience`, `required_artifacts`).
+     - Enriched both `INNOVATION_CONTRACT` and `RESEARCH_CONTRACT` definitions.
+     - Added `list_methodologies()` accessor returning all registered methodology contracts.
+   - `backend/routers/methodologies.py`:
+     - Implemented canonical `GET /api/methodologies` (catalog listing) and `GET /api/methodologies/{methodology_id}` (detailed contract retrieval).
+     - Standardized HTTP 404 responses with available methodology IDs.
+   - `backend/routers/frameworks.py`:
+     - Converted `GET /api/frameworks` and `GET /api/frameworks/{framework_id}` into a pure backward-compatible delegation facade over `contracts.methodology`.
+     - Completely decoupled runtime discovery from legacy `framework_engine.py`.
+   - `backend/routers/sessions.py`:
+     - Refactored validation to import `get_methodology_contract` from `contracts.methodology`.
+   - `web/src/lib/contracts/methodology.ts`:
+     - Created type-safe client-side contract mirror with exact stage indices, short titles, descriptive captions, and icons.
+     - Guarantees zero UI layout shift and offline mode resilience without async dependencies.
+   - `web/src/components/frameworks/WorkspaceRegistry.tsx`:
+     - Implemented decoupled, bespoke `WorkspaceResolver` rendering handcrafted workspace views for each methodology (`ProblemBankView`, `ResearchProblemBankView`, etc.).
+     - Enforced CCDS v2.0 principle: *"Knowledge != Workflow"* (no generic form generation).
+   - `web/src/app/page.tsx`:
+     - Simplified main workspace routing to delegate view resolution to `WorkspaceResolver`.
+   - `web/src/components/layout/PipelineStepper.tsx`:
+     - Replaced 200+ lines of duplicate hardcoded phase arrays with dynamic, contract-driven stage rendering.
+     - Dynamically computes gate clearance metrics, track labels, and responsive layout classes.
+
+2. **Automated Verification Evidence**:
+   - **Backend Pytest Full Suite**: **266 passed, 12 deselected, 0 failures** in 21.66s.
+   - **New Test Suite**: `test_methodologies_router.py`: **5/5 passed**.
+   - **Enriched Contract Tests**: `test_methodology_contracts.py`: **6/6 passed**.
+   - **Frontend TypeScript Typecheck**: `npm run test:frontend`: **0 errors**.
+   - **Frontend Production Build**: `npm run build`: **0 errors (8/8 static routes clean)**.
+   - **Knowledge Graph**: `graphify update .`: **6,300 nodes, 9,113 edges, 459 communities indexed**.
 

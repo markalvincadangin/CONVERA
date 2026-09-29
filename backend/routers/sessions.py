@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 import uuid
 
 from storage import get_storage
-from engines.framework_engine import get_framework
+from contracts.methodology import get_methodology_contract
 from engines.deliverables_generator import (
     generate_lean_canvas,
     generate_swot_analysis,
@@ -200,15 +200,15 @@ async def rename_session(session_id: str, req: SessionRenameRequest):
 @router.post("/api/sessions/{session_id}/switch-framework")
 async def switch_session_framework(session_id: str, req: SwitchFrameworkRequest):
     """Switch active framework on an existing session."""
-    fw = get_framework(req.framework_id)
-    if not fw:
+    contract = get_methodology_contract(req.framework_id)
+    if not contract:
         raise HTTPException(status_code=400, detail=f"Invalid framework '{req.framework_id}'")
     
     storage = get_storage()
     updated = storage.switch_session_framework(session_id, req.framework_id)
     if not updated:
         raise HTTPException(status_code=404, detail=f"Session '{session_id}' not found")
-    return {"status": "success", "session_id": session_id, "framework_id": fw.id, "state": updated, "session": updated, "framework": fw.model_dump()}
+    return {"status": "success", "session_id": session_id, "framework_id": contract.id, "state": updated, "session": updated, "framework": contract.model_dump()}
 
 
 @router.get("/api/sessions/{session_id}/snapshots")

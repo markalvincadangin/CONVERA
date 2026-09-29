@@ -1,33 +1,30 @@
 # SOFTWARE DESIGN DOCUMENT (SDD) — VERTICAL SLICE 2 (REVISION 01)
 ## Document Identifier: SPEC-METHODOLOGY-CONTRACT-002-SDD-02-REV-01
 **Title**: Methodology Contract Architecture — Vertical Slice 2: Contract-Driven Session Lifecycle & Canonical Progress Hydration  
-**Classification**: Tier 2 Software Design Document (SDD Candidate)  
+**Classification**: Tier 2 Software Design Document (Ratified SDD)  
 **Governing Standard**: CONVERA Concept Development Standard (CCDS v2.0) — *"Knowledge != Workflow"*  
 **Parent Architectural Authority**: [`ADR-METHODOLOGY-CONTRACT-001-REV-01`](file:///home/markc/.gemini/antigravity-ide/brain/882f87f3-936c-4f17-a33c-850e59c66fc7/ADR-METHODOLOGY-CONTRACT-001-REV-01.md)  
 **Predecessor SDD**: [`SPEC-METHODOLOGY-CONTRACT-001-SDD-01-REV-01`](file:///home/markc/.gemini/antigravity-ide/brain/882f87f3-936c-4f17-a33c-850e59c66fc7/SPEC-METHODOLOGY-CONTRACT-001-SDD-01-REV-01.md) (Vertical Slice 1 — Ratified, Implemented, Promoted to `main`)  
 **Predecessor Discovery**: [`ARCH-DISCOVERY-METHODOLOGY-CONTRACT-002-REV-01`](file:///home/markc/.gemini/antigravity-ide/brain/882f87f3-936c-4f17-a33c-850e59c66fc7/ARCH-DISCOVERY-METHODOLOGY-CONTRACT-002-REV-01.md)  
 **Predecessor SDD**: [`SPEC-METHODOLOGY-CONTRACT-002-SDD-02`](file:///home/markc/.gemini/antigravity-ide/brain/882f87f3-936c-4f17-a33c-850e59c66fc7/SPEC-METHODOLOGY-CONTRACT-002-SDD-02.md) (Pre-revision candidate)  
 **Baseline Git Commit**: `main @ 0c90cb8`  
-**Document Status**: 🟡 CANDIDATE — PENDING HUMAN LEADERSHIP REVIEW (IMPLEMENTATION NOT AUTHORIZED)  
-**Working Branch**: None (Branch creation NOT authorized)  
+**Document Status**: 🟢 IMPLEMENTED & PROMOTED TO MAIN — SPEC-METHODOLOGY-CONTRACT-002 CLOSED  
+**Working Branch**: `feature/011-methodology-contract-slice-2` (Merged & Promoted)  
 
 ---
 
-## 1. GOVERNANCE MANDATE & IMPLEMENTATION NOTICE
+## 1. GOVERNANCE MANDATE & IMPLEMENTATION RECORD
 
 ```text
 ================================================================================
-CRITICAL GOVERNANCE NOTICE: CANDIDATE SPECIFICATION ONLY
+GOVERNANCE RECORD: RATIFIED, IMPLEMENTED & PROMOTED TO MAIN
 ================================================================================
-This document is a READ-ONLY Software Design Document candidate derived from the
-human-accepted ADR-METHODOLOGY-CONTRACT-001-REV-01 and grounded in verified
-discovery evidence ARCH-DISCOVERY-METHODOLOGY-CONTRACT-002-REV-01.
+This Software Design Document was formally ratified by Human Leadership under
+ADR-METHODOLOGY-CONTRACT-001-REV-01 and grounded in verified discovery evidence.
 
-IT DOES NOT CONSTITUTE AUTHORIZATION TO WRITE CODE, CREATE BRANCHES, MODIFY
-DATABASES, ALTER APIS, MUTATE WORKFLOW RUNTIMES, OR DEPLOY.
-
-Implementation remains strictly unauthorized until Human Leadership formally
-ratifies this SDD and issues explicit Human Implementation Authorization.
+Implementation was authorized, executed, and verified under CCDS v2.0 standards.
+Vertical Slice 2 has been merged to develop and promoted to main (Commit 843b1a0).
+See specs/011-methodology-contract/audit-trail.md for the complete audit trail.
 ================================================================================
 ```
 
@@ -914,10 +911,8 @@ Deployment Gate ⏸ (awaiting deployment authorization)
 ## 18. GOVERNANCE STATUS
 
 - **Discovery Status**: 🟢 **COMPLETE**
-- **SDD-02 REV-01 Status**: 🟡 **CANDIDATE — PENDING HUMAN LEADERSHIP REVIEW**
-- **Implementation Status**: 🛑 **NOT AUTHORIZED**
-- **Branch Creation**: 🛑 **NOT AUTHORIZED**
-- **Spec Kit Workflow**: 🛑 **NOT AUTHORIZED** (pending SDD ratification)
-- **Merge / Promotion / Deployment**: 🛑 **NOT AUTHORIZED**
-
-*Awaiting Human Leadership review and ratification of this SDD-02 REV-01 candidate.*
+- **SDD-02 REV-01 Status**: 🟢 **RATIFIED**
+- **Implementation Status**: 🟢 **COMPLETED & VERIFIED**
+- **Branch Creation**: 🟢 **COMPLETED** (`feature/011-methodology-contract-slice-2`)
+- **Merge / Promotion Gate**: 🟢 **MERGED TO DEVELOP & PROMOTED TO MAIN** (Commit `843b1a0` / `1461611`)
+- **Specification Status**: 🟢 **CLOSED**
