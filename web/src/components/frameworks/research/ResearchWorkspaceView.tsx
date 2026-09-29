@@ -851,6 +851,7 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
               rows={matrixRows}
               gaps={matrixGaps}
               isLoading={isLoadingMatrix}
+              problemId={selectedAnchorId || session?.problem_statement}
               onSearchNewQuery={fetchMatrix}
             />
           </div>

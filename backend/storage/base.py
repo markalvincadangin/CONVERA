@@ -94,6 +94,16 @@ class BaseStorageAdapter(ABC):
         pass
 
     @abstractmethod
+    def add_problem_source(self, problem_id: str, source: Dict[str, Any]) -> Dict[str, Any]:
+        """Attach a single evidence source to a problem and return the created record."""
+        pass
+
+    @abstractmethod
+    def get_problem_sources_with_links(self, problem_id: str) -> List[Dict[str, Any]]:
+        """Retrieve all sources for a problem with joined scholarly metadata and claim links."""
+        pass
+
+    @abstractmethod
     def record_problem_history(
         self,
         problem_id: str,

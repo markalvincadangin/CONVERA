@@ -11,10 +11,11 @@ from .base import BaseConnector, NormalizedScholarlyWork, ProvenanceMetadata
 
 
 class OpenAlexConnector(BaseConnector):
-    def __init__(self, mailto: str = "convera@emaerx.org", cache_ttl_seconds: int = 3600):
+    def __init__(self, mailto: str = "convera@emaerx.org", cache_ttl_seconds: int = 3600, timeout: float = 4.0):
         super().__init__(cache_ttl_seconds=cache_ttl_seconds)
         self.mailto = mailto
         self.base_url = "https://api.openalex.org"
+        self.timeout = timeout
 
     @property
     def connector_id(self) -> str:
@@ -29,41 +30,54 @@ class OpenAlexConnector(BaseConnector):
         return ["SEARCH", "FETCH_BY_ID", "CITATIONS", "TOPICS", "PROVENANCE"]
 
     def _reconstruct_abstract(self, inverted_index: Optional[Dict[str, List[int]]]) -> Optional[str]:
-        if not inverted_index:
+        if not inverted_index or not isinstance(inverted_index, dict):
             return None
         words: List[tuple[int, str]] = []
         for word, positions in inverted_index.items():
-            for pos in positions:
-                words.append((pos, word))
+            if isinstance(positions, list):
+                for pos in positions:
+                    if isinstance(pos, int):
+                        words.append((pos, str(word)))
+        if not words:
+            return None
         words.sort(key=lambda x: x[0])
         return " ".join(w[1] for w in words)
 
     def _normalize_work(self, item: Dict[str, Any]) -> NormalizedScholarlyWork:
         # Extract authors
-        authorships = item.get("authorships", [])
-        authors = [
-            a.get("author", {}).get("display_name")
-            for a in authorships
-            if a.get("author", {}).get("display_name")
-        ]
+        authorships = item.get("authorships", []) or []
+        authors = []
+        for a in authorships:
+            if isinstance(a, dict):
+                name = a.get("author", {}).get("display_name")
+                if name:
+                    authors.append(name)
 
         # Extract topics
-        topics = [
-            t.get("display_name")
-            for t in item.get("topics", [])
-            if t.get("display_name")
-        ]
+        topics_raw = item.get("topics", []) or []
+        topics = []
+        for t in topics_raw:
+            if isinstance(t, dict):
+                dname = t.get("display_name")
+                if dname:
+                    topics.append(dname)
 
         # Extract open access url
-        oa = item.get("open_access", {})
-        oa_pdf = oa.get("oa_url") if oa.get("is_oa") else None
+        oa = item.get("open_access", {}) or {}
+        oa_pdf = oa.get("oa_url") if isinstance(oa, dict) and oa.get("is_oa") else None
 
         # Clean DOI
         raw_doi = item.get("doi")
-        clean_doi = raw_doi.replace("https://doi.org/", "") if raw_doi else None
+        clean_doi = (
+            raw_doi.replace("https://doi.org/", "").replace("http://dx.doi.org/", "").strip()
+            if raw_doi
+            else None
+        )
 
         # Venue
-        host_venue = item.get("primary_location", {}).get("source", {}).get("display_name")
+        primary_loc = item.get("primary_location") or {}
+        source_obj = primary_loc.get("source") or {} if isinstance(primary_loc, dict) else {}
+        host_venue = source_obj.get("display_name") if isinstance(source_obj, dict) else None
 
         return NormalizedScholarlyWork(
             doi=clean_doi,
@@ -71,7 +85,7 @@ class OpenAlexConnector(BaseConnector):
             authors=authors,
             year=item.get("publication_year"),
             venue=host_venue,
-            citation_count=item.get("cited_by_count", 0),
+            citation_count=item.get("cited_by_count", 0) or 0,
             abstract=self._reconstruct_abstract(item.get("abstract_inverted_index")),
             url=raw_doi or item.get("id"),
             open_access_pdf_url=oa_pdf,
@@ -98,19 +112,19 @@ class OpenAlexConnector(BaseConnector):
         }
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.get(f"{self.base_url}/works", params=params)
                 if resp.status_code != 200:
                     return []
                 data = resp.json()
-                results = [self._normalize_work(w) for w in data.get("results", [])]
+                results = [self._normalize_work(w) for w in data.get("results", []) or []]
                 self._set_cache(cache_key, results)
                 return results
         except Exception:
             return []
 
     async def fetch_by_id(self, identifier: str) -> Optional[NormalizedScholarlyWork]:
-        clean_id = identifier.replace("https://doi.org/", "")
+        clean_id = identifier.replace("https://doi.org/", "").replace("http://dx.doi.org/", "").strip()
         cache_key = f"openalex:work:{clean_id}"
         cached = self._get_from_cache(cache_key)
         if cached:
@@ -118,7 +132,7 @@ class OpenAlexConnector(BaseConnector):
 
         try:
             url = f"{self.base_url}/works/https://doi.org/{clean_id}" if "10." in clean_id else f"{self.base_url}/works/{clean_id}"
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
                 resp = await client.get(url, params={"mailto": self.mailto})
                 if resp.status_code != 200:
                     return None
@@ -131,7 +145,7 @@ class OpenAlexConnector(BaseConnector):
     async def health_check(self) -> Dict[str, Any]:
         t0 = time.time()
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
+            async with httpx.AsyncClient(timeout=min(self.timeout, 3.0)) as client:
                 resp = await client.get(f"{self.base_url}/works?per_page=1&mailto={self.mailto}")
                 latency = round((time.time() - t0) * 1000, 2)
                 return {
@@ -147,3 +161,5 @@ class OpenAlexConnector(BaseConnector):
                 "latency_ms": round((time.time() - t0) * 1000, 2),
                 "error": str(e)
             }
+
+
