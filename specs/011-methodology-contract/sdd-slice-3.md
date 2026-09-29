@@ -9,8 +9,8 @@
 - [`SPEC-METHODOLOGY-CONTRACT-002-SDD-02-REV-01`](file:///home/markc/projects/active/CONVERA/specs/011-methodology-contract/sdd-slice-2.md) (Vertical Slice 2 — Ratified, Implemented, Promoted to `main`)  
 **Predecessor Discovery**: [`ARCH-DISCOVERY-METHODOLOGY-CONTRACT-003-REV-01`](file:///home/markc/.gemini/antigravity-ide/brain/c20984a3-af87-4622-a773-5a3b3311c782/ARCH-DISCOVERY-METHODOLOGY-CONTRACT-003-REV-01.md)  
 **Baseline Git Commit**: `main @ 9be68bd`  
-**Document Status**: 🟢 IMPLEMENTED & VERIFIED — READY FOR PROMOTION TO MAIN  
-**Working Branch**: `feature/011-methodology-contract-slice-3`  
+**Document Status**: 🟢 PROMOTED TO MAIN — PRODUCTION READY  
+**Working Branch**: `main` (Promoted from `develop` and `feature/011-methodology-contract-slice-3`)  
 
 ---
 

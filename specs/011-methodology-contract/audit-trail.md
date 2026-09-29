@@ -158,7 +158,7 @@
 **Candidate SDD:** `SPEC-METHODOLOGY-CONTRACT-003-SDD-03` (`specs/011-methodology-contract/sdd-slice-3.md`)  
 **Dedicated Working Branch:** `feature/011-methodology-contract-slice-3`  
 **Target Branch:** `develop`  
-**Document Status:** 🟢 IMPLEMENTED & VERIFIED — READY FOR PROMOTION TO MAIN  
+**Document Status:** 🟢 PROMOTED TO MAIN — PRODUCTION READY  
 
 ---
 
@@ -172,6 +172,7 @@
 | **Implementation & Delivery** | 2026-09-29 17:56:00+08:00 | Full Slice 3 Engineering Execution | System Pair Programmer | Backend contract enrichment, unified discovery router, frontend contracts mirror, WorkspaceResolver, contract-driven PipelineStepper | **COMPLETED** |
 | **Automated Verification Gate** | 2026-09-29 17:59:05+08:00 | Automated Test & Build Suite | System Verification Suite | 266 Pytest tests (0 failures), Next.js 15 build (8/8 static routes clean), tsc --noEmit (0 errors), Graphify rebuild (6,300 nodes) | **PASSED** |
 | **Merge Gate** | 2026-09-29 18:01:46+08:00 | Merge to develop | Human Mandate | Clean non-fast-forward merge of feature branch into develop | **MERGED** |
+| **Promotion Gate** | 2026-09-29 18:03:54+08:00 | Promotion to main | Human Leadership | Clean promotion of develop to main | **PROMOTED** |
 
 ---
 
