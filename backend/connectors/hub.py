@@ -5,12 +5,17 @@ Orchestrates connector registrations, health monitors, and federated scholarly d
 """
 
 import asyncio
+import re
+import json
+import logging
 from typing import Dict, List, Optional, Any
 from .base import BaseConnector, NormalizedScholarlyWork, EvidenceCandidate, ProvenanceMetadata
 from .openalex_connector import OpenAlexConnector
 from .semantic_scholar_connector import SemanticScholarConnector
 from .crossref_connector import CrossrefConnector
 from .pubmed_connector import PubMedConnector
+
+logger = logging.getLogger(__name__)
 
 
 class ConnectorHub:
@@ -48,7 +53,8 @@ class ConnectorHub:
         self,
         query: str,
         limit_per_source: int = 5,
-        connector_ids: Optional[List[str]] = None
+        connector_ids: Optional[List[str]] = None,
+        storage_override: Optional[Any] = None,
     ) -> List[NormalizedScholarlyWork]:
         """Perform parallel search across selected or all connectors and deduplicate results."""
         target_connectors = (
@@ -76,7 +82,7 @@ class ConnectorHub:
                             deduped_works[key] = work
                     else:
                         # Normalize title key
-                        clean_title = "".join(c for c in work.title.lower() if c.isalnum())
+                        clean_title = re.sub(r"[^a-z0-9]", "", work.title.lower())
                         if clean_title and clean_title not in title_index:
                             title_index[clean_title] = work.title
                             deduped_works[clean_title] = work
@@ -89,12 +95,17 @@ class ConnectorHub:
         )
 
         # Auto-persist online results to local SQLite storage (SDD-006)
-        storage = None
-        try:
-            from storage import get_storage
-            storage = get_storage()
-        except Exception:
-            pass
+        storage = storage_override
+        if not storage:
+            try:
+                from storage import get_storage
+                storage = get_storage()
+            except Exception:
+                try:
+                    from storage.sqlite_adapter import get_storage
+                    storage = get_storage()
+                except Exception:
+                    pass
 
         if storage and sorted_works:
             payloads = []
@@ -115,23 +126,37 @@ class ConnectorHub:
             try:
                 persisted = storage.upsert_scholarly_works(payloads)
                 persisted_by_doi = {p["doi"]: p["id"] for p in persisted if p.get("doi")}
-                persisted_by_title = {p["title"].lower(): p["id"] for p in persisted if p.get("title")}
+                persisted_by_title = {
+                    re.sub(r"[^a-z0-9]", "", p["title"].lower()): p["id"]
+                    for p in persisted
+                    if p.get("title")
+                }
                 for w in sorted_works:
                     norm_doi = w.doi.lower().strip() if w.doi else None
-                    w.id = persisted_by_doi.get(norm_doi) or persisted_by_title.get(w.title.lower())
-            except Exception:
-                pass
+                    w_clean = re.sub(r"[^a-z0-9]", "", w.title.lower())
+                    w.id = persisted_by_doi.get(norm_doi) or persisted_by_title.get(w_clean)
+            except Exception as e:
+                logger.warning(f"Failed to auto-persist scholarly works: {e}")
 
         # Offline / Degradation Fallback: if zero works returned from online APIs, search local FTS5 cache (SDD-006)
         if not sorted_works and storage:
             try:
                 cached_rows = storage.search_scholarly_works_fts(query=query, limit=limit_per_source * 3)
                 for cr in cached_rows:
+                    authors = cr.get("authors")
+                    if isinstance(authors, str):
+                        try:
+                            authors = json.loads(authors)
+                        except Exception:
+                            authors = [authors]
+                    elif not isinstance(authors, list):
+                        authors = []
+
                     sorted_works.append(NormalizedScholarlyWork(
                         id=cr["id"],
                         doi=cr.get("doi"),
                         title=cr["title"],
-                        authors=cr.get("authors") or [],
+                        authors=authors,
                         year=cr.get("year"),
                         venue=cr.get("venue"),
                         citation_count=cr.get("citation_count") or 0,
@@ -148,11 +173,12 @@ class ConnectorHub:
                         is_offline=True,
                         is_cached=True
                     ))
-            except Exception:
-                pass
+            except Exception as e:
+                logger.warning(f"Local FTS5 cache fallback encountered error: {e}")
 
         return sorted_works
 
 
 # Global ConnectorHub Singleton
 connector_hub = ConnectorHub()
+

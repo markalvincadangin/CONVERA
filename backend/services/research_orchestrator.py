@@ -34,11 +34,21 @@ class ResearchOrchestrator:
     Critique Engines, and Decision Support into a unified research loop.
     """
 
-    def __init__(self, storage: Optional[BaseStorageAdapter] = None):
-        if storage is None:
-            from storage import get_storage
-            storage = get_storage()
-        self.storage = storage
+    def __init__(
+        self,
+        storage: Optional[BaseStorageAdapter] = None,
+        storage_adapter: Optional[BaseStorageAdapter] = None,
+    ):
+        target_storage = storage or storage_adapter
+        if target_storage is None:
+            try:
+                from storage import get_storage
+                target_storage = get_storage()
+            except Exception:
+                from storage.sqlite_adapter import get_storage
+                target_storage = get_storage()
+        self.storage = target_storage
+
 
     def aggregate_context(
         self, session_id: str, problem_id: Optional[str] = None
@@ -609,10 +619,27 @@ class ResearchOrchestrator:
         if action_type == ActionType.ACQUIRE_EVIDENCE:
             query = params.get("query") or (problem.get("problem_statement") if problem else "")[:80]
             limit = int(params.get("limit") or 5)
-            # Local lexical FTS5 search
-            works = self.storage.search_scholarly_works_fts(query=query, limit=limit)
+            use_live = params.get("live", True)
+
+            works = []
+            if use_live:
+                try:
+                    from connectors.hub import connector_hub
+                    live_works = await connector_hub.federated_search(
+                        query=query, limit_per_source=max(2, limit // 2)
+                    )
+                    works = [w.model_dump() for w in live_works]
+                except Exception as e:
+                    logger.warning(f"Live connector search failed, falling back to local FTS5: {e}")
+
+            if not works:
+                works = self.storage.search_scholarly_works_fts(query=query, limit=limit)
+                summary = f"Retrieved {len(works)} scholarly works from local FTS5 index for query '{query}'."
+            else:
+                summary = f"Acquired {len(works)} scholarly works from academic connectors (OpenAlex, Semantic Scholar) for query '{query}'."
+
             resulting_artifacts["scholarly_works"] = works
-            summary = f"Retrieved {len(works)} scholarly works from local FTS5 index for query '{query}'."
+            resulting_artifacts["count"] = len(works)
 
         elif action_type == ActionType.EXECUTE_CRITIQUE:
             if problem:
@@ -630,18 +657,32 @@ class ResearchOrchestrator:
 
         elif action_type == ActionType.SYNTHESIZE_LITERATURE:
             query = params.get("query") or (problem.get("problem_statement") if problem else "")[:80]
-            works = self.storage.search_scholarly_works_fts(query=query, limit=5)
+            works = []
+            try:
+                from connectors.hub import connector_hub
+                live_works = await connector_hub.federated_search(query=query, limit_per_source=3)
+                works = [w.model_dump() for w in live_works]
+            except Exception:
+                pass
+
+            if not works:
+                works = self.storage.search_scholarly_works_fts(query=query, limit=5)
+
             matrix_entries = [
                 {
+                    "id": w.get("id"),
                     "title": w.get("title"),
                     "year": w.get("year"),
                     "citations": w.get("citation_count"),
                     "venue": w.get("venue"),
+                    "doi": w.get("doi"),
+                    "is_offline": w.get("is_offline", False),
                 }
                 for w in works
             ]
             resulting_artifacts["literature_matrix"] = matrix_entries
             summary = f"Synthesized literature comparison matrix with {len(matrix_entries)} candidate papers."
+
 
         elif action_type == ActionType.REQUEST_GATE_REVIEW:
             summary = (
