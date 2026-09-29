@@ -147,3 +147,25 @@
    - **Frontend Production Build**: `npm run build`: **0 errors (8/8 routes)**.
    - **Knowledge Graph**: `graphify update .`: **6,237 nodes, 9,034 edges, 484 communities indexed**.
 
+---
+
+# PART III: SPEC-METHODOLOGY-CONTRACT-003 (Vertical Slice 3)
+
+**Specification ID:** `SPEC-METHODOLOGY-CONTRACT-003`  
+**Feature Title:** Methodology Contract Architecture — Vertical Slice 3: Unified Methodology Discovery API & Contract-Driven Frontend Parameterization  
+**Governing Standard:** CONVERA Concept Development Standard (CCDS v2.0) — *“Knowledge != Workflow”*  
+**Parent Architectural Authority:** `ADR-METHODOLOGY-CONTRACT-001-REV-01`  
+**Candidate SDD:** `SPEC-METHODOLOGY-CONTRACT-003-SDD-03` (`specs/011-methodology-contract/sdd-slice-3.md`)  
+**Dedicated Working Branch:** Pending Authorization (`feature/011-methodology-contract-slice-3`)  
+**Target Branch:** `develop`  
+**Document Status:** 🟡 CANDIDATE — PENDING HUMAN LEADERSHIP RATIFICATION  
+
+---
+
+## 7. Slice 3 Lifecycle Events & Audit Record
+
+| Stage | Date / Timestamp | Event / Gate | Authorized By | Evidence Artifacts | Status |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Architecture Discovery** | 2026-09-29 | Discovery & Problem Isolation | Human Mandate | `ARCH-DISCOVERY-METHODOLOGY-CONTRACT-003-REV-01` | **ACCEPTED** |
+| **SDD Formulation & Precision** | 2026-09-29 | SDD Candidate Formulation | Human Mandate | `SPEC-METHODOLOGY-CONTRACT-003-SDD-03` | **PRODUCED** |
+| **Implementation Authorization Gate** | Pending | Human Implementation Authorization | Human Leadership | Explicit prompt authorization | **PENDING REVIEW** |
