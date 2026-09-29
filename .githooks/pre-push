@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# ===================================================================
+# CONVERA Pre-Push Verification Hook
+# Canonical Path: .githooks/pre-push
+# Standards: CONVERA Invariant 8 & Tier 1/2 Verification Protocol
+# ===================================================================
+
+set -e
+
+if ! REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+fi
+cd "$REPO_ROOT"
+
+echo "=========================================================="
+echo "   CONVERA: Pre-Push Automated Verification Gate          "
+echo "=========================================================="
+
+echo "[1/2] Verifying frontend static typing (tsc --noEmit)..."
+if ! npm run test:frontend --silent; then
+    echo "[-] FAILED: Frontend TypeScript compilation errors detected."
+    echo "    Run 'npm run test:frontend' to inspect errors."
+    exit 1
+fi
+echo "[+] Frontend static typing passed."
+
+echo "[2/2] Verifying backend test suite (pytest)..."
+if ! npm run test:backend --silent; then
+    echo "[-] FAILED: Backend automated test suite failure detected."
+    echo "    Run 'npm run test:backend' to inspect test failures."
+    exit 1
+fi
+echo "[+] Backend test suite passed."
+
+echo "=========================================================="
+echo "   All verification gates passed! Safe to push.           "
+echo "=========================================================="
+exit 0

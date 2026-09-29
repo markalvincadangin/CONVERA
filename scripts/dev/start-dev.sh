@@ -8,8 +8,9 @@ echo "=========================================================="
 echo "   Starting CONVERA: Project Intelligence System          "
 echo "=========================================================="
 
-# Determine repository root reliably regardless of invocation directory
-REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+if ! REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+fi
 cd "$REPO_ROOT"
 
 if [ ! -f ".env" ] && [ -f ".env.example" ]; then

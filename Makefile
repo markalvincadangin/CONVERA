@@ -8,7 +8,7 @@ PYTHON := $(if $(wildcard $(PYTHON_VENV)/python),$(PYTHON_VENV)/python,python3)
 UVICORN := $(if $(wildcard $(PYTHON_VENV)/uvicorn),$(PYTHON_VENV)/uvicorn,uvicorn)
 PYTEST := $(if $(wildcard $(PYTHON_VENV)/pytest),$(PYTHON_VENV)/pytest,pytest)
 
-.PHONY: help dev dev-backend dev-web prod-up prod-down prod-status prod-logs prod-build prod-deploy prod-share prod-backup prod-seed test test-backend test-frontend verify clean
+.PHONY: help dev dev-backend dev-web prod-up prod-down prod-status prod-logs prod-build prod-deploy prod-share prod-backup prod-seed test test-backend test-frontend typecheck lint verify clean branch-clean setup-env
 
 ## help: Display this interactive help menu
 help:
@@ -88,13 +88,29 @@ test-backend:
 test-frontend:
 	npm run typecheck --prefix web
 
+## typecheck: Run Next.js TypeScript typecheck
+typecheck: test-frontend
+
+## lint: Run frontend ESLint code quality checks
+lint:
+	npm run lint --prefix web
+
 ## verify: Run all tests and synchronize AST knowledge graph
 verify: test
 	graphify update .
 
 # -----------------------------------------------------------------
-# Housekeeping
+# Environment & VCS Housekeeping
 # -----------------------------------------------------------------
+
+## setup-env: Configure local Git hygiene, versioned hooks, and environment (.env)
+setup-env:
+	./scripts/dev/setup-env.sh
+
+## branch-clean: Safely prune local branches merged into main (keeps main & develop)
+branch-clean:
+	@git branch --merged main | grep -v -E '^\*|main|develop' | xargs -r git branch -d || true
+	@echo "[+] Merged branch hygiene check complete."
 
 ## clean: Remove Python bytecode, pytest cache, and Next.js build artifacts
 clean:
