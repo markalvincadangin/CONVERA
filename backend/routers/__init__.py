@@ -8,6 +8,7 @@ from .connectors import router as connectors_router
 from .inbox import router as inbox_router
 from .agents import router as agents_router
 from .frameworks import router as frameworks_router
+from .methodologies import router as methodologies_router
 from .problems import router as problems_router
 from .research import router as research_router
 from .sessions import router as sessions_router
@@ -32,6 +33,7 @@ __all__ = [
     "inbox_router",
     "agents_router",
     "frameworks_router",
+    "methodologies_router",
     "problems_router",
     "research_router",
     "sessions_router",

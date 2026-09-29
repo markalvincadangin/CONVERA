@@ -30,6 +30,8 @@ class StageContract(BaseModel):
     gate_id: Optional[str] = None # Expected gate for clearance, if any
     required_activities: List[str] = Field(default_factory=list)
     output_artifacts: List[str] = Field(default_factory=list)
+    icon_key: str = "Layers"      # Icon resolver key for UI consumers
+    lock_reason_template: Optional[str] = None
 
 
 class GateContract(BaseModel):
@@ -47,7 +49,12 @@ class MethodologyContract(BaseModel):
     id: str                       # Unique identifier: "INNOVATION", "RESEARCH"
     name: str
     version: str                  # Semver: "3.0.0"
+    category: str = "INNOVATION"  # "INNOVATION", "RESEARCH", etc.
+    tagline: str = ""
+    description: str = ""
+    target_audience: str = ""
     governing_standard: str = "CCDS v2.0"
+    required_artifacts: List[str] = Field(default_factory=list)
     stages: List[StageContract]
     gates: List[GateContract]
     stage_sequence: List[str]     # Ordered list of stage_ids + terminal ["studio"]
@@ -156,7 +163,24 @@ INNOVATION_CONTRACT = MethodologyContract(
     id="INNOVATION",
     name="Venture Innovation & Opportunity Validation Framework",
     version="3.0.0",
+    category="INNOVATION",
+    tagline="Transform regional friction into validated, high-conviction venture opportunities.",
+    description="The flagship 5-phase venture exploration framework enforcing the Mechanical Ratchet, 4-Claim Evidence Ledgers, Socratic Mom Test clinic, SVB mechanism canvas, and lean unit economics.",
+    target_audience="Student technopreneurs, startup founders, and venture innovation teams",
     governing_standard="CCDS v2.0",
+    required_artifacts=[
+        "Problem Statement Dossier",
+        "Grounding Card",
+        "10-Column Assessment Matrix",
+        "Decision Record",
+        "4-Claim Evidence Ledger",
+        "Socratic Mom Test Transcript",
+        "Commitment Evidence Log",
+        "Mechanism Architecture Canvas",
+        "Solution Concept Spec",
+        "Unit Economics Scorecard",
+        "Venture Validation Dossier",
+    ],
     stage_sequence=[
         "p1_discovery",
         "p2_screening",
@@ -178,6 +202,8 @@ INNOVATION_CONTRACT = MethodologyContract(
             label="Regional Problem Discovery",
             short_description="Discover socio-economic friction with 5 core anchors: Sufferer, Location, Root Cause, Workaround, and Quantified Loss.",
             output_artifacts=["Problem Statement Dossier", "Grounding Card"],
+            icon_key="Compass",
+            lock_reason_template="",
         ),
         StageContract(
             id="p2_screening",
@@ -187,6 +213,8 @@ INNOVATION_CONTRACT = MethodologyContract(
             gate_id="GATE_1",
             short_description="Evaluate candidate problems using 10-column screening, DOI academic research citations, and AI Judge comparative triage.",
             output_artifacts=["10-Column Assessment Matrix", "Decision Record", "4-Claim Evidence Ledger"],
+            icon_key="Filter",
+            lock_reason_template="",
         ),
         StageContract(
             id="p3_mom_test",
@@ -196,6 +224,8 @@ INNOVATION_CONTRACT = MethodologyContract(
             gate_id="GATE_2",
             short_description="Simulate conversational customer interviews and adversarial defense across 6 validation levels.",
             output_artifacts=["Socratic Mom Test Transcript", "Commitment Evidence Log"],
+            icon_key="ShieldCheck",
+            lock_reason_template="Prerequisites Incomplete. Complete Phase 1 or Phase 2 problem screening first.",
         ),
         StageContract(
             id="p4_mechanism",
@@ -204,6 +234,8 @@ INNOVATION_CONTRACT = MethodologyContract(
             label="Solution Concept & Mechanism",
             short_description="Map solution architecture, mechanism canvas, and system interaction models.",
             output_artifacts=["Mechanism Architecture Canvas", "Solution Concept Spec"],
+            icon_key="Lightbulb",
+            lock_reason_template="Prerequisites Incomplete. Complete all 6 Mom Test levels in Phase 3 first.",
         ),
         StageContract(
             id="p5_economics",
@@ -213,6 +245,8 @@ INNOVATION_CONTRACT = MethodologyContract(
             gate_id="GATE_3",
             short_description="Test unit economics, contribution margins, and financial sustainability metrics.",
             output_artifacts=["Unit Economics Scorecard", "Venture Validation Dossier"],
+            icon_key="Activity",
+            lock_reason_template="Prerequisites Incomplete. Map mechanism & SVB in Phase 4 first.",
         ),
     ],
     gates=[
@@ -244,7 +278,27 @@ RESEARCH_CONTRACT = MethodologyContract(
     id="RESEARCH",
     name="Computing Research & Concept Development Process (CRCDP)",
     version="1.0.0",
+    category="RESEARCH",
+    tagline="Discover, validate, formulate, evaluate, and select rigorous computing research concepts.",
+    description="DSR-informed research framework with 6 stages (A..F) and 4 quality gates governing academic rigor, citation grounding, and defense readiness.",
+    target_audience="Academic researchers, MS/PhD students, and faculty",
     governing_standard="CCDS v2.0",
+    required_artifacts=[
+        "Domain Problem Monograph",
+        "Initial Research Query",
+        "Literature Matrix",
+        "DOI Evidence Base",
+        "Research Gap Dossier",
+        "Research Proposal",
+        "Formal Problem Statement",
+        "DSR Canvas",
+        "System Architecture",
+        "Design Science Artifact Spec",
+        "Empirical Evaluation Results",
+        "Statistical Benchmark Report",
+        "Research Defense Monograph",
+        "Peer Review Submission Draft",
+    ],
     stage_sequence=[
         "stage_a_scouting",
         "stage_b_validation",
@@ -268,6 +322,8 @@ RESEARCH_CONTRACT = MethodologyContract(
             label="Domain Scouting & Problem Identification",
             short_description="Explore computing domain friction, industry pain points, and emerging technological challenges.",
             output_artifacts=["Domain Problem Monograph", "Initial Research Query"],
+            icon_key="Search",
+            lock_reason_template="",
         ),
         StageContract(
             id="stage_b_validation",
@@ -277,6 +333,8 @@ RESEARCH_CONTRACT = MethodologyContract(
             gate_id="GATE_1",
             short_description="Conduct systematic literature review, DOI citation analysis, and identify gaps in existing research.",
             output_artifacts=["Literature Matrix", "DOI Evidence Base", "Research Gap Dossier"],
+            icon_key="FileSearch",
+            lock_reason_template="",
         ),
         StageContract(
             id="stage_c_opportunity",
@@ -286,6 +344,8 @@ RESEARCH_CONTRACT = MethodologyContract(
             gate_id="GATE_2",
             short_description="Define formal research questions, design science hypotheses, and methodological framework.",
             output_artifacts=["Research Proposal", "Formal Problem Statement", "DSR Canvas"],
+            icon_key="BookOpen",
+            lock_reason_template="Validate research problem in Stage B first.",
         ),
         StageContract(
             id="stage_d_formulation",
@@ -294,6 +354,8 @@ RESEARCH_CONTRACT = MethodologyContract(
             label="Artifact Formulation & Design Synthesis",
             short_description="Synthesize novel computational artifact, algorithm, model, or system architecture.",
             output_artifacts=["System Architecture", "Design Science Artifact Spec"],
+            icon_key="Cpu",
+            lock_reason_template="Establish research gap & questions in Stage C first.",
         ),
         StageContract(
             id="stage_e_evaluation",
@@ -303,6 +365,8 @@ RESEARCH_CONTRACT = MethodologyContract(
             gate_id="GATE_3",
             short_description="Execute empirical benchmarks, controlled experiments, and quantitative comparative evaluation.",
             output_artifacts=["Empirical Evaluation Results", "Statistical Benchmark Report"],
+            icon_key="BarChart2",
+            lock_reason_template="Formulate computing artifact in Stage D first.",
         ),
         StageContract(
             id="stage_f_feasibility",
@@ -312,6 +376,8 @@ RESEARCH_CONTRACT = MethodologyContract(
             gate_id="GATE_4",
             short_description="Assess technical feasibility, operational constraints, and defense readiness.",
             output_artifacts=["Research Defense Monograph", "Peer Review Submission Draft"],
+            icon_key="ShieldCheck",
+            lock_reason_template="Complete experimental evaluation in Stage E first.",
         ),
     ],
     gates=[
@@ -374,3 +440,29 @@ def get_methodology_contract(framework_id: Optional[str]) -> Optional[Methodolog
     if normalized in METHODOLOGY_REGISTRY:
         return METHODOLOGY_REGISTRY[normalized]
     return None
+
+
+def list_methodologies() -> List[Dict[str, Any]]:
+    """
+    List metadata summaries for all registered methodology contracts.
+    Pure function: deduplicates alias keys in METHODOLOGY_REGISTRY.
+    """
+    seen = set()
+    results = []
+    for contract in METHODOLOGY_REGISTRY.values():
+        if contract.id in seen:
+            continue
+        seen.add(contract.id)
+        results.append({
+            "id": contract.id,
+            "name": contract.name,
+            "version": contract.version,
+            "category": contract.category,
+            "tagline": contract.tagline,
+            "description": contract.description,
+            "stage_count": len([s for s in contract.stage_sequence if s != "studio"]),
+            "gate_count": len(contract.gates),
+            "target_audience": contract.target_audience,
+        })
+    return results
+

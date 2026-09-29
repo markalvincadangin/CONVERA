@@ -10,16 +10,7 @@ import {
   HelpCenterModal,
   PresentationModal,
 } from "@/components/layout";
-import {
-  ProblemDiscoveryView,
-  ProblemScreeningView,
-  ProblemValidationView,
-  SolutionConceptView,
-  EconomicsTestingView,
-} from "@/components/frameworks/innovation";
-import { ProblemBankView } from "@/components/problem-bank/ProblemBankView";
-import { DeliverablesStudio } from "@/components/deliverables/DeliverablesStudio";
-import { ResearchWorkspaceView } from "@/components/frameworks/research/ResearchWorkspaceView";
+import { WorkspaceResolver } from "@/components/frameworks/WorkspaceRegistry";
 import { IntelligenceScorecardDrawer } from "@/components/knowledge/IntelligenceScorecardDrawer";
 import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
 import { useToast } from "@/components/common/ToastProvider";
@@ -343,94 +334,16 @@ export default function Home() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.16, ease: "easeOut" }}
             >
-              {activePhase === 0 ? (
-              <ProblemBankView
+              <WorkspaceResolver
                 session={session}
+                problems={problems}
+                activePhase={activePhase}
+                onUpdateSession={handleUpdateSession}
+                onSelectPhase={handleSelectPhase}
                 onSendToPhase2={handleSendToPhase2}
+                onExportDossier={handleExportDossier}
+                phase2SelectedIds={phase2SelectedIds}
               />
-            ) : session.framework_id?.toUpperCase().includes("RESEARCH") ? (
-              // REQ-CCDS-001-DEFECT-4 FIX:
-              // Research stepper has 8 slots: 0=Bank, 1=Stage A, 2=Stage B,
-              // 3=Stage C, 4=Stage D, 5=Stage E, 6=Stage F, 7=Studio.
-              // Previous bug: condition "activePhase <= 6" caught slot 7 (Studio)
-              // inside ResearchWorkspaceView instead of routing to DeliverablesStudio.
-              activePhase >= 1 && activePhase <= 6 ? (
-                <ResearchWorkspaceView
-                  session={session}
-                  problems={problems}
-                  activePhase={activePhase}
-                  onUpdateSession={handleUpdateSession}
-                />
-              ) : (
-                // Slot 7 = Research Deliverables Studio; all other values fall here too
-                <DeliverablesStudio
-                  session={session}
-                  onExportDossier={handleExportDossier}
-                  onNavigatePhase={(p) => setActivePhase(p)}
-                />
-              )
-            ) : (
-              <>
-                {activePhase === 1 && (
-                  <ProblemDiscoveryView
-                    session={session}
-                    onUpdateSession={handleUpdateSession}
-                    onAdvanceToNextPhase={() => handleSelectPhase(2)}
-                  />
-                )}
-
-                {activePhase === 2 && (
-                  <ProblemScreeningView
-                    session={session}
-                    onUpdateSession={handleUpdateSession}
-                    selectedProblemIds={phase2SelectedIds}
-                    onAdvanceToNextPhase={(problem) => {
-                      if (problem) {
-                        handleUpdateSession({ ...session, phase3_problem: problem });
-                      }
-                      handleSelectPhase(3);
-                    }}
-                    onGoBack={() => handleSelectPhase(1)}
-                  />
-                )}
-
-                {activePhase === 3 && (
-                  <ProblemValidationView
-                    session={session}
-                    onUpdateSession={handleUpdateSession}
-                    onAdvanceToNextPhase={() => handleSelectPhase(4)}
-                    onGoBack={() => handleSelectPhase(2)}
-                    initialProblemStatement={session.phase3_problem}
-                  />
-                )}
-
-                {activePhase === 4 && (
-                  <SolutionConceptView
-                    session={session}
-                    onUpdateSession={handleUpdateSession}
-                    onAdvanceToNextPhase={() => handleSelectPhase(5)}
-                    onGoBack={() => handleSelectPhase(3)}
-                  />
-                )}
-
-                {activePhase === 5 && (
-                  <EconomicsTestingView
-                    session={session}
-                    onUpdateSession={handleUpdateSession}
-                    onGoBack={() => handleSelectPhase(4)}
-                    onExportDossier={handleExportDossier}
-                  />
-                )}
-
-                {activePhase === 6 && (
-                  <DeliverablesStudio
-                    session={session}
-                    onExportDossier={handleExportDossier}
-                    onNavigatePhase={(p) => handleSelectPhase(p)}
-                  />
-                )}
-              </>
-            )}
             </motion.div>
           </AnimatePresence>
         ) : null}
