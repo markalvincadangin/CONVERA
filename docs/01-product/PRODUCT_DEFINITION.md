@@ -6,19 +6,20 @@
 **Document Status**: 🟢 RATIFIED  
 **Implementation Status**: 🟢 IMPLEMENTED  
 **Canonical Path**: `docs/01-product/PRODUCT_DEFINITION.md`  
-**Upstream Dependencies**: `00-foundation/CONVERA.md, 00-foundation/PRINCIPLES.md`  
+**Upstream Dependencies**: `00-foundation/IDENTITY.md, 00-foundation/CONVERA.md, 00-foundation/PRINCIPLES.md`  
 **Downstream Dependents**: `01-product/CAPABILITIES.md, 02-system/DOMAIN_MODEL.md`  
 
 ---
 
 > **Technology-Independent Product Specification.**  
-> This document defines what CONVERA does, who it serves, its universal transformation lifecycle, and its core deliverables, independent of underlying implementation technologies.
+> This document defines what CONVERA does, who it serves, its universal transformation lifecycle, and its core deliverables, independent of underlying implementation technologies.  
+> *For the canonical system identity, orchestration doctrine, ownership matrix, anti-goals, and 2-layer connector architecture, see [IDENTITY.md](../00-foundation/IDENTITY.md).*
 
 ---
 
 ## 1. Product Identity & Purpose
 
-**CONVERA** is an evidence-driven project intelligence platform that transforms fragmented information, raw observations, empirical citations, and active assumptions into **validated, traceable, and decision-ready project direction**.
+**CONVERA** is an AI-powered Research Intelligence and Workflow Orchestration System (see [IDENTITY.md](../00-foundation/IDENTITY.md)) that transforms fragmented information, raw observations, empirical citations, and active assumptions into **validated, traceable, and decision-ready project direction**.
 
 ```text
     ┌─────────────────────────────────────────────────────────────────────────────┐

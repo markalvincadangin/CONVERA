@@ -40,9 +40,9 @@ All documentation across the CONVERA repository conforms to the following strict
 ## 🗺️ Master Documentation Directory & Ratification Matrix
 
 ```text
-CONVERA DOCUMENTATION ARCHITECTURE (38 RATIFIED SPECIFICATIONS)
+CONVERA DOCUMENTATION ARCHITECTURE (39 RATIFIED SPECIFICATIONS)
 
-├── 00-foundation/ ───────── Operating Constitution, Brand Axioms & Glossaries [🟢 RATIFIED]
+├── 00-foundation/ ───────── Operating Constitution, System Identity & Glossaries [🟢 RATIFIED]
 ├── 01-product/ ──────────── Product Definition, Target Users & Capabilities [🟢 RATIFIED]
 ├── 02-system/ ───────────── 5-Tier System Architecture & Canonical Epistemic Models [🟢 RATIFIED]
 ├── 03-engineering/ ──────── Engineering Principles, SDD Workflow & Security [🟢 RATIFIED]
@@ -59,6 +59,7 @@ CONVERA DOCUMENTATION ARCHITECTURE (38 RATIFIED SPECIFICATIONS)
 
 ### 1. Foundation Layer (`docs/00-foundation/`)
 * [**`CONSTITUTION.md`**](00-foundation/CONSTITUTION.md) — The 8 Constitutional Articles governing epistemic primacy, human sovereignty, provenance, Socratic inquiry, gate clearance, invalidation, documentation authority, and formal amendment.
+* [**`IDENTITY.md`**](00-foundation/IDENTITY.md) — Core system identity, orchestration doctrine, ownership matrix, anti-goals, 2-layer connector architecture, and ecosystem boundaries.
 * [**`CONVERA.md`**](00-foundation/CONVERA.md) — Master product identity, core philosophy, and foundational axioms.
 * [**`PRINCIPLES.md`**](00-foundation/PRINCIPLES.md) — Epistemic, provenance, and human-in-the-loop invariants.
 * [**`GLOSSARY.md`**](00-foundation/GLOSSARY.md) — Canonical terminology, entity definitions, and cross-layer references.

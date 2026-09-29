@@ -6,19 +6,20 @@
 **Document Status**: 🟢 RATIFIED  
 **Implementation Status**: 🟢 IMPLEMENTED  
 **Canonical Path**: `docs/00-foundation/CONVERA.md`  
-**Upstream Dependencies**: `CONSTITUTION.md`  
+**Upstream Dependencies**: `CONSTITUTION.md, IDENTITY.md`  
 **Downstream Dependents**: `PRODUCT_DEFINITION.md, SYSTEM_ARCHITECTURE.md`  
 
 ---
 
 > **"Turn Uncertainty into Justified Direction."**  
-> CONVERA transforms fragmented ideas, empirical signals, active assumptions, and scientific literature into validated, traceable, and decision-ready project direction.
+> CONVERA transforms fragmented ideas, empirical signals, active assumptions, and scientific literature into validated, traceable, and decision-ready project direction.  
+> *For the canonical orchestration doctrine, ecosystem boundaries, ownership matrix, anti-goals, and 2-layer connector architecture, see [IDENTITY.md](IDENTITY.md).*
 
 ---
 
 ## 1. System Definition & Identity
 
-**CONVERA** is an open, evidence-driven project intelligence platform that maintains an authoritative, relational knowledge graph of:
+**CONVERA** is an AI-powered Research Intelligence and Workflow Orchestration System (see [IDENTITY.md](IDENTITY.md)) that maintains an authoritative, relational knowledge graph of:
 1. **What a team knows** (Verified empirical facts and baseline constants)
 2. **What a team assumes** (Active working hypotheses and unmeasured risks)
 3. **What evidence supports or refutes those beliefs** (First-class source provenance, citation tiers, and contradiction pairs)
