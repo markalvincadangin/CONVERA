@@ -52,6 +52,7 @@ from routers import (
     inbox_router,
     agents_router,
     frameworks_router,
+    methodologies_router,
     problems_router,
     research_router,
     evaluation_router,
@@ -90,6 +91,7 @@ app.include_router(connectors_router)
 app.include_router(inbox_router)
 app.include_router(agents_router)
 app.include_router(frameworks_router)
+app.include_router(methodologies_router)
 app.include_router(problems_router)
 app.include_router(research_router)
 app.include_router(evaluation_router)

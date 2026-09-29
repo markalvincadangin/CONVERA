@@ -125,3 +125,43 @@ def test_contract_registry_and_resolution():
     assert get_methodology_contract("   ") is None
     assert get_methodology_contract("UNKNOWN_FRAMEWORK") is None
     assert get_methodology_contract("PRODUCT_V9") is None
+
+
+def test_enriched_metadata_and_icons():
+    """Verify enriched UI metadata, icon keys, and required artifacts."""
+    # Innovation metadata
+    assert INNOVATION_CONTRACT.category == "INNOVATION"
+    assert "regional friction" in INNOVATION_CONTRACT.tagline
+    assert len(INNOVATION_CONTRACT.required_artifacts) > 0
+    assert INNOVATION_CONTRACT.stages[0].icon_key == "Compass"
+    assert INNOVATION_CONTRACT.stages[1].icon_key == "Filter"
+    assert INNOVATION_CONTRACT.stages[2].icon_key == "ShieldCheck"
+
+    # Research metadata
+    assert RESEARCH_CONTRACT.category == "RESEARCH"
+    assert "DSR-informed" in RESEARCH_CONTRACT.description
+    assert len(RESEARCH_CONTRACT.required_artifacts) > 0
+    assert RESEARCH_CONTRACT.stages[0].icon_key == "Search"
+    assert RESEARCH_CONTRACT.stages[1].icon_key == "FileSearch"
+    assert RESEARCH_CONTRACT.stages[2].icon_key == "BookOpen"
+
+
+def test_list_methodologies():
+    """Verify list_methodologies returns deduplicated metadata summaries."""
+    from contracts.methodology import list_methodologies
+
+    summaries = list_methodologies()
+    assert len(summaries) == 2
+    ids = {s["id"] for s in summaries}
+    assert ids == {"INNOVATION", "RESEARCH"}
+
+    inno = next(s for s in summaries if s["id"] == "INNOVATION")
+    assert inno["category"] == "INNOVATION"
+    assert inno["stage_count"] == 5
+    assert inno["gate_count"] == 3
+
+    res = next(s for s in summaries if s["id"] == "RESEARCH")
+    assert res["category"] == "RESEARCH"
+    assert res["stage_count"] == 6
+    assert res["gate_count"] == 4
+

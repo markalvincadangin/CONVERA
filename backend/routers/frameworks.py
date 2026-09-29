@@ -1,27 +1,30 @@
 """
-CONVERA Frameworks Router
-=========================
-Handles multi-framework discovery, specification retrieval, and criteria inspection.
+CONVERA Frameworks Router (Backward-Compatibility Layer)
+========================================================
+Governed by: CONVERA Concept Development Standard (CCDS v2.0)
+
+Backward-compatible endpoints for /api/frameworks, delegating directly
+to authoritative MethodologyContract instances.
 """
 
 from fastapi import APIRouter, HTTPException
 from typing import Dict, Any, List
 
-from engines.framework_engine import list_frameworks, get_framework
+from contracts.methodology import list_methodologies, get_methodology_contract
 
-router = APIRouter(prefix="/api/frameworks", tags=["Frameworks"])
+router = APIRouter(prefix="/api/frameworks", tags=["Frameworks (Compatibility)"])
 
 
 @router.get("")
 async def api_list_frameworks():
-    """List all registered CONVERA frameworks (Innovation, Research, Capstone, Product)."""
-    return {"frameworks": list_frameworks()}
+    """List all registered CONVERA frameworks (delegated to contracts.methodology)."""
+    return {"frameworks": list_methodologies()}
 
 
 @router.get("/{framework_id}")
 async def api_get_framework(framework_id: str):
     """Retrieve full specification, stages, activities, and gates for a framework."""
-    fw = get_framework(framework_id)
-    if not fw:
+    contract = get_methodology_contract(framework_id)
+    if not contract:
         raise HTTPException(status_code=404, detail=f"Framework '{framework_id}' not found")
-    return fw.model_dump()
+    return contract.model_dump()
