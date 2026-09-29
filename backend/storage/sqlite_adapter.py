@@ -712,6 +712,27 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                     duration_ms INTEGER,
                     FOREIGN KEY (integration_id) REFERENCES integration_registry(id) ON DELETE CASCADE
                 );
+
+                -- -----------------------------------------------------------
+                -- Research Orchestrator Events (SDD-013)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS orchestration_events (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    problem_id TEXT,
+                    framework_id TEXT NOT NULL,
+                    stage_id TEXT NOT NULL,
+                    event_type TEXT NOT NULL,
+                    payload TEXT NOT NULL,
+                    created_by TEXT DEFAULT 'system',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE SET NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_orch_events_session ON orchestration_events(session_id);
+                CREATE INDEX IF NOT EXISTS idx_orch_events_problem ON orchestration_events(problem_id);
+                CREATE INDEX IF NOT EXISTS idx_orch_events_stage ON orchestration_events(framework_id, stage_id);
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -5063,4 +5084,59 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 (integration_id, limit),
             ).fetchall()
             return [dict(r) for r in rows]
+
+    # ------------------------------------------------------------------
+    # Research Orchestrator Events (SDD-013)
+    # ------------------------------------------------------------------
+
+    def record_orchestration_event(self, event_data: Dict[str, Any]) -> str:
+        """Record an auditable orchestration event."""
+        event_id = event_data.get("id") or f"ORCH-EVT-{uuid.uuid4().hex[:16]}"
+        payload_data = event_data.get("payload")
+        if isinstance(payload_data, (dict, list)):
+            payload_str = json.dumps(payload_data)
+        elif payload_data is None:
+            payload_str = "{}"
+        else:
+            payload_str = str(payload_data)
+
+        created_at = event_data.get("created_at") or datetime.now(timezone.utc).isoformat()
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO orchestration_events (
+                    id, session_id, problem_id, framework_id, stage_id, event_type, payload, created_by, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                event_id,
+                event_data["session_id"],
+                event_data.get("problem_id"),
+                event_data.get("framework_id", "UNKNOWN"),
+                event_data.get("stage_id", "UNKNOWN"),
+                event_data["event_type"],
+                payload_str,
+                event_data.get("created_by", "system"),
+                created_at,
+            ))
+        return event_id
+
+    def get_orchestration_events(self, session_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Retrieve recent orchestration events for a research session."""
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT * FROM orchestration_events
+                WHERE session_id = ?
+                ORDER BY created_at DESC
+                LIMIT ?
+            """, (session_id, limit)).fetchall()
+            results = []
+            for r in rows:
+                d = dict(r)
+                if isinstance(d.get("payload"), str):
+                    try:
+                        d["payload"] = json.loads(d["payload"])
+                    except Exception:
+                        pass
+                results.append(d)
+            return results
 

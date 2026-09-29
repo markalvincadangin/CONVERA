@@ -414,3 +414,17 @@ class BaseStorageAdapter(ABC):
         """List synchronization history for an integration."""
         pass
 
+    # ------------------------------------------------------------------
+    # Research Orchestrator Events (SDD-013)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def record_orchestration_event(self, event_data: Dict[str, Any]) -> str:
+        """Record an auditable orchestration event."""
+        pass
+
+    @abstractmethod
+    def get_orchestration_events(self, session_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        """Retrieve recent orchestration events for a research session."""
+        pass
+
