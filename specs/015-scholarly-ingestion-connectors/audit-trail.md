@@ -32,8 +32,8 @@
 |:---|:---|:---|:---|
 | **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
 | **Phase 2: Execution** | Implementation Gate | 🟢 PASSED | Automated Test Suite (pytest, tsc, Next.js build) |
-| **Phase 3: Integration** | Merge Gate | 🟢 READY FOR MERGE TO `develop` | Engineering Review & Verification Protocol |
-| **Phase 4: Release** | Promotion Gate | ⚪ PENDING PROMOTION TO `main` | Full Regression & Architecture Review |
+| **Phase 3: Integration** | Merge Gate | 🟢 MERGED TO `develop` | Engineering Review & Verification Protocol |
+| **Phase 4: Release** | Promotion Gate | 🟢 PROMOTED TO `main` | Full Regression & Architecture Review |
 
 ---
 
@@ -43,7 +43,9 @@
 |:---|:---|:---|:---|
 | 2026-09-29T20:24:39+08:00 | `70a5ada` | `feature/015-scholarly-ingestion-connectors` | Branch created from `develop` (`70a5ada`). |
 | 2026-09-29T20:30:12+08:00 | `9ca4c91` | `feature/015-scholarly-ingestion-connectors` | Formulation of canonical 6-document SDD-015 specification dossier. |
-| 2026-09-29T20:41:00+08:00 | *Pending* | `feature/015-scholarly-ingestion-connectors` | Implementation of connectors, storage adapters, router, orchestrator action, and UI. |
+| 2026-09-29T20:41:00+08:00 | `b4f9e0a` | `feature/015-scholarly-ingestion-connectors` | Implementation of connectors, storage adapters, router, orchestrator action, and UI. |
+| 2026-09-29T21:05:00+08:00 | `a566859` | `develop` | Clean merge `--no-ff` of feature branch into `develop`. |
+| 2026-09-29T21:10:00+08:00 | `01018aa` | `main` | Promotion merge of `develop` into `main`. |
 
 ---
 
@@ -63,3 +65,11 @@
 - **Regression Suite**: `backend/.venv/bin/pytest backend/tests -m "not live"` (283 passed, 12 deselected, 0 failed).
 - **TypeScript Typecheck**: `npm run typecheck --prefix web` (0 errors).
 - **Next.js Production Build**: `npm run build --prefix web` (0 compile errors, 8/8 routes generated).
+
+### 4.3 Merge Gate Sign-Off
+- **Status**: 🟢 MERGED TO `develop`
+- **Scope**: Integrated `feature/015-scholarly-ingestion-connectors` into `develop` (`a566859`). All automated tests verified passing on `develop`.
+
+### 4.4 Promotion Gate Sign-Off
+- **Status**: 🟢 PROMOTED TO `main`
+- **Scope**: Promoted `develop` into `main` (`01018aa`). Full verification criteria satisfied with zero regression.

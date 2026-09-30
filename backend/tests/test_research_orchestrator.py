@@ -308,3 +308,86 @@ def test_orchestrator_fastapi_endpoints():
     assert events_data["status"] == "success"
     assert events_data["count"] >= 1
     assert len(events_data["events"]) >= 1
+
+
+@pytest.mark.asyncio
+async def test_wired_action_dispatches_coverage(
+    storage: SQLiteStorageAdapter, orchestrator: ResearchOrchestrator
+):
+    """Verify that all newly wired action dispatches execute safely and populate artifacts."""
+    created_prob = storage.add_problem({
+        "id": f"AGR-{uuid.uuid4().hex[:4].upper()}",
+        "problem_statement": "Post-harvest fish spoilage among artisanal fishermen in Estancia",
+        "sufferer_occupation": "Artisanal Fishermen",
+        "sufferer_location": "Estancia, Iloilo",
+        "workaround": "Crushed ice buckets",
+        "quantified_impact": "40% catch value lost per voyage",
+    })
+    prob_id = created_prob["id"]
+    session_id = f"sess_{uuid.uuid4().hex[:8]}"
+    storage.save_session(
+        session_id,
+        {
+            "project_name": "Wired Dispatch Session",
+            "framework_id": "INNOVATION",
+            "active_problem_id": prob_id,
+        },
+    )
+
+    # 1. CHALLENGE_ASSUMPTION dispatch
+    req_ca = OrchestrationActionDispatchRequest(
+        session_id=session_id,
+        problem_id=prob_id,
+        action_type=ActionType.CHALLENGE_ASSUMPTION,
+        target_engine="assumption_engine",
+        parameters={"mode": "COMMERCIAL"},
+    )
+    res_ca = await orchestrator.dispatch_action(req_ca)
+    assert res_ca.status in ("SUCCESS", "DEGRADED")
+    assert "claims" in res_ca.resulting_artifacts
+    assert "assumptions" in res_ca.resulting_artifacts
+
+    # 2. RESOLVE_CONTRADICTION dispatch (conflict analysis)
+    req_rc = OrchestrationActionDispatchRequest(
+        session_id=session_id,
+        problem_id=prob_id,
+        action_type=ActionType.RESOLVE_CONTRADICTION,
+        target_engine="contradiction_engine",
+        parameters={
+            "claim_id": "claim_fish_spoilage",
+            "claim_statement": "Crushed ice buckets fail to maintain 4C cold chain",
+            "supporting_sources": [{"id": "src_1", "title": "Field report on artisanal cold chain"}],
+            "contradicting_sources": [{"id": "src_2", "title": "Insulated ice container benchmark"}],
+        },
+    )
+    res_rc = await orchestrator.dispatch_action(req_rc)
+    assert res_rc.status == "SUCCESS"
+    assert "conflict_analysis" in res_rc.resulting_artifacts
+    assert res_rc.resulting_artifacts["conflict_analysis"]["status"] == "CONTESTED"
+
+    # 3. GENERATE_STAGE_DELIVERABLE dispatch (Lean Canvas)
+    req_gd = OrchestrationActionDispatchRequest(
+        session_id=session_id,
+        problem_id=prob_id,
+        action_type=ActionType.GENERATE_STAGE_DELIVERABLE,
+        target_engine="deliverables_generator",
+        parameters={"deliverable_type": "LEAN_CANVAS"},
+    )
+    res_gd = await orchestrator.dispatch_action(req_gd)
+    assert res_gd.status in ("SUCCESS", "DEGRADED")
+    assert "lean_canvas" in res_gd.resulting_artifacts or "fallback_brief" in res_gd.resulting_artifacts
+
+    # 4. FORMULATE_DECISION dispatch
+    req_fd = OrchestrationActionDispatchRequest(
+        session_id=session_id,
+        problem_id=prob_id,
+        action_type=ActionType.FORMULATE_DECISION,
+        target_engine="decision_engine",
+        parameters={"candidate_ids": [prob_id]},
+    )
+    res_fd = await orchestrator.dispatch_action(req_fd)
+    assert res_fd.status in ("SUCCESS", "DEGRADED")
+    assert "decision_room" in res_fd.resulting_artifacts
+    dr = res_fd.resulting_artifacts["decision_room"]
+    assert dr.get("recommended_winner_id") == prob_id
+
