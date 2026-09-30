@@ -438,3 +438,33 @@ class BaseStorageAdapter(ABC):
         """Retrieve recent orchestration events for a research session."""
         pass
 
+    # ------------------------------------------------------------------
+    # DSR Artifacts & Ideation (SDD-016)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def create_dsr_artifact(self, artifact_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Create a candidate DSR artifact (Construct, Model, Method, Instantiation)."""
+        pass
+
+    @abstractmethod
+    def get_dsr_artifact(self, artifact_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a specific DSR artifact by ID."""
+        pass
+
+    @abstractmethod
+    def list_dsr_artifacts(self, problem_id: str, dsr_class: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List all DSR artifacts for a problem, optionally filtered by class."""
+        pass
+
+    @abstractmethod
+    def update_dsr_artifact(self, artifact_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Update fields or lifecycle status of a DSR artifact."""
+        pass
+
+    @abstractmethod
+    def delete_dsr_artifact(self, artifact_id: str) -> bool:
+        """Delete a DSR artifact by ID."""
+        pass
+
+
