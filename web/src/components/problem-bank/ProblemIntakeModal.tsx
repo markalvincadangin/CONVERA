@@ -264,7 +264,7 @@ export const ProblemIntakeModal: React.FC<ProblemIntakeModalProps> = ({
         {/* ========================================================= */}
         {/* TAB 2: Notes Import View (when active and not in review)  */}
         {/* ========================================================= */}
-        {activeTab === "notes" && !isReviewingDraft ? (
+        {activeTab === "notes" && !isReviewingDraft && (
           <div className="space-y-3">
             <div className="p-3.5 bg-slate-950 rounded-2xl border border-slate-800 space-y-1">
               <div className="flex items-center gap-2">
@@ -325,10 +325,12 @@ export const ProblemIntakeModal: React.FC<ProblemIntakeModalProps> = ({
               </div>
             </div>
           </div>
-        ) : (
-          /* ========================================================= */
-          /* MANUAL ENTRY & MANDATORY HUMAN REVIEW FORM                */
-          /* ========================================================= */
+        )}
+
+        {/* ========================================================= */}
+        {/* MANUAL ENTRY & MANDATORY HUMAN REVIEW FORM                */}
+        {/* ========================================================= */}
+        {(activeTab === "manual" || isReviewingDraft) && (
           <form onSubmit={handleSave} className="space-y-4">
             {/* Review Draft Banner (shown only if populated via AI note extraction) */}
             {isReviewingDraft && (

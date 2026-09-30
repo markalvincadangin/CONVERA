@@ -106,6 +106,10 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
       toast.success(`Loaded "${prob.id}" and generating Literature Matrix...`, "Stage C Lit Matrix");
     } else if (currentPhaseId === "D") {
       toast.success(`Loaded "${prob.id}" into Stage D 4-Quadrant DSR Matrix!`, "Stage D Anchor Set");
+    } else if (currentPhaseId === "E") {
+      toast.success(`Loaded "${prob.id}" into Stage E Concept Evaluation & Circumscription!`, "Stage E Anchor Set");
+    } else if (currentPhaseId === "F") {
+      toast.success(`Loaded "${prob.id}" into Stage F Living Proposal Canvas & Feasibility!`, "Stage F Anchor Set");
     }
   };
 
