@@ -467,4 +467,23 @@ class BaseStorageAdapter(ABC):
         """Delete a DSR artifact by ID."""
         pass
 
+    # ------------------------------------------------------------------
+    # Concept Evaluation Framework (SDD-017)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def save_concept_evaluation(self, evaluation_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Save a concept evaluation record (deterministic, AI critic, or human review)."""
+        pass
+
+    @abstractmethod
+    def get_concept_evaluation(self, evaluation_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a specific concept evaluation record by ID."""
+        pass
+
+    @abstractmethod
+    def list_concept_evaluations(self, concept_id: Optional[str] = None, session_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List concept evaluations filtered by concept_id and/or session_id."""
+        pass
+
 

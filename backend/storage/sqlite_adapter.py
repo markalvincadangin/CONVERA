@@ -762,6 +762,29 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_dsr_artifacts_problem ON dsr_artifacts(problem_id);
                 CREATE INDEX IF NOT EXISTS idx_dsr_artifacts_class ON dsr_artifacts(dsr_class);
                 CREATE INDEX IF NOT EXISTS idx_dsr_artifacts_status ON dsr_artifacts(status);
+
+                -- -----------------------------------------------------------
+                -- Concept Evaluation Framework (SDD-017 / Table 34)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS concept_evaluations (
+                    id TEXT PRIMARY KEY,
+                    concept_id TEXT NOT NULL,
+                    session_id TEXT,
+                    evaluator_type TEXT NOT NULL CHECK(evaluator_type IN ('DETERMINISTIC_RUBRIC', 'AI_CRITIC', 'HUMAN_EXPERT')),
+                    composite_score REAL NOT NULL,
+                    dimension_scores TEXT NOT NULL,
+                    strengths TEXT NOT NULL,
+                    vulnerabilities TEXT NOT NULL,
+                    falsification_advisory TEXT,
+                    recommendation TEXT NOT NULL CHECK(recommendation IN ('RECOMMENDED', 'VIABLE_WITH_REFINEMENT', 'HIGH_RISK_REVISE', 'REJECT')),
+                    narrative_summary TEXT,
+                    is_degraded INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_concept_evals_concept ON concept_evaluations(concept_id);
+                CREATE INDEX IF NOT EXISTS idx_concept_evals_session ON concept_evaluations(session_id);
+                CREATE INDEX IF NOT EXISTS idx_concept_evals_rec ON concept_evaluations(recommendation);
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -5351,4 +5374,97 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         with self._get_connection() as conn:
             cur = conn.execute("DELETE FROM dsr_artifacts WHERE id = ?", (artifact_id,))
             return cur.rowcount > 0
+
+    # ------------------------------------------------------------------
+    # Concept Evaluation Framework (SDD-017)
+    # ------------------------------------------------------------------
+
+    def _deserialize_concept_evaluation(self, row: Any) -> Dict[str, Any]:
+        data = dict(row)
+        for json_col in ("dimension_scores", "strengths", "vulnerabilities"):
+            val = data.get(json_col)
+            if isinstance(val, str):
+                try:
+                    data[json_col] = json.loads(val)
+                except Exception:
+                    data[json_col] = {} if json_col == "dimension_scores" else []
+            elif val is None:
+                data[json_col] = {} if json_col == "dimension_scores" else []
+        data["is_degraded"] = bool(data.get("is_degraded", 0))
+        return data
+
+    def save_concept_evaluation(self, evaluation_data: Dict[str, Any]) -> Dict[str, Any]:
+        data = dict(evaluation_data)
+        eval_id = data.get("id") or f"EVAL-{uuid.uuid4().hex[:12].upper()}"
+        concept_id = data["concept_id"]
+        session_id = data.get("session_id")
+        evaluator_type = data.get("evaluator_type", "DETERMINISTIC_RUBRIC")
+        composite_score = float(data.get("composite_score", 0.0))
+        dim_scores = data.get("dimension_scores") or {}
+        dim_scores_json = json.dumps(dim_scores) if not isinstance(dim_scores, str) else dim_scores
+        strengths = data.get("strengths") or []
+        strengths_json = json.dumps(strengths) if not isinstance(strengths, str) else strengths
+        vulnerabilities = data.get("vulnerabilities") or []
+        vulnerabilities_json = json.dumps(vulnerabilities) if not isinstance(vulnerabilities, str) else vulnerabilities
+        falsification_advisory = data.get("falsification_advisory")
+        recommendation = data.get("recommendation", "VIABLE_WITH_REFINEMENT")
+        narrative_summary = data.get("narrative_summary")
+        is_degraded = 1 if data.get("is_degraded") else 0
+        now = datetime.now(timezone.utc).isoformat()
+        created_at = data.get("created_at") or now
+
+        query = """
+            INSERT INTO concept_evaluations (
+                id, concept_id, session_id, evaluator_type, composite_score,
+                dimension_scores, strengths, vulnerabilities, falsification_advisory,
+                recommendation, narrative_summary, is_degraded, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                evaluator_type = excluded.evaluator_type,
+                composite_score = excluded.composite_score,
+                dimension_scores = excluded.dimension_scores,
+                strengths = excluded.strengths,
+                vulnerabilities = excluded.vulnerabilities,
+                falsification_advisory = excluded.falsification_advisory,
+                recommendation = excluded.recommendation,
+                narrative_summary = excluded.narrative_summary,
+                is_degraded = excluded.is_degraded
+        """
+        with self._get_connection() as conn:
+            conn.execute(query, (
+                eval_id, concept_id, session_id, evaluator_type, composite_score,
+                dim_scores_json, strengths_json, vulnerabilities_json, falsification_advisory,
+                recommendation, narrative_summary, is_degraded, created_at
+            ))
+
+        return self.get_concept_evaluation(eval_id) or data
+
+    def get_concept_evaluation(self, evaluation_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM concept_evaluations WHERE id = ?",
+                (evaluation_id,)
+            ).fetchone()
+            if not row:
+                return None
+            return self._deserialize_concept_evaluation(row)
+
+    def list_concept_evaluations(
+        self,
+        concept_id: Optional[str] = None,
+        session_id: Optional[str] = None,
+    ) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM concept_evaluations WHERE 1=1"
+        params: List[Any] = []
+        if concept_id:
+            query += " AND concept_id = ?"
+            params.append(concept_id)
+        if session_id:
+            query += " AND session_id = ?"
+            params.append(session_id)
+        query += " ORDER BY created_at DESC"
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            return [self._deserialize_concept_evaluation(r) for r in rows]
 

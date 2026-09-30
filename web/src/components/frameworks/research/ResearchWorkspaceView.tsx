@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { LiteratureMatrixTable, LiteratureRow, ResearchGapItem } from "@/components/research/LiteratureMatrixTable";
 import { DSRArtifactCanvas } from "@/components/research/DSRArtifactCanvas";
+import { ConceptEvaluationView } from "@/components/research/evaluation/ConceptEvaluationView";
 import { UnknownsMap } from "@/components/knowledge/UnknownsMap";
 import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
 import { GateReviewModal } from "@/components/frameworks/research/GateReviewModal";
@@ -871,37 +872,12 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
         {/* PHASE E */}
         {currentPhaseId === "E" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                  <FlaskConical className="w-4 h-4" />
-                  Phase E: Trapping Phase &amp; Kothari Experimental Designs
-                </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-indigo-950 text-indigo-300 border border-indigo-800">
-                  Gate 3: Evaluation Rigor
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Design a controlled evaluation setup to trap the phenomenon (Cialdini) and measure treatment effects against baselines.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-                  <span className="text-xs font-bold text-slate-200">CRD (Completely Randomized)</span>
-                  <p className="text-xs text-slate-400 mt-1">Homogeneous synthetic bench testing across varying hyperparameters.</p>
-                </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-                  <span className="text-xs font-bold text-slate-200">RBD (Randomized Block)</span>
-                  <p className="text-xs text-slate-400 mt-1">Blocking by hardware specs (Raspberry Pi vs Jetson Nano vs Server).</p>
-                </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4">
-                  <span className="text-xs font-bold text-slate-200">Latin Square</span>
-                  <p className="text-xs text-slate-400 mt-1">Two-factor environmental blocking (e.g. lighting conditions &times; device battery level).</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <ConceptEvaluationView
+            sessionId={session?.session_id}
+            problemId={selectedAnchorId || problems[0]?.id || "PROB-01"}
+            problemStatement={session?.problem_statement}
+            onAdvanceGate3={() => setActiveGateModal("GATE_3")}
+          />
         )}
 
         {/* PHASE F */}
