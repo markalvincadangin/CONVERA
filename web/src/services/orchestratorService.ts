@@ -19,7 +19,8 @@ export type ActionType =
   | "EXECUTE_CRITIQUE"
   | "FORMULATE_DECISION"
   | "GENERATE_STAGE_DELIVERABLE"
-  | "REQUEST_GATE_REVIEW";
+  | "REQUEST_GATE_REVIEW"
+  | "FORMULATE_DSR_ARTIFACT";
 
 export interface RecommendedAction {
   action_id: string;

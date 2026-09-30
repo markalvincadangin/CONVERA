@@ -24,6 +24,7 @@ import {
   ShieldAlert
 } from "lucide-react";
 import { LiteratureMatrixTable, LiteratureRow, ResearchGapItem } from "@/components/research/LiteratureMatrixTable";
+import { DSRArtifactCanvas } from "@/components/research/DSRArtifactCanvas";
 import { UnknownsMap } from "@/components/knowledge/UnknownsMap";
 import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
 import { GateReviewModal } from "@/components/frameworks/research/GateReviewModal";
@@ -101,6 +102,8 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
       setSearchQuery(prob.problem_statement);
       fetchMatrix(prob.problem_statement);
       toast.success(`Loaded "${prob.id}" and generating Literature Matrix...`, "Stage C Lit Matrix");
+    } else if (currentPhaseId === "D") {
+      toast.success(`Loaded "${prob.id}" into Stage D 4-Quadrant DSR Matrix!`, "Stage D Anchor Set");
     }
   };
 
@@ -859,40 +862,11 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
         {/* PHASE D */}
         {currentPhaseId === "D" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                <Layers className="w-4 h-4" />
-                Phase D: Solution Formulation &amp; 4 DSR Artifact Types (March &amp; Smith)
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Design Science Research (DSR) creates artifacts in the Sciences of the Artificial. Classify your proposed contribution into one of the four foundational DSR artifact classes:
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2">
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-1">
-                  <span className="text-xs font-bold text-indigo-400 font-mono">1. CONSTRUCT</span>
-                  <div className="text-xs text-slate-300 font-medium">Vocabulary &amp; Concepts</div>
-                  <p className="text-[11px] text-slate-500 mt-1">Formal ontology, taxonomy, or domain representations.</p>
-                </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-1">
-                  <span className="text-xs font-bold text-cyan-400 font-mono">2. MODEL</span>
-                  <div className="text-xs text-slate-300 font-medium">Propositions &amp; Graphs</div>
-                  <p className="text-[11px] text-slate-500 mt-1">Mathematical equations, state machines, or causal loops.</p>
-                </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-1">
-                  <span className="text-xs font-bold text-emerald-400 font-mono">3. METHOD</span>
-                  <div className="text-xs text-slate-300 font-medium">Algorithms &amp; Pipelines</div>
-                  <p className="text-[11px] text-slate-500 mt-1">Step-by-step mathematical procedures or optimization heuristics.</p>
-                </div>
-                <div className="rounded-xl border border-slate-800 bg-slate-950 p-4 space-y-1">
-                  <span className="text-xs font-bold text-amber-400 font-mono">4. INSTANTIATION</span>
-                  <div className="text-xs text-slate-300 font-medium">Physical System Artifact</div>
-                  <p className="text-[11px] text-slate-500 mt-1">Working prototype, IoT sensor array, or embedded firmware.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          <DSRArtifactCanvas
+            problemId={selectedAnchorId || problems[0]?.id || "PROB-01"}
+            sessionId={session?.session_id}
+            problemStatement={session?.problem_statement}
+          />
         )}
 
         {/* PHASE E */}
