@@ -83,7 +83,7 @@ class ResearchOrchestrator:
 
         # Resolve Current Stage
         stage_progress = session.get("stage_progress") or state_data.get("stage_progress") or {}
-        current_stage_id = stage_progress.get("current_stage_id") or session.get("current_stage_id")
+        current_stage_id = stage_progress.get("current_stage_id") or session.get("current_stage_id") or state_data.get("current_stage_id")
         if not current_stage_id or not contract.has_stage(current_stage_id):
             non_terminal = [s for s in contract.stage_sequence if s != "studio"]
             current_stage_id = non_terminal[0] if non_terminal else "studio"
@@ -449,6 +449,27 @@ class ResearchOrchestrator:
                 suggested_payload={"query": problem.get("problem_statement", "")[:100]},
             ))
 
+        if problem and ("formulation" in stage_status.stage_id.lower() or stage_status.stage_id in ("stage_d_formulation", "phase4", "phase_d")):
+            try:
+                dsr_artifacts = self.storage.list_dsr_artifacts(problem["id"])
+                selected_dsr = [a for a in dsr_artifacts if a.get("status") == "SELECTED"]
+                if not selected_dsr:
+                    recs.append(RecommendedAction(
+                        action_id=f"act-dsr-{uuid.uuid4().hex[:8]}",
+                        action_type=ActionType.FORMULATE_DSR_ARTIFACT,
+                        title="Formulate Candidate DSR Artifacts (4 Classes)",
+                        description="Phase D requires at least one selected, grounded DSR artifact (Construct, Model, Method, or Instantiation) anchored to a Kernel Theory and simpler baseline alternative.",
+                        priority=ActionPriority.HIGH,
+                        blocking_stage_progression=True,
+                        target_engine="ideation_engine",
+                        suggested_payload={
+                            "problem_id": problem["id"],
+                            "classes": ["CONSTRUCT", "MODEL", "METHOD", "INSTANTIATION"],
+                        },
+                    ))
+            except Exception as e:
+                logger.warning(f"Failed to check DSR artifacts for recommendations: {e}")
+
         # -------------------------------------------------------------
         # Priority 3: MEDIUM
         # -------------------------------------------------------------
@@ -683,6 +704,21 @@ class ResearchOrchestrator:
             resulting_artifacts["literature_matrix"] = matrix_entries
             summary = f"Synthesized literature comparison matrix with {len(matrix_entries)} candidate papers."
 
+        elif action_type == ActionType.FORMULATE_DSR_ARTIFACT:
+            from engines.ideation_engine import IdeationEngine
+            prob_id = params.get("problem_id") or (problem.get("id") if problem else None)
+            if not prob_id:
+                raise ValueError("FORMULATE_DSR_ARTIFACT requires a valid problem_id.")
+            engine = IdeationEngine(storage=self.storage)
+            gen_res = await engine.generate_dsr_candidates(
+                problem_id=prob_id,
+                session_id=session_id,
+                classes=params.get("classes"),
+                prompt_guidance=params.get("prompt_guidance"),
+                max_candidates_per_class=int(params.get("max_candidates_per_class", 1)),
+            )
+            resulting_artifacts = gen_res
+            summary = f"Formulated {gen_res.get('total_generated', 0)} DSR artifact candidates across classes for problem '{prob_id}'."
 
         elif action_type == ActionType.REQUEST_GATE_REVIEW:
             summary = (

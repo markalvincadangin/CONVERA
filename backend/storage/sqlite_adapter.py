@@ -733,6 +733,35 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_orch_events_session ON orchestration_events(session_id);
                 CREATE INDEX IF NOT EXISTS idx_orch_events_problem ON orchestration_events(problem_id);
                 CREATE INDEX IF NOT EXISTS idx_orch_events_stage ON orchestration_events(framework_id, stage_id);
+
+                -- -----------------------------------------------------------
+                -- DSR Artifacts & Ideation (SDD-016)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS dsr_artifacts (
+                    id TEXT PRIMARY KEY,
+                    problem_id TEXT NOT NULL,
+                    session_id TEXT,
+                    title TEXT NOT NULL,
+                    dsr_class TEXT NOT NULL CHECK(dsr_class IN ('CONSTRUCT', 'MODEL', 'METHOD', 'INSTANTIATION')),
+                    description TEXT NOT NULL,
+                    kernel_theory TEXT NOT NULL,
+                    targeted_gap_ids TEXT DEFAULT '[]',
+                    linked_claim_ids TEXT DEFAULT '[]',
+                    formal_specification TEXT,
+                    simpler_baseline_alternative TEXT,
+                    contextual_constraints TEXT DEFAULT '[]',
+                    feasibility_score REAL DEFAULT 0.50,
+                    novelty_score REAL DEFAULT 0.50,
+                    status TEXT DEFAULT 'PROPOSED' CHECK(status IN ('PROPOSED', 'SELECTED', 'REFUTED', 'ARCHIVED')),
+                    provenance TEXT DEFAULT '{}',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (problem_id) REFERENCES problems(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_dsr_artifacts_problem ON dsr_artifacts(problem_id);
+                CREATE INDEX IF NOT EXISTS idx_dsr_artifacts_class ON dsr_artifacts(dsr_class);
+                CREATE INDEX IF NOT EXISTS idx_dsr_artifacts_status ON dsr_artifacts(status);
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -5200,4 +5229,126 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                         pass
                 results.append(d)
             return results
+
+    # ------------------------------------------------------------------
+    # DSR Artifacts & Ideation (SDD-016)
+    # ------------------------------------------------------------------
+
+    def _deserialize_dsr_artifact(self, row: sqlite3.Row) -> Dict[str, Any]:
+        d = dict(row)
+        for col in ("targeted_gap_ids", "linked_claim_ids", "contextual_constraints"):
+            if isinstance(d.get(col), str):
+                try:
+                    d[col] = json.loads(d[col])
+                except Exception:
+                    d[col] = []
+            elif d.get(col) is None:
+                d[col] = []
+        if isinstance(d.get("provenance"), str):
+            try:
+                d["provenance"] = json.loads(d["provenance"])
+            except Exception:
+                d["provenance"] = {}
+        elif d.get("provenance") is None:
+            d["provenance"] = {}
+        return d
+
+    def create_dsr_artifact(self, artifact_data: Dict[str, Any]) -> Dict[str, Any]:
+        artifact_id = artifact_data.get("id") or f"ART-{uuid.uuid4().hex[:12].upper()}"
+        now = datetime.now(timezone.utc).isoformat()
+        
+        targeted_gaps = artifact_data.get("targeted_gap_ids") or []
+        linked_claims = artifact_data.get("linked_claim_ids") or []
+        constraints = artifact_data.get("contextual_constraints") or []
+        provenance = artifact_data.get("provenance") or {}
+
+        with self._get_connection() as conn:
+            conn.execute("""
+                INSERT INTO dsr_artifacts (
+                    id, problem_id, session_id, title, dsr_class, description,
+                    kernel_theory, targeted_gap_ids, linked_claim_ids, formal_specification,
+                    simpler_baseline_alternative, contextual_constraints, feasibility_score,
+                    novelty_score, status, provenance, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                artifact_id,
+                artifact_data["problem_id"],
+                artifact_data.get("session_id"),
+                artifact_data["title"],
+                artifact_data["dsr_class"],
+                artifact_data["description"],
+                artifact_data["kernel_theory"],
+                json.dumps(targeted_gaps),
+                json.dumps(linked_claims),
+                artifact_data.get("formal_specification"),
+                artifact_data.get("simpler_baseline_alternative"),
+                json.dumps(constraints),
+                artifact_data.get("feasibility_score", 0.50),
+                artifact_data.get("novelty_score", 0.50),
+                artifact_data.get("status", "PROPOSED"),
+                json.dumps(provenance),
+                artifact_data.get("created_at") or now,
+                artifact_data.get("updated_at") or now,
+            ))
+        return self.get_dsr_artifact(artifact_id)  # type: ignore
+
+    def get_dsr_artifact(self, artifact_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute("SELECT * FROM dsr_artifacts WHERE id = ?", (artifact_id,)).fetchone()
+            if not row:
+                return None
+            return self._deserialize_dsr_artifact(row)
+
+    def list_dsr_artifacts(self, problem_id: str, dsr_class: Optional[str] = None) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            if dsr_class:
+                rows = conn.execute(
+                    "SELECT * FROM dsr_artifacts WHERE problem_id = ? AND dsr_class = ? ORDER BY created_at ASC",
+                    (problem_id, dsr_class)
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT * FROM dsr_artifacts WHERE problem_id = ? ORDER BY created_at ASC",
+                    (problem_id,)
+                ).fetchall()
+            return [self._deserialize_dsr_artifact(r) for r in rows]
+
+    def update_dsr_artifact(self, artifact_id: str, updates: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        current = self.get_dsr_artifact(artifact_id)
+        if not current:
+            return None
+
+        allowed_fields = [
+            "title", "description", "kernel_theory", "formal_specification",
+            "simpler_baseline_alternative", "feasibility_score", "novelty_score",
+            "status", "targeted_gap_ids", "linked_claim_ids", "contextual_constraints", "provenance"
+        ]
+        set_clauses = []
+        values = []
+        for field in allowed_fields:
+            if field in updates:
+                val = updates[field]
+                if field in ("targeted_gap_ids", "linked_claim_ids", "contextual_constraints", "provenance"):
+                    val = json.dumps(val) if val is not None else ("{}" if field == "provenance" else "[]")
+                set_clauses.append(f"{field} = ?")
+                values.append(val)
+
+        if not set_clauses:
+            return current
+
+        now = datetime.now(timezone.utc).isoformat()
+        set_clauses.append("updated_at = ?")
+        values.append(now)
+        values.append(artifact_id)
+
+        query = f"UPDATE dsr_artifacts SET {', '.join(set_clauses)} WHERE id = ?"
+        with self._get_connection() as conn:
+            conn.execute(query, tuple(values))
+
+        return self.get_dsr_artifact(artifact_id)
+
+    def delete_dsr_artifact(self, artifact_id: str) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute("DELETE FROM dsr_artifacts WHERE id = ?", (artifact_id,))
+            return cur.rowcount > 0
 
