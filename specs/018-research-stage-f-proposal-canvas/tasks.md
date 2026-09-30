@@ -39,7 +39,7 @@
 ## 2. Atomic Task Breakdown
 
 ### `TASK-018-01`: Relational Schema & Storage Adapter (`research_feasibility_records`)
-- **Status**: ⏳ PENDING
+- **Status**: ✅ COMPLETED
 - **Target Files**:
   - `backend/storage/base.py`
   - `backend/storage/sqlite_adapter.py`
@@ -55,7 +55,7 @@
 ---
 
 ### `TASK-018-02`: Pydantic Models & Feasibility Engine (`FeasibilityEngine`)
-- **Status**: ⏳ PENDING
+- **Status**: ✅ COMPLETED
 - **Target Files**:
   - `backend/models/feasibility.py`
   - `backend/engines/feasibility_engine.py`
@@ -73,7 +73,7 @@
 ---
 
 ### `TASK-018-03`: Dynamic Proposal Exporter Upgrade (`ProposalExporter`)
-- **Status**: ⏳ PENDING
+- **Status**: ✅ COMPLETED
 - **Target Files**:
   - `backend/engines/proposal_exporter.py`
 - **Actions**:
@@ -89,7 +89,7 @@
 ---
 
 ### `TASK-018-04`: API Router & Orchestrator Action Dispatch
-- **Status**: ⏳ PENDING
+- **Status**: ✅ COMPLETED
 - **Target Files**:
   - `backend/routers/feasibility.py`
   - `backend/models/orchestrator.py`
@@ -112,7 +112,7 @@
 ---
 
 ### `TASK-018-05`: Frontend Service & TypeScript Contracts
-- **Status**: ⏳ PENDING
+- **Status**: ✅ COMPLETED
 - **Target Files**:
   - `web/src/services/feasibilityService.ts`
   - `web/src/types/index.ts` (if applicable)
@@ -129,7 +129,7 @@
 ---
 
 ### `TASK-018-06`: StageFFeasibilityView Interactive UI & Workspace Mounting
-- **Status**: ⏳ PENDING
+- **Status**: ✅ COMPLETED
 - **Target Files**:
   - `web/src/components/research/feasibility/StageFFeasibilityView.tsx`
   - `web/src/components/frameworks/research/ResearchWorkspaceView.tsx`
@@ -146,7 +146,7 @@
 ---
 
 ### `TASK-018-07`: Test Suite, Full Regression & Graphify Sync
-- **Status**: ⏳ PENDING
+- **Status**: ✅ COMPLETED
 - **Target Files**:
   - `backend/tests/test_feasibility_engine.py`
 - **Actions**:
@@ -160,4 +160,4 @@
   3. Run full offline regression suite: `PYTHONPATH=backend backend/.venv/bin/pytest backend/tests/ -m "not live"`.
   4. Run frontend verification: `npm run typecheck --prefix web` and `npm run build --prefix web`.
   5. Run `graphify update .` to synchronize knowledge graph.
-- **Verification**: 100% test pass rate, 0 type errors, clean Next.js build, updated knowledge graph.
+- **Verification**: 100% test pass rate (303/303 backend tests passed), 0 type errors, clean Next.js build, updated knowledge graph.

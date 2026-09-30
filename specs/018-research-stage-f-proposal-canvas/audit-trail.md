@@ -30,9 +30,9 @@
 
 | Life Cycle Phase | Gate Name | Target Status | Approval Authority |
 |:---|:---|:---|:---|
-| **Phase 1: Formulation** | Specification Gate | 🟡 DRAFT / FORMULATED | Human Lead Researcher / Architect |
-| **Phase 2: Execution** | Implementation Gate | ⏳ PENDING RATIFICATION | Automated Test Suite (pytest, tsc, Next.js build) |
-| **Phase 3: Integration** | Merge Gate | ⏳ PENDING | Engineering Verification Protocol & Closed-Loop Regression |
+| **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
+| **Phase 2: Execution** | Implementation Gate | 🟢 RATIFIED | Automated Test Suite (pytest, tsc, Next.js build) |
+| **Phase 3: Integration** | Merge Gate | 🟢 READY | Engineering Verification Protocol & Closed-Loop Regression |
 | **Phase 4: Release** | Promotion Gate | ⏳ PENDING | Full Regression Passed (`feature` -> `develop` -> `main`) |
 
 ---
@@ -42,17 +42,41 @@
 | Date / Timestamp | Git Commit SHA | Branch | Event Description |
 |:---|:---|:---|:---|
 | 2026-09-30T22:07:58+08:00 | `d34203f` | `feature/018-research-stage-f-proposal-canvas` | Feature branch created from updated `develop` (`d34203f`). |
-| 2026-09-30T22:10:00+08:00 | *Pending* | `feature/018-research-stage-f-proposal-canvas` | Formulation of canonical 6-document SDD-018 specification dossier. |
+| 2026-09-30T22:12:56+08:00 | `ded02c1` | `feature/018-research-stage-f-proposal-canvas` | Formulation of canonical 6-document SDD-018 specification dossier. |
+| 2026-09-30T22:13:00+08:00 | `ded02c1` | `feature/018-research-stage-f-proposal-canvas` | Implementation authorized by Human Leadership ("proceed" / "continue"). |
+| 2026-09-30T22:31:00+08:00 | Pending | `feature/018-research-stage-f-proposal-canvas` | Completed implementation of Stage F & Gate 4 Proposal Canvas (TASK-018-01 - 07). |
 
 ---
 
 ## 4. Ratification Log & Sign-Offs
 
 ### 4.1 Specification Formulation Sign-Off
-- **Status**: 🟡 DRAFT / AWAITING HUMAN RATIFICATION
+- **Status**: 🟢 RATIFIED
 - **Scope**: Formulation of `spec.md`, `plan.md`, `data-model.md`, `checklist.md`, `tasks.md`, `audit-trail.md` under `specs/018-research-stage-f-proposal-canvas/`.
 - **Invariants Assessed**:
   - `INV-018-01` (Article VII Anti-Creep Law): 0 new third-party packages in pyproject.toml or package.json.
   - `INV-018-02` (Article II Tri-Part Confidence): Deterministic compliance and budget math; AI commentary is advisory.
   - `INV-018-03` (Article IV Human Sovereignty): Formal Gate 4 defense clearance requires explicit attributable human mentor sign-off (`mentor_signoffs`).
   - `INV-018-04` (Article VIII Degraded Resilience): Deterministic offline fallback supported for proposal compilation and checklist audits.
+
+### 4.2 Implementation Authorization Sign-Off
+- **Status**: 🟢 AUTHORIZED
+- **Authority**: Human Lead Researcher / Architect
+- **Timestamp**: 2026-09-30T22:13:00+08:00
+- **Scope**: Execution of TASK-018-01 through TASK-018-07.
+
+### 4.3 Implementation Verification & Closed-Loop Quality Ratification
+- **Status**: 🟢 RATIFIED
+- **Timestamp**: 2026-09-30T22:31:00+08:00
+- **Test Results**:
+  - `backend/tests/test_feasibility_engine.py`: 6/6 passed (100%).
+  - Full backend offline regression suite: 303/303 passed, 0 failed (100%).
+  - Frontend typecheck (`npm run typecheck --prefix web`): 0 errors.
+  - Frontend production build (`npm run build --prefix web`): 8/8 routes generated cleanly.
+  - Knowledge graph update (`graphify update .`): 7,181 nodes, 10,505 edges, 543 communities synced.
+- **Constitutional Invariant Verification**:
+  - `INV-018-01` (Article VII Anti-Creep Law): VERIFIED. Neither `backend/pyproject.toml` nor `web/package.json` was altered.
+  - `INV-018-02` (Article II Tri-Part Confidence): VERIFIED. Scoring formula $0.35 \times C + 0.25 \times A + 0.25 \times B + 0.15 \times T$ is strictly deterministic.
+  - `INV-018-03` (Article IV Human Sovereignty): VERIFIED. Gate 4 defense clearance requires explicit human mentor submission (`mentor_signoffs`).
+  - `INV-018-04` (Article VIII Degraded Resilience): VERIFIED. Feasibility evaluation and proposal compilation execute seamlessly without active LLM credentials with `is_degraded = True`.
+

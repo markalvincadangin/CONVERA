@@ -503,6 +503,48 @@ class ResearchOrchestrator:
             except Exception as e:
                 logger.warning(f"Failed to check concept evaluations for recommendations: {e}")
 
+        if (
+            "feasibility" in stage_status.stage_id.lower()
+            or "canvas" in stage_status.stage_id.lower()
+            or stage_status.stage_id in ("stage_f_canvas", "phase6", "phase_f", "stage_f_feasibility")
+        ):
+            try:
+                feasibility_rec = (
+                    self.storage.get_feasibility_record(session_id)
+                    if (session_id and hasattr(self.storage, "get_feasibility_record"))
+                    else None
+                )
+                if not feasibility_rec:
+                    recs.append(RecommendedAction(
+                        action_id=f"act-feas-{uuid.uuid4().hex[:8]}",
+                        action_type=ActionType.AUDIT_COMPLIANCE_FEASIBILITY,
+                        title="Audit Regulatory Compliance & Resource Feasibility",
+                        description="Stage F requires evaluating RA 10173 data privacy compliance, IRB clearance tier, SDG alignments, and resource budget prior to Gate 4 defense sign-off.",
+                        priority=ActionPriority.HIGH,
+                        blocking_stage_progression=True,
+                        target_engine="feasibility_engine",
+                        suggested_payload={
+                            "session_id": session_id,
+                            "project_id": (problem or {}).get("project_id", "default_proj"),
+                        },
+                    ))
+                else:
+                    recs.append(RecommendedAction(
+                        action_id=f"act-prop-{uuid.uuid4().hex[:8]}",
+                        action_type=ActionType.COMPILE_PROPOSAL_CANVAS,
+                        title="Compile Publication-Ready DSR Proposal Canvas",
+                        description="Synthesize live project records from Stages A-F into a publication-grade DSR Capstone / Thesis Monograph.",
+                        priority=ActionPriority.HIGH,
+                        blocking_stage_progression=False,
+                        target_engine="proposal_exporter",
+                        suggested_payload={
+                            "session_id": session_id,
+                            "project_id": (problem or {}).get("project_id", "default_proj"),
+                        },
+                    ))
+            except Exception as e:
+                logger.warning(f"Failed to check feasibility record for recommendations: {e}")
+
         # -------------------------------------------------------------
         # Priority 3: MEDIUM
         # -------------------------------------------------------------
@@ -979,6 +1021,55 @@ class ResearchOrchestrator:
                     if hasattr(r_tier, "value"):
                         r_tier = r_tier.value
                     summary = f"Evaluated concept '{c_title}' (Composite Score: {c_score:.2f}, Recommendation: {r_tier})."
+
+        elif action_type == ActionType.AUDIT_COMPLIANCE_FEASIBILITY:
+            from engines.feasibility_engine import FeasibilityEngine
+            from models.feasibility import (
+                FeasibilityEvaluationRequest,
+                EthicsChecklist,
+                SDGMapping,
+                DOSTPriorityMapping,
+                BudgetBreakdown,
+            )
+            engine = FeasibilityEngine(storage=self.storage)
+            proj_id = params.get("project_id") or (problem.get("project_id") if problem else "default_proj")
+
+            checklist_data = params.get("ethics_checklist", {})
+            checklist = EthicsChecklist(**checklist_data) if checklist_data else EthicsChecklist()
+
+            sdgs_data = params.get("sdg_alignments", [])
+            sdgs = [SDGMapping(**s) for s in sdgs_data] if sdgs_data else []
+
+            dost_data = params.get("dost_alignments", [])
+            dost = [DOSTPriorityMapping(**d) for d in dost_data] if dost_data else []
+
+            budget_data = params.get("budget", {})
+            budget = BudgetBreakdown(**budget_data) if budget_data else BudgetBreakdown()
+
+            req = FeasibilityEvaluationRequest(
+                session_id=session_id,
+                project_id=proj_id,
+                ethics_checklist=checklist,
+                sdg_alignments=sdgs,
+                dost_alignments=dost,
+                budget=budget,
+                timeline_weeks=params.get("timeline_weeks", 16),
+                include_ai_advisory=params.get("include_ai_advisory", True),
+            )
+            eval_record = await engine.evaluate_feasibility(req)
+            resulting_artifacts["feasibility"] = eval_record.model_dump()
+            summary = f"Audited Stage F feasibility: Score {eval_record.feasibility_score:.1f}%, Compliance: {'PASSED' if eval_record.compliance_passed else 'NON-COMPLIANT'}."
+
+        elif action_type == ActionType.COMPILE_PROPOSAL_CANVAS:
+            from engines.proposal_exporter import ProposalExporter
+            exporter = ProposalExporter(storage=self.storage)
+            proj_id = params.get("project_id") or (problem.get("project_id") if problem else "default_proj")
+            proposal = exporter.compile_proposal_canvas(
+                project_id=proj_id,
+                session_id=session_id,
+            )
+            resulting_artifacts["proposal"] = proposal
+            summary = f"Compiled publication-ready DSR proposal canvas monograph ({len(proposal.get('markdown_content', ''))} characters)."
 
         else:
             summary = f"Action '{action_type.value}' acknowledged and queued."
