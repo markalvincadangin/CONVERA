@@ -42,7 +42,7 @@
 | Date / Timestamp | Git Commit SHA | Branch | Event Description |
 |:---|:---|:---|:---|
 | 2026-09-30T21:23:04+08:00 | `61d98d8` | `feature/017-concept-evaluation-framework` | Branch created from `develop` (`61d98d8`). |
-| 2026-09-30T21:25:00+08:00 | *Pending* | `feature/017-concept-evaluation-framework` | Formulation of canonical 6-document SDD-017 specification dossier. |
+| 2026-09-30T21:25:00+08:00 | `14518e5` | `feature/017-concept-evaluation-framework` | Formulation of canonical 6-document SDD-017 specification dossier. |
 
 ---
 
