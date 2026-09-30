@@ -486,4 +486,24 @@ class BaseStorageAdapter(ABC):
         """List concept evaluations filtered by concept_id and/or session_id."""
         pass
 
+    # ------------------------------------------------------------------
+    # Research Stage F Feasibility & Proposal Canvas (SDD-018)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def save_feasibility_record(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Save or update a research feasibility & compliance record."""
+        pass
+
+    @abstractmethod
+    def get_feasibility_record(self, session_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve the research feasibility record for a given session."""
+        pass
+
+    @abstractmethod
+    def list_feasibility_records(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        """List research feasibility records, optionally filtered by project_id."""
+        pass
+
+
 

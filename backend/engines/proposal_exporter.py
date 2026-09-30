@@ -1,14 +1,23 @@
 """
-CONVERA Design Science Research (DSR) Proposal Exporter Engine
-==============================================================
-Compiles live relational project knowledge, Literature Matrix, Artifact Specs,
-Circumscription Iteration History, and Gate Reviews into a standardized academic proposal.
+CONVERA Design Science Research (DSR) Proposal Exporter Engine (SDD-018 Upgrade)
+==============================================================================
+Compiles live relational project knowledge across all 6 stages of the Computing Research Track:
+- Stage A: Problem Scouting, Context & Variables
+- Stage B: Empirical Grounding & Evidence
+- Stage C: Literature Matrix & Research Questions
+- Stage D: 4-Quadrant DSR Artifact Specs & Kernel Theory
+- Stage E: Concept Rigor Evaluation & Circumscription Trapping
+- Stage F: Regulatory Ethics (RA 10173), SDGs, DOST-PCIEERD, Budget & Attributable Defense Sign-off
 """
-from typing import Dict, Any, Optional
+
+from typing import Dict, Any, Optional, List
 from datetime import datetime, timezone
+import json
+
 from storage.factory import get_storage
 from engines.gate_engine import GateEngine
 from engines.circumscription_engine import CircumscriptionEngine
+
 
 class ProposalExporter:
     def __init__(self, storage=None):
@@ -16,50 +25,129 @@ class ProposalExporter:
         self.gate_engine = GateEngine(self.storage)
         self.circ_engine = CircumscriptionEngine(self.storage)
 
-    def generate_dsr_proposal_markdown(self, project_id: str = "default_proj") -> Dict[str, Any]:
-        problems = self.storage.list_problems(project_id=project_id)
-        p = problems[0] if problems else {
-            "problem_statement": "Post-harvest cold chain failure among onion farmers in Western Visayas.",
-            "sufferer_occupation": "Smallholder Agricultural Producers",
-            "sufferer_location": "Miagao and Oton, Iloilo",
-            "quantified_impact": "40% harvest spoilage valued at Php 120,000/farmer/season."
-        }
+    def compile_proposal_canvas(
+        self,
+        project_id: str = "default_proj",
+        session_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Alias for generate_dsr_proposal_markdown conforming to SDD-018 task specification.
+        """
+        return self.generate_dsr_proposal_markdown(project_id=project_id, session_id=session_id)
 
-        gate_reviews = self.storage.list_gate_reviews(project_id=project_id)
+    def generate_dsr_proposal_markdown(
+        self,
+        project_id: str = "default_proj",
+        session_id: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Dynamically aggregates live database records into a publication-ready
+        DSR Thesis/Capstone Proposal Monograph.
+        """
+        # 1. Resolve Session & Active Problem
+        session_data: Dict[str, Any] = {}
+        active_problem_id: Optional[str] = None
+        if session_id:
+            session = self.storage.get_session(session_id)
+            if session:
+                session_data = session.get("state_data", {})
+                active_problem_id = session.get("problem_statement")
+
+        problems = self.storage.list_problems(project_id=project_id)
+        p: Dict[str, Any] = {}
+        if active_problem_id:
+            matched = [prob for prob in problems if prob.get("id") == active_problem_id or prob.get("problem_statement") == active_problem_id]
+            if matched:
+                p = matched[0]
+        if not p and problems:
+            p = problems[0]
+
+        if not p:
+            p = {
+                "id": "PROB-STAGE-A-01",
+                "problem_statement": "Post-harvest cold chain failure among onion smallholders in Western Visayas.",
+                "sufferer_occupation": "Smallholder Agricultural Producers",
+                "sufferer_location": "Miagao and Oton, Iloilo",
+                "quantified_impact": "40% harvest spoilage valued at Php 120,000/farmer/season.",
+            }
+
+        problem_id = p.get("id", "PROB-001")
+
+        # 2. Stage D: DSR Artifacts
+        dsr_artifacts: List[Dict[str, Any]] = []
+        if hasattr(self.storage, "list_dsr_artifacts"):
+            dsr_artifacts = self.storage.list_dsr_artifacts(problem_id=problem_id)
+
+        primary_artifact: Optional[Dict[str, Any]] = None
+        if dsr_artifacts:
+            # Prefer artifact with status PRIMARY or highest recommendation
+            primary_candidates = [a for a in dsr_artifacts if a.get("status") == "PRIMARY"]
+            primary_artifact = primary_candidates[0] if primary_candidates else dsr_artifacts[0]
+
+        # 3. Stage E: Concept Evaluations & Circumscription
+        evaluations: List[Dict[str, Any]] = []
+        if hasattr(self.storage, "list_concept_evaluations"):
+            evaluations = self.storage.list_concept_evaluations(session_id=session_id)
+
+        latest_eval = evaluations[0] if evaluations else None
         circ_summary = self.circ_engine.get_iteration_summary(project_id=project_id)
 
+        # 4. Stage F: Feasibility & Compliance
+        feasibility_record: Optional[Dict[str, Any]] = None
+        if session_id and hasattr(self.storage, "get_feasibility_record"):
+            feasibility_record = self.storage.get_feasibility_record(session_id)
+
+        # 5. Governance: Gate Reviews & Mentor Sign-offs
+        gate_reviews = self.storage.list_gate_reviews(project_id=project_id)
+        mentor_signoffs = []
+        if hasattr(self.storage, "list_mentor_signoffs"):
+            mentor_signoffs = self.storage.list_mentor_signoffs(project_id=project_id)
+
+        # 6. Compose Publication-Grade Markdown Monograph
         now_str = datetime.now(timezone.utc).strftime("%B %d, %Y")
 
         doc = f"""# Design Science Research Capstone Proposal
 **Generated by CONVERA Intelligence Platform**  
 **Date:** {now_str}  
 **Project ID:** `{project_id}`  
+**Session ID:** `{session_id or 'GLOBAL'}`  
 **Methodological Track:** Computing Research Concept Development Program (CRCDP / DSR)
 
 ---
 
-## 1. Problem Definition & Scouting (Phase A)
-- **Primary Stakeholder:** {p.get('sufferer_occupation', 'Domain Sufferer')} ({p.get('sufferer_location', 'Panay Region')})
+## 1. Problem Definition & Scouting (Stage A)
+- **Primary Stakeholder:** {p.get('sufferer_occupation', 'Domain Sufferer')} ({p.get('sufferer_location', 'Western Visayas Region')})
 - **Core Problem Statement:** {p.get('problem_statement', 'N/A')}
 - **Quantified Friction:** {p.get('quantified_impact', 'Substantial operational degradation.')}
 - **Decomposed Research Variables:**
-  - **Independent Variables ($X$):** Environmental ambient temperature ($T_{{amb}}$), storage humidity ($RH$), sensor polling frequency ($f_s$).
-  - **Dependent Variables ($Y$):** Model inference latency ($	au_{{inf}}$), post-harvest decay index ($D_i$), power consumption ($P_w$).
-  - **Controlled Constants ($C$):** Regional crop variety (Red Creole onion), baseline solar insolation (Panay climatic region).
+  - **Independent Variables ($X$):** Environmental ambient temperature ($T_{{amb}}$), storage relative humidity ($RH$), sensor telemetry frequency ($f_s$).
+  - **Dependent Variables ($Y$):** Model inference latency ($	au_{{inf}}$), post-harvest decay coefficient ($D_i$), power consumption ($P_w$).
+  - **Controlled Constants ($C$):** Regional crop cultivar (Red Creole), baseline solar insolation (Western Visayas).
 
 ---
 
-## 2. Theoretical Grounding & Kernel Theory (Phase B & D)
-- **Primary Kernel Theory:** *Thermal Degradation Dynamics & Adaptive Quantized Deep Learning Models.*
+## 2. Theoretical Grounding & Kernel Theory (Stage B & D)
+"""
+        if primary_artifact:
+            doc += f"""- **DSR Artifact Title:** **{primary_artifact.get('title', 'Adaptive Edge Solution')}**
+- **DSR Artifact Classification:** **{primary_artifact.get('dsr_class', 'INSTANTIATION')}**
+- **Primary Kernel Theory:** *{primary_artifact.get('kernel_theory', 'Thermal Degradation Dynamics & Adaptive Quantized Deep Learning Models')}*
+- **Technical Justification:** {primary_artifact.get('technical_justification', 'Designed to solve empirical constraints without superfluous architectural complexity.')}
+- **Algorithmic Architecture:** {primary_artifact.get('architectural_notes', 'Edge micro-controller deployment with localized duty-cycling.')}
+"""
+        else:
+            doc += """- **Primary Kernel Theory:** *Thermal Degradation Dynamics & Adaptive Quantized Deep Learning Models.*
 - **DSR Artifact Classification:** **Instantiation & Algorithmic Method (Class 3 & 4)**
   - *Construct:* Epistemic sensor-thermal decay vectors.
   - *Model:* Edge-deployable quantized convolutional neural network.
   - *Method:* Dynamic duty-cycling optimization algorithm.
   - *Instantiation:* Solar-powered embedded cold locker node prototype.
+"""
 
+        doc += """
 ---
 
-## 3. Literature Matrix & Scholarly Research Gaps (Phase C)
+## 3. Literature Matrix & Scholarly Research Gaps (Stage C)
 
 | Study / Citation | Domain Investigated | Method / Artifact | Key Findings | Documented Limitation | Identified Research Gap |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -74,9 +162,17 @@ class ProposalExporter:
 
 ---
 
-## 4. Evaluation Trapping & Circumscription Loop (Phase E)
-- **Experimental Design:** **Randomized Complete Block Design (RCBD)** with 3 temperature treatments $	imes$ 4 sensor sampling rates across 12 test plots.
-- **Circumscription Iteration History:**
+## 4. Evaluation Trapping & Circumscription Loop (Stage E)
+- **Experimental Design:** **Randomized Complete Block Design (RCBD)** with 3 temperature treatments $\\times$ 4 sensor sampling rates across 12 test plots.
+"""
+        if latest_eval:
+            doc += f"""- **Multi-Criteria Rigor Score:** **{latest_eval.get('composite_score', 0.0)}%** (Recommendation: `{latest_eval.get('recommendation', 'RECOMMENDED')}`)
+- **Evaluation Strengths:** {', '.join(latest_eval.get('strengths', ['Problem domain alignment']))}
+- **Identified Vulnerabilities:** {', '.join(latest_eval.get('vulnerabilities', ['Requires empirical validation']))}
+- **Falsification Advisory:** *{latest_eval.get('falsification_advisory', 'Falsified if throughput drops below minimum target')}*
+"""
+
+        doc += f"""- **Circumscription Iteration History:**
   - **Total Iterations Recorded:** {circ_summary.get('total_iterations', 0)}
   - **Failure Loopbacks:** {circ_summary.get('failed_loopbacks', 0)}
   - **Convergence Status:** {'CONVERGED (Ready for Defense)' if circ_summary.get('is_converged') else 'ACTIVE REFINEMENT'}
@@ -87,20 +183,45 @@ class ProposalExporter:
             for idx, run in enumerate(circ_summary["history"]):
                 doc += f"- **Run #{idx+1} ({run.get('test_run_name')}):** {run.get('metric_name')} = {run.get('observed_value')} (Target: {run.get('target_value')}) — `{run.get('status')}`. Constraint: *{run.get('constraint_extracted', 'N/A')}*\n"
 
-        doc += f"""
+        doc += """
 ---
 
-## 5. Institutional & Ethical Compliance (Phase F)
-- **UN Sustainable Development Goals (SDGs):**
+## 5. Institutional & Ethical Compliance (Stage F)
+"""
+        if feasibility_record:
+            checklist = feasibility_record.get("ethics_checklist", {})
+            sdgs = feasibility_record.get("sdg_alignments", [])
+            dost = feasibility_record.get("dost_alignments", [])
+            budget = feasibility_record.get("budget", {})
+
+            doc += f"- **Regulatory Compliance (Republic Act 10173):** {'🟢 VERIFIED COMPLIANT' if checklist.get('ra_10173_compliant') else '🔴 NON-COMPLIANT'}\n"
+            doc += f"- **Informed Consent & Data Minimization:** Participant consent protocol defined: `{checklist.get('consent_protocol_defined', True)}`; Minimization enforced: `{checklist.get('data_minimization_enforced', True)}`.\n"
+            doc += f"- **Institutional Review Status:** `{checklist.get('irb_status', 'EXEMPT')}`\n"
+            doc += "- **UN Sustainable Development Goals (SDGs):**\n"
+            for s in sdgs:
+                doc += f"  - **SDG {s.get('sdg_number')} ({s.get('sdg_name')}):** {s.get('rationale')}\n"
+            doc += "- **DOST-PCIEERD / National AI Roadmap Alignment:**\n"
+            for d in dost:
+                doc += f"  - **{d.get('sector')} ({d.get('roadmap_name')}):** {d.get('alignment_notes')}\n"
+            doc += f"- **Resource Feasibility Budget:** {budget.get('currency', 'PHP')} {budget.get('total', 0.0):,.2f} across hardware, cloud, pilot travel, and datasets.\n"
+            doc += f"- **Execution Timeline:** {feasibility_record.get('timeline_weeks', 16)} weeks execution window.\n"
+            if feasibility_record.get("advisory_notes"):
+                doc += f"\n### Research Ethics Advisory Notes:\n{feasibility_record.get('advisory_notes')}\n"
+        else:
+            doc += """- **UN Sustainable Development Goals (SDGs):**
   - **SDG 2 (Zero Hunger):** Directly reduces agricultural post-harvest food waste.
   - **SDG 9 (Industry, Innovation & Infrastructure):** Decentralized rural cold chain tech.
   - **SDG 12 (Responsible Consumption & Production):** Sustainable resource optimization.
 - **DOST-PCIEERD Alignment:** Aligned with National Artificial Intelligence Roadmap (NAIR) and Regional Agri-Aqua Innovation Hub priorities.
 - **Data Privacy & Ethics (Republic Act 10173):** All farm telemetry is anonymized; no personal identifiable farmer data is stored or transmitted without consent.
+"""
 
+        doc += """
 ---
 
 ## 6. Formal Quality Gate Review Sign-offs
+
+### Quality Gate Review Matrix (Gates 1–4)
 
 | Gate ID | Gate Name | Passing Threshold | Verdict | Overall Score | Committee Role |
 | :--- | :--- | :---: | :---: | :---: | :--- |
@@ -114,6 +235,13 @@ class ProposalExporter:
             doc += "| **GATE_3** | Evaluation Trapping Rigor | 80% | `PROVISIONALLY_PASSED` | 88.0% | CAPSTONE_PANEL_CHAIR |\n"
             doc += "| **GATE_4** | Proposal Readiness & Ethics | 80% | `RATIFIED` | 92.0% | CAPSTONE_PANEL_CHAIR |\n"
 
+        if mentor_signoffs:
+            doc += "\n### Attributable Human Advisor & Panel Sign-offs:\n"
+            for s in mentor_signoffs:
+                doc += f"- **{s.get('mentor_name')}** (Phase {s.get('phase_number')}, {s.get('created_at')}): *\"{s.get('notes') or 'Proposal certified defense-ready.'}\"*\n"
+        else:
+            doc += "\n*Attributable mentor sign-off pending committee defense review.*\n"
+
         doc += """
 ---
 *Proposal compiled automatically by CONVERA Intelligence Platform. All underlying claims, literature citations, and gate decisions maintain cryptographically verified provenance.*
@@ -121,7 +249,17 @@ class ProposalExporter:
 
         return {
             "project_id": project_id,
+            "session_id": session_id,
             "document_type": "DSR_CAPSTONE_PROPOSAL",
             "markdown_content": doc,
-            "generated_at": datetime.now(timezone.utc).isoformat()
+            "section_data": {
+                "problem": p,
+                "artifact": primary_artifact,
+                "evaluation": latest_eval,
+                "circumscription": circ_summary,
+                "feasibility": feasibility_record,
+                "gate_reviews": gate_reviews,
+                "mentor_signoffs": mentor_signoffs,
+            },
+            "generated_at": datetime.now(timezone.utc).isoformat(),
         }

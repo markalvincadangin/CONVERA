@@ -785,6 +785,31 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_concept_evals_concept ON concept_evaluations(concept_id);
                 CREATE INDEX IF NOT EXISTS idx_concept_evals_session ON concept_evaluations(session_id);
                 CREATE INDEX IF NOT EXISTS idx_concept_evals_rec ON concept_evaluations(recommendation);
+
+                -- -----------------------------------------------------------
+                -- Research Stage F Feasibility & Proposal (SDD-018 / Table 35)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS research_feasibility_records (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    project_id TEXT NOT NULL,
+                    ethics_checklist_json TEXT NOT NULL,
+                    sdg_alignments_json TEXT NOT NULL,
+                    dost_alignments_json TEXT NOT NULL,
+                    budget_breakdown_json TEXT NOT NULL,
+                    timeline_weeks INTEGER NOT NULL,
+                    feasibility_score REAL NOT NULL,
+                    compliance_passed INTEGER DEFAULT 0,
+                    is_cleared INTEGER DEFAULT 0,
+                    advisory_notes TEXT,
+                    is_degraded INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_feasibility_session ON research_feasibility_records(session_id);
+                CREATE INDEX IF NOT EXISTS idx_feasibility_project ON research_feasibility_records(project_id);
+                CREATE INDEX IF NOT EXISTS idx_feasibility_cleared ON research_feasibility_records(is_cleared);
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -5467,4 +5492,108 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         with self._get_connection() as conn:
             rows = conn.execute(query, tuple(params)).fetchall()
             return [self._deserialize_concept_evaluation(r) for r in rows]
+
+    # ------------------------------------------------------------------
+    # Research Stage F Feasibility & Proposal Canvas (SDD-018)
+    # ------------------------------------------------------------------
+
+    def _deserialize_feasibility_record(self, row: Any) -> Dict[str, Any]:
+        data = dict(row)
+        for json_col in ("ethics_checklist_json", "sdg_alignments_json", "dost_alignments_json", "budget_breakdown_json"):
+            val = data.get(json_col)
+            clean_key = json_col.replace("_json", "")
+            if isinstance(val, str):
+                try:
+                    data[clean_key] = json.loads(val)
+                except Exception:
+                    data[clean_key] = [] if "alignments" in json_col else {}
+            elif val is None:
+                data[clean_key] = [] if "alignments" in json_col else {}
+            else:
+                data[clean_key] = val
+        data["budget"] = data.get("budget_breakdown", {})
+        data["compliance_passed"] = bool(data.get("compliance_passed", 0))
+        data["is_cleared"] = bool(data.get("is_cleared", 0))
+        data["is_degraded"] = bool(data.get("is_degraded", 0))
+        return data
+
+    def save_feasibility_record(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        rec = dict(data)
+        record_id = rec.get("id") or f"FEAS-{uuid.uuid4().hex[:12].upper()}"
+        session_id = rec["session_id"]
+        project_id = rec.get("project_id", "default_proj")
+
+        ethics = rec.get("ethics_checklist") or rec.get("ethics_checklist_json") or {}
+        ethics_json = json.dumps(ethics) if not isinstance(ethics, str) else ethics
+
+        sdg = rec.get("sdg_alignments") or rec.get("sdg_alignments_json") or []
+        sdg_json = json.dumps(sdg) if not isinstance(sdg, str) else sdg
+
+        dost = rec.get("dost_alignments") or rec.get("dost_alignments_json") or []
+        dost_json = json.dumps(dost) if not isinstance(dost, str) else dost
+
+        budget = rec.get("budget") or rec.get("budget_breakdown") or rec.get("budget_breakdown_json") or {}
+        budget_json = json.dumps(budget) if not isinstance(budget, str) else budget
+
+        timeline_weeks = int(rec.get("timeline_weeks", 16))
+        feasibility_score = float(rec.get("feasibility_score", 0.0))
+        compliance_passed = 1 if rec.get("compliance_passed") else 0
+        is_cleared = 1 if rec.get("is_cleared") else 0
+        advisory_notes = rec.get("advisory_notes")
+        is_degraded = 1 if rec.get("is_degraded") else 0
+        now = datetime.now(timezone.utc).isoformat()
+        created_at = rec.get("created_at") or now
+        updated_at = now
+
+        query = """
+            INSERT INTO research_feasibility_records (
+                id, session_id, project_id, ethics_checklist_json,
+                sdg_alignments_json, dost_alignments_json, budget_breakdown_json,
+                timeline_weeks, feasibility_score, compliance_passed, is_cleared,
+                advisory_notes, is_degraded, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                ethics_checklist_json = excluded.ethics_checklist_json,
+                sdg_alignments_json = excluded.sdg_alignments_json,
+                dost_alignments_json = excluded.dost_alignments_json,
+                budget_breakdown_json = excluded.budget_breakdown_json,
+                timeline_weeks = excluded.timeline_weeks,
+                feasibility_score = excluded.feasibility_score,
+                compliance_passed = excluded.compliance_passed,
+                is_cleared = excluded.is_cleared,
+                advisory_notes = excluded.advisory_notes,
+                is_degraded = excluded.is_degraded,
+                updated_at = excluded.updated_at
+        """
+        with self._get_connection() as conn:
+            conn.execute(query, (
+                record_id, session_id, project_id, ethics_json,
+                sdg_json, dost_json, budget_json,
+                timeline_weeks, feasibility_score, compliance_passed, is_cleared,
+                advisory_notes, is_degraded, created_at, updated_at
+            ))
+
+        return self.get_feasibility_record(session_id) or rec
+
+    def get_feasibility_record(self, session_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM research_feasibility_records WHERE session_id = ? ORDER BY updated_at DESC LIMIT 1",
+                (session_id,)
+            ).fetchone()
+            if not row:
+                return None
+            return self._deserialize_feasibility_record(row)
+
+    def list_feasibility_records(self, project_id: Optional[str] = None) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM research_feasibility_records"
+        params: List[Any] = []
+        if project_id:
+            query += " WHERE project_id = ?"
+            params.append(project_id)
+        query += " ORDER BY updated_at DESC"
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            return [self._deserialize_feasibility_record(r) for r in rows]
 
