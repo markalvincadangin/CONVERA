@@ -154,6 +154,7 @@ def synthesize_canonical_stage_progress(
     p3 = bool(legacy_state.get("phase3_complete") or flags.get("phase3_complete") or (legacy_state.get("completed_levels") and len(legacy_state.get("completed_levels", [])) >= 6))
     p4 = bool(legacy_state.get("phase4_complete") or flags.get("phase4_complete") or legacy_state.get("phase4_response") or legacy_state.get("phase4_concepts"))
     p5 = bool(legacy_state.get("phase5_complete") or flags.get("phase5_complete") or legacy_state.get("phase5_response") or legacy_state.get("phase5_metrics"))
+    p6 = bool(legacy_state.get("phase6_complete") or flags.get("phase6_complete") or legacy_state.get("feasibility_complete") or legacy_state.get("gate4_passed"))
 
     # CONTRACT RESOLUTION
     contract = get_methodology_contract(fw)
@@ -167,7 +168,7 @@ def synthesize_canonical_stage_progress(
                 f"Cannot synthesize stage_progress: unknown framework '{fw}'"
             )
 
-    completion_flags = [p1, p2, p3, p4, p5]
+    completion_flags = [p1, p2, p3, p4, p5, p6]
     return contract.synthesize_stage_progress(completion_flags)
 
 
