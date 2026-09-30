@@ -388,6 +388,7 @@ class ResearchOrchestrator:
         epistemic_health: EpistemicHealthSummary,
         critique: CritiqueSummary,
         problem: Optional[Dict[str, Any]],
+        session_id: Optional[str] = None,
     ) -> List[RecommendedAction]:
         """
         Applies deterministic priority ordering to recommend next actions.
@@ -469,6 +470,38 @@ class ResearchOrchestrator:
                     ))
             except Exception as e:
                 logger.warning(f"Failed to check DSR artifacts for recommendations: {e}")
+
+        if (
+            "evaluation" in stage_status.stage_id.lower()
+            or stage_status.stage_id in ("stage_e_evaluation", "phase5", "phase_e")
+        ):
+            try:
+                evals = (
+                    self.storage.list_concept_evaluations(session_id=session_id)
+                    if (session_id and hasattr(self.storage, "list_concept_evaluations"))
+                    else []
+                )
+                if not evals:
+                    dsr_ids = []
+                    if problem and hasattr(self.storage, "list_dsr_artifacts"):
+                        dsr_artifacts = self.storage.list_dsr_artifacts(problem["id"])
+                        dsr_ids = [a["id"] for a in dsr_artifacts]
+                    recs.append(RecommendedAction(
+                        action_id=f"act-eval-{uuid.uuid4().hex[:8]}",
+                        action_type=ActionType.EVALUATE_CONCEPT,
+                        title="Evaluate Candidate Concepts (7-Dimension Matrix)",
+                        description="Stage E requires multi-criteria evaluation across problem relevance, evidence grounding, gap validity, and feasibility before Gate 3 review.",
+                        priority=ActionPriority.HIGH,
+                        blocking_stage_progression=True,
+                        target_engine="concept_evaluation_engine",
+                        suggested_payload={
+                            "session_id": session_id,
+                            "problem_id": problem["id"] if problem else None,
+                            "candidate_ids": dsr_ids,
+                        },
+                    ))
+            except Exception as e:
+                logger.warning(f"Failed to check concept evaluations for recommendations: {e}")
 
         # -------------------------------------------------------------
         # Priority 3: MEDIUM
@@ -565,6 +598,7 @@ class ResearchOrchestrator:
             epistemic_health=epistemic_health,
             critique=critique,
             problem=problem,
+            session_id=session_id,
         )
 
         narrative_guidance: Optional[str] = None
@@ -896,6 +930,55 @@ class ResearchOrchestrator:
                         "candidate_breakdowns": [asdict(b) for b in deterministic_ranks],
                         "is_degraded": True,
                     }
+
+        elif action_type == ActionType.EVALUATE_CONCEPT:
+            from engines.concept_evaluation_engine import ConceptEvaluationEngine
+            from models.concept_evaluation import (
+                ConceptEvaluationRequest,
+                ConceptComparisonRequest,
+            )
+            engine = ConceptEvaluationEngine(storage=self.storage)
+
+            candidate_ids = params.get("candidate_ids") or params.get("concept_ids") or []
+            if len(candidate_ids) > 1:
+                comp_req = ConceptComparisonRequest(
+                    session_id=session_id,
+                    concept_ids=candidate_ids,
+                    include_llm_critique=params.get("include_llm_critique", True),
+                )
+                comp_res = await engine.compare_concepts(comp_req)
+                resulting_artifacts["comparison"] = comp_res.model_dump()
+                summary = f"Evaluated and compared {len(candidate_ids)} candidate concepts. Winner: {comp_res.recommended_winner_id}."
+            else:
+                concept_id = params.get("concept_id") or (candidate_ids[0] if candidate_ids else None)
+                if not concept_id:
+                    if problem and hasattr(self.storage, "list_dsr_artifacts"):
+                        dsr_list = self.storage.list_dsr_artifacts(problem["id"])
+                        if dsr_list:
+                            concept_id = dsr_list[0]["id"]
+                            if "concept_title" not in params:
+                                params["concept_title"] = dsr_list[0].get("title")
+                            if "concept_description" not in params:
+                                params["concept_description"] = dsr_list[0].get("description")
+
+                if not concept_id:
+                    status = "DEGRADED"
+                    summary = "No concept_id or DSR artifact available to evaluate."
+                else:
+                    eval_req = ConceptEvaluationRequest(
+                        concept_id=concept_id,
+                        session_id=session_id,
+                        prompt_guidance=params.get("concept_description") or params.get("prompt_guidance"),
+                        weights=params.get("weights"),
+                    )
+                    eval_res = await engine.evaluate_concept(eval_req)
+                    resulting_artifacts["evaluation"] = eval_res.model_dump() if hasattr(eval_res, "model_dump") else eval_res
+                    c_title = params.get("concept_title") or f"Concept {concept_id}"
+                    c_score = eval_res.get("composite_score", 0.0) if isinstance(eval_res, dict) else getattr(eval_res, "composite_score", 0.0)
+                    r_tier = eval_res.get("recommendation", "") if isinstance(eval_res, dict) else getattr(eval_res, "recommendation", "")
+                    if hasattr(r_tier, "value"):
+                        r_tier = r_tier.value
+                    summary = f"Evaluated concept '{c_title}' (Composite Score: {c_score:.2f}, Recommendation: {r_tier})."
 
         else:
             summary = f"Action '{action_type.value}' acknowledged and queued."
