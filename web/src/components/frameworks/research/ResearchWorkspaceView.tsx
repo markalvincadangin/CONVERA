@@ -26,6 +26,7 @@ import {
 import { LiteratureMatrixTable, LiteratureRow, ResearchGapItem } from "@/components/research/LiteratureMatrixTable";
 import { DSRArtifactCanvas } from "@/components/research/DSRArtifactCanvas";
 import { ConceptEvaluationView } from "@/components/research/evaluation/ConceptEvaluationView";
+import { StageFFeasibilityView } from "@/components/research/feasibility/StageFFeasibilityView";
 import { UnknownsMap } from "@/components/knowledge/UnknownsMap";
 import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
 import { GateReviewModal } from "@/components/frameworks/research/GateReviewModal";
@@ -882,22 +883,13 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
 
         {/* PHASE F */}
         {currentPhaseId === "F" && (
-          <div className="space-y-6">
-            <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                  <CheckCircle2 className="w-4 h-4" />
-                  Phase F: Relevance, Ethics &amp; Gate 4 Proposal Canvas
-                </div>
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  Gate 4: Proposal Readiness
-                </span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">
-                Synthesize final institutional alignment with UN SDGs, DOST-PCIEERD priority roadmaps, WVSU core values, and RA 10173 (Data Privacy Act of 2012).
-              </p>
-            </div>
-          </div>
+          <StageFFeasibilityView
+            sessionId={session?.session_id}
+            projectId={session?.project_id || "default_proj"}
+            problemId={selectedAnchorId || problems[0]?.id || "PROB-01"}
+            problemStatement={session?.problem_statement}
+            onAdvanceGate4={() => setActiveGateModal("GATE_4")}
+          />
         )}
       </div>
 

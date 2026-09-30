@@ -26,6 +26,7 @@ from .integrations import router as integrations_router
 from .orchestrator import router as orchestrator_router
 from .ideation import router as ideation_router
 from .evaluations import router as concept_evaluation_router
+from .feasibility import router as feasibility_router
 
 __all__ = [
     "auth_router",
@@ -50,4 +51,5 @@ __all__ = [
     "orchestrator_router",
     "ideation_router",
     "concept_evaluation_router",
+    "feasibility_router",
 ]
