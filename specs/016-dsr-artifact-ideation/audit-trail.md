@@ -32,7 +32,7 @@
 |:---|:---|:---|:---|
 | **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
 | **Phase 2: Execution** | Implementation Gate | 🟢 VERIFIED & CONFORMANT | Automated Test Suite (pytest, tsc, Next.js build) |
-| **Phase 3: Integration** | Merge Gate | ⚪ READY FOR MERGE TO `develop` | Engineering Review & Verification Protocol |
+| **Phase 3: Integration** | Merge Gate | 🟢 MERGED TO `develop` | Engineering Review & Verification Protocol |
 | **Phase 4: Release** | Promotion Gate | ⚪ PENDING PROMOTION TO `main` | Full Regression & Architecture Review |
 
 ---
@@ -43,7 +43,8 @@
 |:---|:---|:---|:---|
 | 2026-09-30T10:00:00+08:00 | `a566859` | `feature/016-dsr-artifact-ideation` | Branch created from `develop` (`a566859`). |
 | 2026-09-30T10:15:00+08:00 | `385b20d` | `feature/016-dsr-artifact-ideation` | Formulation of canonical 6-document SDD-016 specification dossier. |
-| 2026-09-30T20:35:00+08:00 | `719bde2` | `feature/016-dsr-artifact-ideation` | Implementation of SDD-016 domain engine, SQLite table 33, API router, orchestrator integration, DSR canvas UI, test suite, and graphify update. |
+| 2026-09-30T20:37:15+08:00 | `ee0e92c` | `feature/016-dsr-artifact-ideation` | Implementation of SDD-016 domain engine, SQLite table 33, API router, orchestrator integration, DSR canvas UI, test suite, and graphify update. |
+| 2026-09-30T20:37:36+08:00 | `2d28847` | `develop` | Merge `feature/016-dsr-artifact-ideation` into `develop` with `--no-ff`. |
 
 ---
 
@@ -66,3 +67,7 @@
   - Frontend TypeScript validation (`npm run typecheck --prefix web`): 0 errors.
   - Next.js production build (`npm run build --prefix web`): 0 errors, compiled successfully.
   - Graphify knowledge graph sync (`graphify update .`): Successfully updated (6,820 nodes, 9,878 edges).
+
+### 4.3 Merge Gate Sign-Off
+- **Status**: 🟢 MERGED TO `develop`
+- **Scope**: Integrated `feature/016-dsr-artifact-ideation` into `develop` branch (`2d28847`). All 289 tests re-executed and passing on `develop`. Zero build or type errors.
