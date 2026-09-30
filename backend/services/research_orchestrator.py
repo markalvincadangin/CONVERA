@@ -727,6 +727,176 @@ class ResearchOrchestrator:
             )
             resulting_artifacts["gate_status"] = "AWAITING_HUMAN_SIGN_OFF"
 
+        elif action_type == ActionType.CHALLENGE_ASSUMPTION:
+            from engines.assumption_engine import extract_claims_and_assumptions
+            prob = problem
+            if not prob:
+                claim_text = params.get("claim_text") or params.get("assumption_text") or "Unspecified research friction"
+                prob = {
+                    "id": ctx.get("problem_id") or "prob_adhoc",
+                    "problem_statement": claim_text,
+                    "sufferer_occupation": params.get("sufferer_occupation", "Target Users"),
+                    "sufferer_location": params.get("sufferer_location", "Field Region"),
+                    "workaround": params.get("workaround", "Manual alternative"),
+                    "quantified_impact": params.get("quantified_impact", "Unquantified friction"),
+                    "devils_advocate_data": params.get("critique") or "",
+                }
+
+            mode = params.get("mode") or prob.get("track_mode") or "COMMERCIAL"
+            try:
+                extracted = await extract_claims_and_assumptions(prob, mode=mode)
+                prob_id = prob.get("id")
+                if prob_id and hasattr(self.storage, "set_problem_claims"):
+                    if extracted.get("claims"):
+                        self.storage.set_problem_claims(prob_id, extracted["claims"])
+                    if extracted.get("assumptions"):
+                        self.storage.set_problem_assumptions(prob_id, extracted["assumptions"])
+                    if extracted.get("alternatives"):
+                        self.storage.set_problem_alternatives(prob_id, extracted["alternatives"])
+
+                resulting_artifacts["claims"] = extracted.get("claims", [])
+                resulting_artifacts["assumptions"] = extracted.get("assumptions", [])
+                resulting_artifacts["alternatives"] = extracted.get("alternatives", [])
+                summary = (
+                    f"Challenged assumptions and extracted {len(extracted.get('claims', []))} claims, "
+                    f"{len(extracted.get('assumptions', []))} assumptions, and "
+                    f"{len(extracted.get('alternatives', []))} alternatives."
+                )
+            except Exception as e:
+                status = "DEGRADED"
+                summary = f"Assumption extraction fell back to degraded state: {e}"
+                resulting_artifacts["error"] = str(e)
+
+        elif action_type == ActionType.RESOLVE_CONTRADICTION:
+            from engines.contradiction_engine import ContradictionEngine
+            engine = ContradictionEngine(storage=self.storage)
+            claim_id = params.get("claim_id") or ""
+            sup_sources = params.get("supporting_sources") or []
+            contra_sources = params.get("contradicting_sources") or []
+            claim_stmt = params.get("claim_statement") or (problem.get("problem_statement") if problem else "Unspecified Claim")
+
+            if sup_sources or contra_sources:
+                analysis = engine.analyze_claim_epistemic_conflict(
+                    claim_id=claim_id or "claim_adhoc",
+                    claim_statement=claim_stmt,
+                    supporting_sources=sup_sources,
+                    contradicting_sources=contra_sources,
+                )
+                resulting_artifacts["conflict_analysis"] = analysis
+                summary = f"Analyzed epistemic conflict for claim '{claim_id}'. Status: {analysis.get('status')}."
+            elif params.get("supporting_evidence_id") and params.get("contradicting_evidence_id"):
+                rec = engine.register_contradiction(
+                    claim_id=claim_id or "claim_adhoc",
+                    supporting_evidence_id=params["supporting_evidence_id"],
+                    contradicting_evidence_id=params["contradicting_evidence_id"],
+                    investigation_notes=params.get("investigation_notes", ""),
+                )
+                resulting_artifacts["registered_contradiction"] = rec
+                summary = f"Registered contradiction between evidence '{params['supporting_evidence_id']}' and '{params['contradicting_evidence_id']}' for claim '{claim_id}'."
+            else:
+                contradictions = engine.list_project_contradictions(claim_id=claim_id if claim_id else None)
+                resulting_artifacts["contradictions"] = contradictions
+                resulting_artifacts["count"] = len(contradictions)
+                summary = f"Queried existing contradictions for claim '{claim_id or 'all'}'. Found {len(contradictions)} records."
+
+        elif action_type == ActionType.GENERATE_STAGE_DELIVERABLE:
+            from engines.deliverables_generator import (
+                generate_lean_canvas,
+                generate_swot_analysis,
+                generate_pitch_deck,
+            )
+            deliverable_type = (params.get("deliverable_type") or "LEAN_CANVAS").upper()
+
+            session_data = self.storage.get_session(session_id) or {}
+            state_payload = {
+                "project_name": session_data.get("project_name") or "CONVERA Research Project",
+                "session_id": session_id,
+                "current_stage": ctx.get("current_stage_id"),
+                "problem": problem or {},
+                "phase1_response": session_data.get("phase1_response") or (problem.get("problem_statement") if problem else ""),
+                "phase2_response": session_data.get("phase2_response") or "",
+                "phase3_problem": problem.get("problem_statement") if problem else "",
+                "phase3_response": session_data.get("phase3_response") or "",
+                "phase4_response": session_data.get("phase4_response") or "",
+                "phase5_response": session_data.get("phase5_response") or "",
+            }
+            if "state" in params and isinstance(params["state"], dict):
+                state_payload.update(params["state"])
+
+            try:
+                if deliverable_type == "SWOT":
+                    res = await generate_swot_analysis(state_payload)
+                    resulting_artifacts["swot"] = res
+                    summary = f"Generated SWOT & Competitor Differentiation Matrix for session '{session_id}'."
+                elif deliverable_type == "PITCH_DECK":
+                    res = await generate_pitch_deck(state_payload)
+                    resulting_artifacts["pitch_deck"] = res
+                    summary = f"Generated 10-slide Pitch Deck narrative for session '{session_id}'."
+                elif deliverable_type in ("ALL", "COMPREHENSIVE"):
+                    canvas_res = await generate_lean_canvas(state_payload)
+                    swot_res = await generate_swot_analysis(state_payload)
+                    pitch_res = await generate_pitch_deck(state_payload)
+                    resulting_artifacts["lean_canvas"] = canvas_res
+                    resulting_artifacts["swot"] = swot_res
+                    resulting_artifacts["pitch_deck"] = pitch_res
+                    summary = f"Generated complete deliverable suite (Lean Canvas, SWOT, Pitch Deck) for session '{session_id}'."
+                else:
+                    res = await generate_lean_canvas(state_payload)
+                    resulting_artifacts["lean_canvas"] = res
+                    summary = f"Generated 9-box Lean Canvas for session '{session_id}'."
+            except Exception as e:
+                status = "DEGRADED"
+                summary = f"Deliverable generation fell back to degraded state: {e}"
+                resulting_artifacts["fallback_brief"] = state_payload
+
+        elif action_type == ActionType.FORMULATE_DECISION:
+            from dataclasses import asdict
+            from engines.decision_engine import (
+                synthesize_decision_room,
+                rank_candidates_deterministically,
+                generate_deterministic_fallback_summary,
+            )
+            candidate_ids = params.get("candidate_ids") or []
+            candidates = []
+            if candidate_ids:
+                for cid in candidate_ids:
+                    cand = self.storage.get_problem(cid)
+                    if cand:
+                        candidates.append(cand)
+            elif problem:
+                candidates = [problem]
+
+            if not candidates and hasattr(self.storage, "list_problems"):
+                all_problems = self.storage.list_problems()
+                if all_problems:
+                    candidates = all_problems[:4]
+
+            if not candidates:
+                status = "DEGRADED"
+                summary = "No candidates available for decision room synthesis."
+                resulting_artifacts["decision_room"] = {
+                    "recommended_winner_id": None,
+                    "recommendation_summary": "No candidates provided or discovered.",
+                    "candidate_breakdowns": [],
+                    "is_degraded": True,
+                }
+            else:
+                try:
+                    decision_res = await synthesize_decision_room(candidates, storage=self.storage)
+                    resulting_artifacts["decision_room"] = decision_res
+                    winner = decision_res.get("recommended_winner_id")
+                    summary = f"Synthesized Decision Room for {len(candidates)} candidates. Recommended: {winner}."
+                except Exception as e:
+                    status = "DEGRADED"
+                    summary = f"Decision synthesis fell back to deterministic ranking: {e}"
+                    deterministic_ranks = rank_candidates_deterministically(candidates, storage=self.storage)
+                    resulting_artifacts["decision_room"] = {
+                        "recommended_winner_id": deterministic_ranks[0].problem_id if deterministic_ranks else None,
+                        "recommendation_summary": generate_deterministic_fallback_summary(deterministic_ranks),
+                        "candidate_breakdowns": [asdict(b) for b in deterministic_ranks],
+                        "is_degraded": True,
+                    }
+
         else:
             summary = f"Action '{action_type.value}' acknowledged and queued."
             resulting_artifacts["acknowledged"] = True
