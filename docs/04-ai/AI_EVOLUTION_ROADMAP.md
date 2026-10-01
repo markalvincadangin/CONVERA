@@ -171,13 +171,19 @@ To clearly answer the governance question:
     - SQLite WAL relational checkpointing via Table 37 `research_session_checkpoints` and additive column migration (`backend/storage/sqlite_adapter.py`).
     - RESTful session portfolio management and resume endpoints (`backend/routers/research_sessions.py`).
     - CCDS v2.0 UI components: `ResearchSessionDrawer`, `SessionCheckpointModal`, and `SessionResumeBanner` (`web/src/components/research/sessions/`).
+15. **Interactive Evidence Chain Visualization & Provenance Graph Engine (SDD-022)**:
+    - Multi-tier epistemic DAG engine across 6 epistemic tiers (Tier 0: Literature, Tier 1: Claims, Tier 2: Assumptions, Tier 3: DSR Artifacts, Tier 4: Concept Evaluations, Tier 5: Feasibility & Canvas) (`backend/engines/provenance_graph_engine.py`).
+    - Evidentiary edge semantics (`SUPPORTS`, `CONTRADICTS`, `EXTENDS`, `DERIVES`, `GROUNDS`, `EVALUATES`, `SYNTHESIZES`) with adversarial contradiction flags and SHA-256 state hashing.
+    - FastAPI provenance router with `/graph`, `/node/{node_id}`, and `/export/{session_id}` (`backend/routers/provenance.py`).
+    - Native SVG interactive DAG canvas with Sugiyama-style layered column layout, cubic Bézier curved connectors, pan/zoom, node cards, and slide-out node inspector (`web/src/components/research/provenance/`).
+    - Research Cockpit and Session Resume Banner integration with JSON export.
 
 ---
 
 ### 4.2 What Is Authorized Today (`[AUTHORIZED]` / Critical Path)
-- **All SDD-001 through SDD-021 are IMPLEMENTED and CLOSED.**
-- Baseline regression test suite expanded to **324 offline tests** (100% passing).
-- No SDDs are currently in-flight or pending implementation.
+- **All SDD-001 through SDD-022 are IMPLEMENTED and CLOSED.**
+- Baseline regression test suite expanded to **331 offline tests** (100% passing).
+- Phase D2 (End-to-End Research Loop Hardening) is completely delivered.
 - Next candidate SDDs require formal Discovery Authorization under Article VII (Anti-Creep Law).
 
 ---
@@ -185,8 +191,8 @@ To clearly answer the governance question:
 ### 4.3 What Is Merely Planned or Proposed (`[TARGET]` / `[PROPOSED]`)
 1. **Phase D2: End-to-End Research Loop Hardening**:
    - Research session persistence & resume across browser sessions (`[IMPLEMENTED — SDD-021]`).
-   - Evidence chain visualization (interactive provenance graph) (`[TARGET — NOT YET AUTHORIZED]`).
-   - *Status*: SDD-021 delivered; remaining candidate for next discovery cycle.
+   - Evidence chain visualization (interactive provenance graph) (`[IMPLEMENTED — SDD-022]`).
+   - *Status*: Phase D2 complete. Both SDD-021 and SDD-022 delivered with 0 new dependencies.
 2. **Dense Vector Embeddings & Neural Reranking**:
    - Dense vector embeddings (`sentence-transformers`) + FAISS vector indexing + CrossEncoder reranking.
    - *Status*: `[TARGET — NOT YET AUTHORIZED]`. Evaluated during SDD-006 discovery and deferred under Article VII (Anti-Creep Law); subject to future evaluation.
