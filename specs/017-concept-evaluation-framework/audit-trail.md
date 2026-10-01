@@ -4,7 +4,7 @@
 **Specification ID**: CONVERA-SDD-017  
 **Classification**: Audit Trail & Governance Life Cycle Record  
 **Authority Tier**: Tier 2 (Governance & Audit Record)  
-**Document Status**: 🟢 RATIFIED / IMPLEMENTATION AUTHORIZED  
+**Document Status**: 🟢 IMPLEMENTATION & VERIFICATION COMPLETED (PROMOTED TO main)  
 **Revision**: 1.1.0  
 **Target Feature Branch**: `feature/017-concept-evaluation-framework`  
 **Target Integration Branch**: `develop`  
@@ -33,7 +33,7 @@
 | **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
 | **Phase 2: Execution** | Implementation Gate | 🟢 PASSED | Automated Test Suite (pytest 297/297, tsc 0 errors, Next.js build clean) |
 | **Phase 3: Integration** | Merge Gate | 🟢 PASSED | Engineering Verification Protocol & Closed-Loop Regression |
-| **Phase 4: Release** | Promotion Gate | 🟢 READY | Full Regression Passed (`feature` -> `develop` -> `main`) |
+| **Phase 4: Release** | Promotion Gate | 🟢 PROMOTED | Promoted to `main` (Commit `d34203f`, 2026-09-30T21:53:17+08:00) |
 
 ---
 
@@ -44,7 +44,9 @@
 | 2026-09-30T21:23:04+08:00 | `61d98d8` | `feature/017-concept-evaluation-framework` | Branch created from `develop` (`61d98d8`). |
 | 2026-09-30T21:25:00+08:00 | `14518e5` | `feature/017-concept-evaluation-framework` | Formulation of canonical 6-document SDD-017 specification dossier. |
 | 2026-09-30T21:26:24+08:00 | `14518e5` | `feature/017-concept-evaluation-framework` | Formal human ratification and implementation authorization gate passed. |
-| 2026-09-30T21:51:00+08:00 | *Completed* | `feature/017-concept-evaluation-framework` | Delivery of TASK-017-01 through TASK-017-07 with 100% verification. |
+| 2026-09-30T21:51:00+08:00 | `6d1bc62` | `feature/017-concept-evaluation-framework` | Delivery of TASK-017-01 through TASK-017-07 with 100% verification. |
+| 2026-09-30T21:52:21+08:00 | `3c887df` | `develop` | Merged feature branch into `develop`. |
+| 2026-09-30T21:53:17+08:00 | `d34203f` | `main` | Promoted to `main` via `--no-ff` merge. |
 
 ---
 
@@ -79,3 +81,8 @@
   - **TypeScript Typecheck**: `npm run typecheck --prefix web` passed with 0 errors.
   - **Next.js Production Build**: `npm run build --prefix web` completed successfully with code 0 (Next.js 15.2.0).
   - **Knowledge Graph**: `graphify update .` completed with 7,008 nodes, 10,202 edges, 503 communities.
+
+### 4.4 Promotion Gate Sign-Off
+- **Status**: 🟢 PROMOTED
+- **Merge Commit**: `d34203f` (2026-09-30T21:53:17+08:00)
+- **Test Baseline at Promotion**: 297/297 backend tests passed, 0 TypeScript errors, production build clean.

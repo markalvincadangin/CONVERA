@@ -15,7 +15,7 @@
 - `docs/04-ai/AI_GOVERNANCE.md` (`CONVERA-AI-003`)  
 - `docs/02-system/EVIDENCE_MODEL.md`  
 - `docs/02-system/DECISION_MODEL.md`  
-- SDD Release Baselines (`001`, `002`, `003`, `004`, `005`, `011`, `012`)  
+- SDD Release Baselines (`001`–`020`)  
 
 ---
 
@@ -35,7 +35,7 @@ docs/04-ai/AI_ARCHITECTURE.md (Canonical AI Architecture & LLM Gateway)
 docs/04-ai/AI_EVOLUTION_ROADMAP.md (Canonical Capability & Roadmap Matrix)
          │
          ▼
-Active Codebase (backend/, web/) ── verified against ── Completed SDDs (001–005)
+Active Codebase (backend/, web/) ── verified against ── Completed SDDs (001–020)
 ```
 
 ### The Core Operating Doctrine: "LLM Last, Not LLM First"
@@ -91,15 +91,21 @@ The following matrix represents the reconciled ground-truth state of CONVERA's i
 | **Immutable Winner Invariant (`llm_cannot_override_winner`)** | `[IMPLEMENTED]` | `backend/engines/decision_engine.py:450-490`| **SDD-004** | Post-processing assertion overrides any LLM attempts to crown non-deterministic winners. |
 | **Closed-Loop Decision Invalidation (`execute_pivot_loop`)** | `[IMPLEMENTED]` | `backend/engines/decision_engine.py:516-565`| **SDD-004** | Invalidated assumptions update candidate status and record structured rationale. |
 | **Federated External Academic Connectors** | `[IMPLEMENTED]` | `backend/connectors/hub.py` | **Phase 1 / SDD-002**| Normalized connectors for OpenAlex, Crossref, PubMed, Europe PMC, Semantic Scholar. |
-| **Test Suite Tiering (74 T1, 44 T2, 12 T3 = 130)** | `[IMPLEMENTED]` | `backend/pyproject.toml` | **SDD-005** | Strict tiering; default test runner runs 100% offline (`-m "not live"`). |
+| **Test Suite Tiering (316 offline tests)** | `[IMPLEMENTED]` | `backend/pyproject.toml` | **SDD-005** | Strict tiering; default test runner runs 100% offline (`-m "not live"`). |
 | **Claim-Oriented Evidence Reuse Protocol** | `[IMPLEMENTED]` | `.agents/skills/convera-verification/` | **SDD-005** | Formal change-impact provenance record required for evidence reuse across SDD gates. |
 | **Mocking Unmocked Integration Tests (`DEF-DEV-007`)** | `[DEFERRED DEFECT]` | `test_knowledge_graph.py`, `test_srs_generator.py` | **DEF-DEV-007** | Known and recorded. Not automatically authorized for implementation. |
 | **Methodology Contract Architecture** | `[IMPLEMENTED]` | `backend/routers/methodologies.py`, `backend/services/methodology_contract.py` | **SDD-011** | Declarative framework-agnostic research stages, required inputs/outputs, and validation contracts. |
 | **Tool Integrations & Progressive Identity** | `[IMPLEMENTED]` | `backend/routers/integrations.py`, `backend/models/integration.py` | **SDD-012** | External tool capability registry and progressive identity tracking. |
-| **Local Lexical Retrieval Engine (BM25 Index)** | `[AUTHORIZED — SDD-006]` | `backend/storage/sqlite_adapter.py`, `backend/connectors/hub.py` | **SDD-006 (Phase A1)** | Ratified SDD-006: Local SQLite FTS5/BM25 literature persistence & retrieval. Critical path Phase A1. |
-| **Source-Mediated Epistemic Bridge** | `[RATIFIED — SDD-007]` | `specs/007-source-mediated-epistemic-bridge/` | **SDD-007 (Phase A2)** | Connects evidence → claims → decisions end-to-end. Critical path Phase A2 (downstream of SDD-006). |
-| **Unified Research Orchestration Loop** | `[TARGET — PHASE B1]` | N/A (Individual routers call engines) | *Phase B1 Scope* | Coordinates Understand → Contextualize → Investigate → Critique → Decide → Act across engines. |
-| **Pluggable Source Adapter Layer (REST + MCP)** | `[TARGET — PHASE B2]` | `backend/connectors/hub.py` | *Phase B2 Scope* | Decouples Layer A (thin provider adapters) from Layer B (CONVERA canonical evidence service). |
+| **Scholarly Evidence Persistence (FTS5/BM25)** | `[IMPLEMENTED]` | `backend/storage/sqlite_adapter.py` | **SDD-006** | SQLite FTS5 full-text search with BM25 ranking over ingested literature. |
+| **Source-Mediated Epistemic Bridge** | `[IMPLEMENTED]` | `backend/connectors/hub.py`, `backend/engines/evidence_scorer.py` | **SDD-007** | Evidence → claims → decisions end-to-end provenance chain. |
+| **Research Orchestration Engine** | `[IMPLEMENTED]` | `backend/services/research_orchestrator.py`, `backend/routers/orchestrator.py` | **SDD-013** | Centralized intelligence routing: Understand → Contextualize → Investigate → Critique → Decide → Act. |
+| **Research Cockpit UI** | `[IMPLEMENTED]` | `web/src/components/research/cockpit/` | **SDD-014** | Multi-panel research workspace with stage stepper and artifact panels. |
+| **Scholarly Ingestion Connectors (CIIA)** | `[IMPLEMENTED]` | `backend/connectors/hub.py`, `backend/connectors/contracts/` | **SDD-015** | Pluggable connector contracts with OpenAlex, Crossref, PubMed, Europe PMC, Semantic Scholar. |
+| **Structured DSR Artifact Ideation Engine** | `[IMPLEMENTED]` | `backend/engines/ideation_engine.py`, `backend/routers/ideation.py` | **SDD-016** | 4 DSR artifact formulation: Title, Objectives, Conceptual Framework, Methodology skeleton. |
+| **Concept Evaluation Framework** | `[IMPLEMENTED]` | `backend/engines/concept_evaluation_engine.py`, `backend/routers/evaluation.py` | **SDD-017** | Deterministic multi-criteria concept scoring with rubric matrix evaluation. |
+| **Research Stage F Feasibility Engine** | `[IMPLEMENTED]` | `backend/engines/feasibility_engine.py`, `backend/routers/feasibility.py` | **SDD-018** | Feasibility scoring, compliance audit, budget estimation, and Gate 4 proposal canvas. |
+| **Cross-Stage Research Critique & Blind-Spot Engine** | `[IMPLEMENTED]` | `backend/engines/cross_stage_critique_engine.py`, `backend/routers/critique.py` | **SDD-019** | Heuristic tension detection, adversarial critique, deterministic consistency scoring. |
+| **DSR Deliverable & Comprehensive Proposal Export** | `[IMPLEMENTED]` | `backend/engines/proposal_exporter.py`, `backend/routers/export.py` | **SDD-020** | Multi-format (Markdown, LaTeX, HTML) proposal export with SHA-256 provenance hash. |
 | **Dense Semantic Embeddings (`sentence-transformers`)**| `[TARGET — NOT YET AUTHORIZED]` | N/A | *Future Scope* | Local dense embeddings for conceptual and contextual similarity. |
 | **Local Vector Indexing (FAISS / Vector Store)** | `[TARGET — NOT YET AUTHORIZED]` | N/A | *Future Scope* | High-efficiency local vector similarity search over ingested literature and claims. |
 | **Neural / CrossEncoder Reranker** | `[TARGET — NOT YET AUTHORIZED]` | N/A | *Future Scope* | Two-stage reranking between hybrid retrieval candidates and generative prompts. |
@@ -129,7 +135,7 @@ To clearly answer the governance question:
 3. **Federated External Connectors**:
    - Normalized connectors for OpenAlex, Crossref, PubMed, Europe PMC, and Semantic Scholar with deduplication in `ConnectorHub`.
 4. **Governed Development & Verification Environment**:
-   - Reconciled 266+ passing tests across unit, integration, contract, and workflow safety suites.
+   - Reconciled 316 passing tests across unit, integration, contract, and workflow safety suites.
    - 100% offline default verification (`-m "not live"`).
    - Claim-Oriented Evidence Reuse Model with mandatory Change-Impact Evidence Provenance Records.
 5. **Methodology Contract Architecture (SDD-011)**:
@@ -138,32 +144,50 @@ To clearly answer the governance question:
 6. **Tool Integrations Framework (SDD-012)**:
    - Registered tool capabilities and progressive identity state management (`backend/routers/integrations.py`, `backend/models/integration.py`).
    - Foundation for external ecosystem orchestration (Notion, Zotero, GitHub).
+7. **Scholarly Evidence Persistence & Lexical Retrieval (SDD-006)**:
+   - SQLite FTS5 full-text index with BM25 ranking over ingested academic literature.
+   - Deduplication and persistence layer in `backend/storage/sqlite_adapter.py`.
+8. **Source-Mediated Epistemic Bridge (SDD-007)**:
+   - End-to-end provenance chain: evidence → claims → decisions.
+   - Evidence scoring and freshness assessment (`backend/engines/evidence_scorer.py`, `backend/engines/freshness_engine.py`).
+9. **Unified Research Orchestration Engine (SDD-013)**:
+   - Centralized action-dispatch loop: `EXECUTE_SEARCH`, `EXECUTE_IDEATION`, `EVALUATE_CONCEPT`, `EXECUTE_FEASIBILITY`, `EXECUTE_CRITIQUE`, `COMPILE_PROPOSAL_CANVAS`, `EXPORT_PROPOSAL`.
+   - Full audit trail with timestamped action history (`backend/services/research_orchestrator.py`).
+10. **Research Cockpit UI (SDD-014)**:
+    - Multi-panel workspace with stage stepper, artifact panels, and real-time orchestrator feedback.
+    - TypeScript service layer (`web/src/services/orchestratorService.ts`) driving reactive UI.
+11. **Scholarly Ingestion Connectors & CIIA Framework (SDD-015)**:
+    - Pluggable connector architecture with normalized contracts.
+    - Five production connectors: OpenAlex, Crossref, PubMed, Europe PMC, Semantic Scholar.
+12. **DSR Artifact Ideation & Structured Research Intelligence (SDD-016, 017)**:
+    - Structured ideation engine producing 4 DSR artifacts (SDD-016).
+    - Deterministic multi-criteria concept evaluation with rubric matrix (SDD-017).
+13. **Research Stage F, Critique & Export Pipeline (SDD-018, 019, 020)**:
+    - Stage F feasibility engine with compliance audit, budget estimation, and Gate 4 proposal canvas (SDD-018).
+    - Cross-stage critique engine with blind-spot detection and adversarial analysis (SDD-019).
+    - Multi-format proposal export (Markdown, LaTeX, HTML) with SHA-256 provenance (SDD-020).
 
 ---
 
 ### 4.2 What Is Authorized Today (`[AUTHORIZED]` / Critical Path)
-- **Phase A1 (Immediate Critical Path)**: **SDD-006** (*Scholarly Evidence Persistence & Native Lexical Retrieval (SQLite FTS5 / BM25)*) is formally authorized for implementation.
-- **Phase A2 (Next Critical Path)**: **SDD-007** (*Source-Mediated Epistemic Bridge*) is ratified, awaiting SDD-006 completion.
-- SDD-005, SDD-011, and SDD-012 are deployed and closed.
-- Implementation branch: `feature/006-scholarly-evidence-persistence-fts5` (branched from `develop`).
+- **All SDD-001 through SDD-020 are IMPLEMENTED and CLOSED.**
+- No SDDs are currently in-flight or pending implementation.
+- Next candidate SDDs require formal Discovery Authorization under Article VII (Anti-Creep Law).
 
 ---
 
 ### 4.3 What Is Merely Planned or Proposed (`[TARGET]` / `[PROPOSED]`)
-1. **Phase B: Orchestration Core**:
-   - Research Orchestrator (Phase B1): Centralized intelligence routing unifying understand → investigate → critique → decide → act.
-   - Pluggable Source Adapter Layer (Phase B2): 2-Layer architecture (thin adapters + canonical evidence service).
-2. **Phase C: Research Intelligence Expansion**:
-   - Structured Ideation Engine (Phase C1)
-   - Concept Evaluation Framework (Phase C2)
-   - Critique Enhancement (Phase C3)
-3. **Dense Vector Embeddings & Neural Reranking**:
+1. **Phase D2: End-to-End Research Loop Hardening**:
+   - Research session persistence & resume across browser sessions.
+   - Evidence chain visualization (interactive provenance graph).
+   - *Status*: `[TARGET — NOT YET AUTHORIZED]`. Candidate for next SDD discovery cycle.
+2. **Dense Vector Embeddings & Neural Reranking**:
    - Dense vector embeddings (`sentence-transformers`) + FAISS vector indexing + CrossEncoder reranking.
-   - *Status*: `[TARGET — NOT YET AUTHORIZED]`. Evaluated during SDD-006 discovery and deferred under Article VII (Anti-Creep Law); subject to future evaluation post-SDD-006.
-4. **Statistical / Analytical Layer (DuckDB)**:
+   - *Status*: `[TARGET — NOT YET AUTHORIZED]`. Evaluated during SDD-006 discovery and deferred under Article VII (Anti-Creep Law); subject to future evaluation.
+3. **Statistical / Analytical Layer (DuckDB)**:
    - Columnar execution for portfolio-wide aggregations and trends.
    - *Status*: `[TARGET — NOT YET AUTHORIZED]`. Subject to demonstrated workload need (Article VII / Anti-Creep Rule).
-5. **Specialized Machine Learning (`scikit-learn`)**:
+4. **Specialized Machine Learning (`scikit-learn`)**:
    - Non-generative classification, clustering, or named-entity recognition.
    - *Status*: `[PROPOSED]`. Under exploratory review.
 
