@@ -42,7 +42,7 @@
 | Date / Timestamp | Git Commit SHA | Branch | Event Description |
 |:---|:---|:---|:---|
 | 2026-10-01T11:20:00+08:00 | `0fef8c6` | `develop` | Baseline commit containing SDD-001 through SDD-021. |
-| 2026-10-01T11:26:00+08:00 | Pending | `develop` | Formulation of canonical 6-document SDD-022 specification dossier. |
+| 2026-10-01T11:26:00+08:00 | `9deeae9` | `feature/022-evidence-chain-visualization` | Formulation of canonical 6-document SDD-022 specification dossier. |
 
 ---
 
