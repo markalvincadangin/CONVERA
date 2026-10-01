@@ -4,7 +4,7 @@
 **Specification ID**: CONVERA-SDD-018  
 **Classification**: Audit Trail & Governance Life Cycle Record  
 **Authority Tier**: Tier 2 (Governance & Audit Record)  
-**Document Status**: 🟡 DRAFT / FORMULATED FOR HUMAN RATIFICATION  
+**Document Status**: 🟢 IMPLEMENTATION & VERIFICATION COMPLETED (PROMOTED TO main)  
 **Revision**: 1.0.0  
 **Target Feature Branch**: `feature/018-research-stage-f-proposal-canvas`  
 **Target Integration Branch**: `develop`  
@@ -33,7 +33,7 @@
 | **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
 | **Phase 2: Execution** | Implementation Gate | 🟢 RATIFIED | Automated Test Suite (pytest, tsc, Next.js build) |
 | **Phase 3: Integration** | Merge Gate | 🟢 READY | Engineering Verification Protocol & Closed-Loop Regression |
-| **Phase 4: Release** | Promotion Gate | ⏳ PENDING | Full Regression Passed (`feature` -> `develop` -> `main`) |
+| **Phase 4: Release** | Promotion Gate | 🟢 PROMOTED | Promoted to `main` (Commit `8d97362`, 2026-09-30T22:32:18+08:00) |
 
 ---
 
@@ -45,6 +45,8 @@
 | 2026-09-30T22:12:56+08:00 | `ded02c1` | `feature/018-research-stage-f-proposal-canvas` | Formulation of canonical 6-document SDD-018 specification dossier. |
 | 2026-09-30T22:13:00+08:00 | `ded02c1` | `feature/018-research-stage-f-proposal-canvas` | Implementation authorized by Human Leadership ("proceed" / "continue"). |
 | 2026-09-30T22:31:31+08:00 | `dfd2a69` | `feature/018-research-stage-f-proposal-canvas` | Completed implementation of Stage F & Gate 4 Proposal Canvas (TASK-018-01 - 07). |
+| 2026-09-30T22:32:13+08:00 | `e866657` | `develop` | Merged feature branch into `develop`. |
+| 2026-09-30T22:32:18+08:00 | `8d97362` | `main` | Promoted to `main` via `--no-ff` merge. |
 
 ---
 
@@ -79,4 +81,9 @@
   - `INV-018-02` (Article II Tri-Part Confidence): VERIFIED. Scoring formula $0.35 \times C + 0.25 \times A + 0.25 \times B + 0.15 \times T$ is strictly deterministic.
   - `INV-018-03` (Article IV Human Sovereignty): VERIFIED. Gate 4 defense clearance requires explicit human mentor submission (`mentor_signoffs`).
   - `INV-018-04` (Article VIII Degraded Resilience): VERIFIED. Feasibility evaluation and proposal compilation execute seamlessly without active LLM credentials with `is_degraded = True`.
+
+### 4.4 Promotion Gate Sign-Off
+- **Status**: 🟢 PROMOTED
+- **Merge Commit**: `8d97362` (2026-09-30T22:32:18+08:00)
+- **Test Baseline at Promotion**: 303/303 backend tests passed, 0 TypeScript errors, production build clean.
 
