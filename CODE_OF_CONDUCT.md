@@ -41,5 +41,8 @@ This Code of Conduct applies within all community spaces, including GitHub repos
 issue trackers, pull requests, discussions, and associated communication channels.
 
 ## Contact
+
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported to the project maintainers.
+reported to the project maintainers at **markalvincadangin@gmail.com** or via private
+communication on GitHub. All complaints will be reviewed and investigated promptly
+and fairly.

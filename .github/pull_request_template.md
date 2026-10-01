@@ -3,32 +3,35 @@
 ### Summary of Changes
 <!-- Provide a clear, concise summary of what this PR accomplishes and why it is needed. -->
 
-### Related Issue(s) / Framework Alignment
-<!-- Link related issues or specify which Phase/Stage, Storage, or UI layer this affects. -->
-- Closes #
-- Affects Framework: [ ] Innovation (Phases 1-5)  [ ] Research (Stages A-F)  [ ] Backend/Engines  [ ] Storage/DB  [ ] UI/UX
+### Specification & Roadmap Alignment
+<!-- Every non-trivial change must trace to a ratified SDD specification or recorded defect. -->
+- **SDD Specification Dossier**: `specs/XXX-.../` (or Closes #)
+- **Roadmap Phase**: [ ] Phase A (Evidence)  [ ] Phase B (Orchestration)  [ ] Phase C (Intelligence)  [ ] Phase D (Loop Hardening)  [ ] Phase E (Ecosystem)  [ ] Other / Defect Patch
+- **Subsystem**: [ ] Backend Engines  [ ] Storage (SQLite WAL / Tables)  [ ] REST API Router  [ ] Web UI (CCDS v2.0)  [ ] Documentation
 
 ---
 
-## 🛡️ Change Checklist
+## 🛡️ Constitutional Invariants & Quality Checklist
 
-### 1. Code Standards & Architecture
-- [ ] Conforms to **IEEE 830 / ISO 29148** architecture specifications.
-- [ ] Conforms to **UI/UX Design Framework v3.0** guidelines and Nielsen Norman Heuristics.
-- [ ] No hardcoded API keys, passwords, or personal credentials are included.
-- [ ] New environment variables (if any) are documented in `.env.example`.
+### 1. Constitutional Compliance
+- [ ] **Article I (Evidence Grounding)**: Outputs, decisions, and claims are empirically or scholastically grounded.
+- [ ] **Article IV (Human Sovereignty)**: All destructive actions and external pushes (Notion/Zotero/GitHub) require explicit user preview and confirmation.
+- [ ] **Article VII (Anti-Creep Law)**: Exactly 0 new unauthorized dependencies added to `pyproject.toml` or `package.json`.
+- [ ] **Article VIII (Degraded & Offline Resilience)**: Core workflows run hermetically offline; dry-run/preview modes operational.
+- [ ] **Security**: Zero hardcoded secrets, API keys, or private tokens committed.
 
-### 2. Testing & Quality Assurance
-- [ ] `pytest backend/tests/` passes with 100% success rate.
-- [ ] `npx tsc --noEmit` in `web/` completes with 0 TypeScript errors.
-- [ ] Tested manually across browser viewports (Desktop & Mobile).
+### 2. Automated Testing & Verification
+- [ ] `PYTHONPATH=backend pytest backend/tests/ -m "not live"` passes with 100% success rate (338+ offline baseline).
+- [ ] `npm run typecheck --prefix web` passes with 0 TypeScript errors.
+- [ ] `npm run build --prefix web` passes clean Next.js production build.
+- [ ] `graphify update .` was run to keep knowledge graph AST synchronized (if code files changed).
 
 ---
 
-## 🖼️ Visual Verification (Screenshots / Demos)
-<!-- If this PR changes UI/UX, attach screenshots or GIF recordings demonstrating before/after states. -->
+## 🖼️ Visual Verification (Screenshots / UI Demos)
+<!-- If this PR alters user interfaces, attach screenshots or recordings demonstrating the CCDS v2.0 UI. -->
 
 ---
 
 ## 📌 Reviewer Notes
-<!-- Any specific edge cases or setup instructions for reviewers. -->
+<!-- Highlight any schema migrations, deterministic mathematical assertions, or edge cases. -->

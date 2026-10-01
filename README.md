@@ -1,33 +1,36 @@
 <div align="center">
 
-  # CONVERA
-  ### Evidence-Driven Project Intelligence and Multi-Methodology Validation System
+  <p align="center">
+    <img src="web/public/brand/logo.png" alt="CONVERA Logo" width="380" />
+  </p>
+
+  ### Evidence-Driven Research Intelligence & Workflow Orchestration System
   **A Flagship Product of EMAERX (v3.0)**
 
   *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*
 
   [![CI Quality Gate](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml)
+  [![Tests: 338 Offline Passing](https://img.shields.io/badge/Pytest-338%20Passed%20(100%25%20Offline)-emerald.svg)](backend/tests/)
+  [![Database: SQLite WAL (38 Tables)](https://img.shields.io/badge/Storage-SQLite%20WAL%20(38%20Tables)-amber.svg)](backend/storage/)
+  [![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](backend/)
+  [![Next.js 15](https://img.shields.io/badge/Next.js-15%20%7C%20React%2019-black.svg?logo=next.js&logoColor=white)](web/)
+  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?logo=fastapi&logoColor=white)](backend/)
+  [![Design System](https://img.shields.io/badge/UI%2FUX-CCDS%20v2.0-purple.svg)](web/src/components/)
   [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
   [![IEEE 830 Compliant](https://img.shields.io/badge/Standard-IEEE%20830%20%2F%20ISO%2029148-cyan.svg)](docs/SRSDS.md)
-  [![CHED CICT Aligned](https://img.shields.io/badge/Academic-CHED%20CICT%20Capstone-blue.svg)](docs/frameworks/Computing%20Research%20Concept%20Development%20Framework.md)
-  [![UI/UX Standards](https://img.shields.io/badge/UX-WCAG%202.2%20AA%20%7C%20NN%2Fg%20Heuristics-purple.svg)](docs/frameworks/UIUX%20Design%20Framework.md)
-  [![Python](https://img.shields.io/badge/Python-3.12-blue.svg?logo=python&logoColor=white)](backend/)
-  [![Next.js](https://img.shields.io/badge/Next.js-15.2-black.svg?logo=next.js&logoColor=white)](web/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?logo=fastapi&logoColor=white)](backend/)
-  [![SQLite WAL](https://img.shields.io/badge/Storage-SQLite%20WAL%20%7C%20Postgres-amber.svg)](backend/storage/)
 
   <p align="center">
-    <strong>Transforms fragmented project ideas, research papers, AI-generated outputs, field observations, and user assumptions into structured, evidence-backed, methodology-governed, and decision-ready project opportunities.</strong>
+    <strong>Transforms fragmented problem claims, scholarly literature, AI-generated outputs, field observations, and user assumptions into structured, evidence-backed, methodology-governed, and decision-ready research and venture opportunities.</strong>
   </p>
 
   <p align="center">
     <a href="#-quickstart-guide">Quickstart</a> •
+    <a href="#-core-operating-doctrine">Core Doctrine</a> •
     <a href="#-dual-governing-frameworks">Dual Frameworks</a> •
+    <a href="#-key-platform-capabilities">Platform Features</a> •
     <a href="#-system-architecture">Architecture</a> •
-    <a href="#-key-features">Features</a> •
-    <a href="docs/CONVERA_MASTER_ARCHITECTURE.md">Master Architecture</a> •
-    <a href="docs/CONVERA_INTELLIGENCE_INTEGRATION_ARCHITECTURE.md">Intelligence (CIIA)</a> •
-    <a href="docs/SRSDS.md">Technical Specs (SRSDS)</a>
+    <a href="#-testing--verification">Verification</a> •
+    <a href="docs/04-ai/AI_EVOLUTION_ROADMAP.md">AI Roadmap</a>
   </p>
 
 </div>
@@ -36,18 +39,43 @@
 
 ## 🧭 Executive Overview
 
-Student technopreneurship teams, computing thesis candidates, and project innovators often generate ideas and unstructured data faster than they can organize, validate, and prove what is actually worth pursuing. Promising insights generated across AI chats, group chats, literature reviews, spreadsheets, and field notes are frequently lost, misdirected, or debated without empirical backing.
+Student technopreneurship teams, computing thesis candidates, and project innovators frequently generate ideas and unstructured data faster than they can organize, validate, and prove what is actually worth pursuing. Promising insights generated across AI chats, group chats, literature reviews, spreadsheets, and field notes are frequently lost, misdirected, or debated without empirical backing.
 
 **CONVERA** bridges the **problem-to-decision gap** through a closed-loop epistemic ratcheting engine:
 
 - **From:** *"I think this is a good idea."*
-- **To:** *"We have empirical field evidence, dual-literature grounding, isolated scholarly gaps, and structured requirements proving this problem is worth solving."*
+- **To:** *"We have empirical field evidence, dual-literature grounding, isolated scholarly gaps, verified feasibility metrics, and structured requirements proving this problem is worth solving."*
+
+---
+
+## ⚖️ Core Operating Doctrine: *"LLM Last, Not LLM First"*
+
+Under the [CONVERA Constitution](docs/00-foundation/CONSTITUTION.md) (Articles I, II, IV, VII, and VIII), intelligence mechanisms are selected according to a strict order of precedence:
+
+```text
+┌─────────────────────────────────────────────────────────────────────────┐
+│                 INTELLIGENCE SELECTION ORDER OF PRECEDENCE              │
+├─────────────────────────────────────────────────────────────────────────┤
+│  1. Can deterministic logic solve it?                                   │
+│     └─► YES: Use pure mathematical formulas, rules, constraints, DAGs.  │
+│  2. If no: Can retrieval/search solve it?                               │
+│     └─► YES: Use SQLite FTS5 / BM25 lexical or federated search.         │
+│  3. If no: Can statistics or classical analytics solve it?              │
+│     └─► YES: Use statistical testing, distributions, or aggregations.    │
+│  4. If no: Can a specialized lightweight ML model solve it?             │
+│     └─► YES: Use dedicated classification or topic clustering models.   │
+│  5. If no: Use a Generative Large Language Model (LLM).                 │
+│     └─► Restricted to qualitative synthesis, explanation, & reasoning.  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+Deterministic candidate rankings, epistemic scores, tie-breakers, and gate thresholds are calculated with **pure mathematics** before any LLM is queried. LLMs are prohibited from crowning winners or altering numerical outcomes.
 
 ---
 
 ## 🏛️ Dual Governing Frameworks
 
-CONVERA provides first-class, dynamic methodology governance tailored to the specific problem-solving paradigm of the active workspace:
+CONVERA provides first-class, dynamic methodology governance tailored to the active workspace:
 
 ```text
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -83,17 +111,24 @@ Governed by [`Computing Research Concept Development Framework.md`](docs/framewo
 
 ---
 
-## ⚡ Key Platform Features
+## ⚡ Key Platform Capabilities
 
-| Capability | Description |
-| :--- | :--- |
-| **Unified Command Deck** | 100% dynamic top stepper that automatically adapts its slots (7 vs 8) and directly mounts the active stage with zero nested sub-buttons. |
-| **Global Command Palette (`Ctrl+K`)** | Obsidian-grade spotlight launcher to jump instantly to any phase, search problem records (`AGR-004`), or trigger AI tools. |
-| **Adaptive Deliverables Studio** | Multi-methodology output hub generating **9-Box Lean Canvases, SWOT, Pitch Decks, IEEE 830 SRS**, or **IMRaD DSR Proposals, LaTeX Matrices & BibTeX**. |
-| **Interactive Literature Matrix** | Live search against OpenAlex & EuropePMC with gap-to-study cross-filtering and 1-click Overleaf LaTeX table export. |
-| **Intelligence Scorecard HUD** | 4-Pillar confidence simulation with Monte Carlo sensitivity modeling. |
-| **Requirements Lineage Graph** | Full epistemic traceability mapping problems $	o$ evidence claims $	o$ assumptions $	o$ software requirements. |
-| **5-Rule Methodology Governance** | Isolated progress tracking with snapshot preservation during framework switches. |
+| Capability | Subsystem | Description |
+| :--- | :--- | :--- |
+| **Research Cockpit UI (CCDS v2.0)** | `web/src/components/research/cockpit/` | Real-time multi-panel research workspace with stage stepper, artifact panels, and centralized orchestrator feedback. |
+| **Deterministic Decision Engine** | `backend/engines/decision_engine.py` | Strict formula $0.40 \times S_{\text{rubric}} + 0.35 \times S_{\text{epistemic}} + 0.25 \times S_{\text{impact}} - R_{\text{assumptions}}$ with 4-tier tie-breaking hierarchy. |
+| **Federated CIIA Ingestion** | `backend/connectors/hub.py` | 5 academic harvesters (OpenAlex, Crossref, PubMed, Europe PMC, Semantic Scholar) with DOI deduplication. |
+| **Scholarly Persistence & FTS5** | `backend/storage/sqlite_adapter.py` | SQLite FTS5 full-text search with BM25 ranking over ingested literature. |
+| **Source-Mediated Epistemic Bridge** | `backend/engines/evidence_scorer.py` | Verifiable provenance chain: empirical/scholarly evidence $\rightarrow$ claims $\rightarrow$ decisions. |
+| **DSR Artifact Ideation Engine** | `backend/engines/ideation_engine.py` | Formulates 4 DSR artifact classes (Constructs, Models, Methods, Instantiations) grounded in research gaps. |
+| **Multi-Criteria Concept Evaluation** | `backend/engines/concept_evaluation_engine.py` | Deterministic rubric evaluation assessing feasibility, technical depth, and novelty. |
+| **Stage F Feasibility & Gate 4 Canvas** | `backend/engines/feasibility_engine.py` | DOST-PCIEERD alignment, SDG mapping, budget estimation, and Gate 4 Proposal Canvas generation. |
+| **Cross-Stage Critique & Blind-Spots** | `backend/engines/cross_stage_critique_engine.py` | Adversarial devil's advocate, tension detection, and assumption consistency scoring. |
+| **Multi-Format Proposal Exporter** | `backend/engines/proposal_exporter.py` | Multi-format compilation (Markdown, LaTeX, HTML) with cryptographic SHA-256 provenance hashing. |
+| **Research Session Persistence** | `backend/engines/session_state_engine.py` | Relational checkpointing across 38 SQLite tables (Table 37: `research_session_checkpoints`) with tamper detection. |
+| **Interactive Evidence DAG Canvas** | `web/src/components/research/provenance/` | Native SVG Sugiyama layered DAG canvas with cubic Bézier connectors across 6 epistemic tiers. |
+| **Ecosystem Dissemination Bridge** | `backend/engines/ecosystem_sync_engine.py` | Bi-directional Notion export/import, RFC-compliant Zotero reference bundles (`.bib`/CSL-JSON), and GitHub Issue manifests. |
+| **Governed Multi-Provider LLM Gateway** | `backend/llm_gateway.py` | Resilient cascade (Gemini, Groq, Cerebras, Ollama) with truthful zero-weight synthetic fallback (`is_degraded = True`). |
 
 ---
 
@@ -102,28 +137,36 @@ Governed by [`Computing Research Concept Development Framework.md`](docs/framewo
 ```text
 CONVERA PLATFORM
 │
-├── ACTIVE WORKSPACE
-│     ├── Active Methodology Framework (Innovation vs Research)
-│     ├── Quality Gate Status (Passed, Blocked, Evaluated)
-│     └── Active Session State & Snapshot Rollbacks
+├── PRESENTATION LAYER (Next.js 15 / React 19 / CCDS v2.0)
+│     ├── Unified Command Deck (Adaptive Stepper: 7 vs 8 slots)
+│     ├── Research Cockpit (Multi-panel stage execution workspace)
+│     ├── Interactive Provenance DAG Canvas (Native SVG Sugiyama graph)
+│     ├── Ecosystem Export Modal (Notion, Zotero, GitHub sync)
+│     ├── Research Session Drawer (Snapshot persistence & resume)
+│     └── Global Command Palette (Ctrl+K spotlight launcher)
 │
-├── CANONICAL PROBLEM BANK (Persistent Knowledge Asset)
-│     ├── 4-Claim Evidence Ledgers (Friction, Frequency, Workaround, Commitment)
-│     ├── Sufferer Archetype & Quantified Economic Loss
-│     └── Academic DOI Grounding & Literature Citations
+├── INTELLIGENCE ORCHESTRATION LAYER (FastAPI / Python 3.12+)
+│     ├── Research Orchestration Engine (Action dispatch loop)
+│     ├── Methodology Contract Engine (Framework-agnostic stage governance)
+│     ├── Deterministic Decision Engine (Mathematical candidate scoring)
+│     ├── DSR Ideation & Concept Evaluation Engines
+│     ├── Cross-Stage Critique & Blind-Spot Engine
+│     ├── Stage F Feasibility & Proposal Exporter
+│     ├── Provenance Graph & Cryptographic Hashing Engine
+│     └── Ecosystem Sync Engine (Notion / Zotero / GitHub)
 │
-├── CORE BACKEND ENGINES (Python 3.12 / FastAPI)
-│     ├── Socratic Mom Test Interrogator
-│     ├── Literature Harvester (OpenAlex, Crossref, Europe PMC)
-│     ├── Circumscription & Artifact Evaluator
-│     ├── Requirements Traceability Engine
-│     └── Monte Carlo Scorecard Engine
+├── DATA INGESTION & FEDERATED CONNECTORS (CIIA Framework)
+│     ├── Normalized Connectors: OpenAlex, Crossref, PubMed, Europe PMC, Semantic Scholar
+│     ├── DOI Deduplication & Metadata Normalizer
+│     └── Lexical Search (SQLite FTS5 + BM25 ranking)
 │
-└── FRONTEND INTERACTION LAYER (Next.js 15 / React 19 / Tailwind CSS v4)
-      ├── Unified Command Deck (PipelineStepper.tsx)
-      ├── Global Command Palette (CommandPaletteModal.tsx - Ctrl+K)
-      ├── Adaptive Deliverables Studio (DeliverablesStudio.tsx)
-      └── Motion Physics Layer (Framer Motion)
+└── PERSISTENCE LAYER (SQLite WAL / 38 Relational Tables)
+      ├── Problem Bank & 4-Claim Ledgers
+      ├── Scholarly Works & Literature Citations (FTS5 indexed)
+      ├── Epistemic Claims, Assumptions & Contradictions
+      ├── DSR Artifacts & Rubric Concept Evaluations
+      ├── Research Session Checkpoints (Table 37)
+      └── Ecosystem Sync Audit Trail (Table 38)
 ```
 
 ---
@@ -131,8 +174,8 @@ CONVERA PLATFORM
 ## 🚀 Quickstart Guide
 
 ### Prerequisites
-- **Python 3.11+** (Python 3.12 recommended)
-- **Node.js 18+** (Node.js 20+ recommended)
+- **Python 3.12+**
+- **Node.js 20+** & **npm**
 - **Git**
 
 ### 1. Clone the Repository
@@ -143,25 +186,26 @@ cd CONVERA
 
 ### 2. Setup and Launch Backend
 ```bash
-# Create and activate virtual environment
-python -m venv venv
+cd backend
 
-# Windows (PowerShell)
-.\venv\Scripts\Activate.ps1
-# Linux / macOS
-source venv/bin/activate
+# Create and activate virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
 
 # Install dependencies
-pip install -r backend/requirements.txt
+pip install -r requirements.txt
+
+# Copy environment template
+cp .env.example .env
 
 # Launch FastAPI Server
-python backend/main.py
+uvicorn server:app --reload --port 8000
 ```
-*Backend runs live at `http://localhost:8000` (Swagger UI at `http://localhost:8000/docs`).*
+*Backend API docs are live at `http://localhost:8000/docs`.*
 
 ### 3. Setup and Launch Frontend
 ```bash
-cd web
+cd ../web
 
 # Install dependencies
 npm install
@@ -169,28 +213,43 @@ npm install
 # Start Next.js Development Server
 npm run dev
 ```
-*Frontend runs live at `http://localhost:3000`.*
+*Frontend application is live at `http://localhost:3000`.*
 
 ---
 
 ## 🧪 Testing & Verification
 
-Run the full hermetic backend test suite:
-```bash
-pytest backend/tests/ -q
-```
-*Expected result: `81 passed` (100% Hermetic Pass).*
+CONVERA is built with strict hermetic verification guarantees (Article VIII):
 
-Run frontend type-checking:
 ```bash
-cd web
-npx tsc --noEmit
+# 1. Run the Full Hermetic Backend Pytest Suite (338 tests, 100% offline passing)
+PYTHONPATH=backend pytest backend/tests/ -m "not live" -v
+
+# 2. Run Frontend Type-Checking (0 errors)
+npm run typecheck --prefix web
+
+# 3. Run Next.js Production Build (clean compilation)
+npm run build --prefix web
+
+# 4. Update Knowledge Graph AST
+graphify update .
 ```
-*Expected result: `0 errors` (100% Type-Safe Pass).*
+
+---
+
+## 📜 Governing Standards & Compliance
+
+CONVERA is designed and engineered to comply with recognized academic, technical, and regulatory frameworks:
+
+- **IEEE 830 / ISO 29148**: Software Requirements Specifications & Epistemic Traceability.
+- **Design Science Research (DSR)**: March & Smith (1995) 4-Artifact Taxonomy (Constructs, Models, Methods, Instantiations).
+- **Academic Capstone Alignment**: Commission on Higher Education (CHED) CICT Capstone Standards.
+- **Regional Feasibility**: DOST-PCIEERD Priority Areas, UN Sustainable Development Goals (SDGs), and RA 10173 (Data Privacy Act).
+- **Design Heuristics**: WCAG 2.2 AA & Nielsen Norman 10 Usability Heuristics (CCDS v2.0).
 
 ---
 
 ## 📄 License & Attribution
 
 CONVERA is licensed under the [MIT License](LICENSE).  
-Designed and engineered by **EMAERX** in collaboration with regional computing, agriculture, and technopreneurship stakeholders.
+Designed and engineered by **Mark Alvin Cadangin** and **CONVERA Contributors / EMAERX** in collaboration with computing, research, and technopreneurship stakeholders.
