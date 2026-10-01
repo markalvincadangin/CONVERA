@@ -811,6 +811,34 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_feasibility_session ON research_feasibility_records(session_id);
                 CREATE INDEX IF NOT EXISTS idx_feasibility_project ON research_feasibility_records(project_id);
                 CREATE INDEX IF NOT EXISTS idx_feasibility_cleared ON research_feasibility_records(is_cleared);
+
+                -- -----------------------------------------------------------
+                -- Cross-Stage Research Critique & Blind-Spots (SDD-019 / Table 36)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS research_critiques (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    project_id TEXT,
+                    critique_type TEXT NOT NULL,
+                    severity TEXT NOT NULL,
+                    target_stages_json TEXT NOT NULL DEFAULT '[]',
+                    cross_stage_claims_json TEXT NOT NULL DEFAULT '[]',
+                    fatal_flaw_summary TEXT NOT NULL,
+                    kill_question TEXT NOT NULL,
+                    mitigation_recommendation TEXT NOT NULL,
+                    plausibility_score REAL NOT NULL DEFAULT 50.0,
+                    status TEXT NOT NULL DEFAULT 'OPEN',
+                    resolution_notes TEXT,
+                    is_degraded INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    resolved_at TIMESTAMP,
+                    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE,
+                    FOREIGN KEY(project_id) REFERENCES projects(id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_critiques_session_id ON research_critiques(session_id);
+                CREATE INDEX IF NOT EXISTS idx_critiques_project_id ON research_critiques(project_id);
+                CREATE INDEX IF NOT EXISTS idx_critiques_status ON research_critiques(status);
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -5597,4 +5625,140 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
         with self._get_connection() as conn:
             rows = conn.execute(query, tuple(params)).fetchall()
             return [self._deserialize_feasibility_record(r) for r in rows]
+
+    # ------------------------------------------------------------------
+    # Cross-Stage Research Critique & Blind-Spots (SDD-019 / Table 36)
+    # ------------------------------------------------------------------
+
+    def _deserialize_critique_record(self, row: sqlite3.Row) -> Dict[str, Any]:
+        data = dict(row)
+        for json_col in ("target_stages_json", "cross_stage_claims_json"):
+            val = data.get(json_col)
+            clean_key = json_col.replace("_json", "")
+            if isinstance(val, str):
+                try:
+                    data[clean_key] = json.loads(val)
+                except Exception:
+                    data[clean_key] = []
+            elif val is None:
+                data[clean_key] = []
+            else:
+                data[clean_key] = val
+
+        data["is_degraded"] = bool(data.get("is_degraded", 0))
+        data["plausibility_score"] = float(data.get("plausibility_score", 50.0))
+        return data
+
+    def save_critique_record(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        rec = dict(data)
+        critique_id = rec.get("id") or f"CRIT-{uuid.uuid4().hex[:12].upper()}"
+        session_id = rec["session_id"]
+        project_id = rec.get("project_id")
+        critique_type = rec.get("critique_type", "EPISTEMIC_CONTRADICTION")
+        severity = rec.get("severity", "CRITICAL")
+
+        target_stages = rec.get("target_stages") or rec.get("target_stages_json") or []
+        target_stages_json = json.dumps(target_stages) if not isinstance(target_stages, str) else target_stages
+
+        cross_claims = rec.get("cross_stage_claims") or rec.get("cross_stage_claims_json") or []
+        cross_claims_json = json.dumps(cross_claims) if not isinstance(cross_claims, str) else cross_claims
+
+        fatal_flaw_summary = rec.get("fatal_flaw_summary", "")
+        kill_question = rec.get("kill_question", "")
+        mitigation_recommendation = rec.get("mitigation_recommendation", "")
+        plausibility_score = float(rec.get("plausibility_score", 50.0))
+        status = rec.get("status", "OPEN")
+        resolution_notes = rec.get("resolution_notes")
+        is_degraded = 1 if rec.get("is_degraded") else 0
+        now = datetime.now(timezone.utc).isoformat()
+        created_at = rec.get("created_at") or now
+        resolved_at = rec.get("resolved_at")
+        if status in ("RESOLVED", "DISMISSED", "MITIGATED") and not resolved_at:
+            resolved_at = now
+
+        query = """
+            INSERT INTO research_critiques (
+                id, session_id, project_id, critique_type, severity,
+                target_stages_json, cross_stage_claims_json,
+                fatal_flaw_summary, kill_question, mitigation_recommendation,
+                plausibility_score, status, resolution_notes,
+                is_degraded, created_at, resolved_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                critique_type = excluded.critique_type,
+                severity = excluded.severity,
+                target_stages_json = excluded.target_stages_json,
+                cross_stage_claims_json = excluded.cross_stage_claims_json,
+                fatal_flaw_summary = excluded.fatal_flaw_summary,
+                kill_question = excluded.kill_question,
+                mitigation_recommendation = excluded.mitigation_recommendation,
+                plausibility_score = excluded.plausibility_score,
+                status = excluded.status,
+                resolution_notes = excluded.resolution_notes,
+                is_degraded = excluded.is_degraded,
+                resolved_at = excluded.resolved_at
+        """
+        with self._get_connection() as conn:
+            conn.execute(query, (
+                critique_id, session_id, project_id, critique_type, severity,
+                target_stages_json, cross_claims_json,
+                fatal_flaw_summary, kill_question, mitigation_recommendation,
+                plausibility_score, status, resolution_notes,
+                is_degraded, created_at, resolved_at
+            ))
+
+        return self.get_critique_record(critique_id) or rec
+
+    def get_critique_record(self, critique_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM research_critiques WHERE id = ?",
+                (critique_id,)
+            ).fetchone()
+            if not row:
+                return None
+            return self._deserialize_critique_record(row)
+
+    def list_critique_records(
+        self,
+        session_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        query = "SELECT * FROM research_critiques WHERE 1=1"
+        params: List[Any] = []
+        if session_id:
+            query += " AND session_id = ?"
+            params.append(session_id)
+        if project_id:
+            query += " AND project_id = ?"
+            params.append(project_id)
+        if status:
+            query += " AND status = ?"
+            params.append(status)
+        query += " ORDER BY created_at DESC"
+
+        with self._get_connection() as conn:
+            rows = conn.execute(query, tuple(params)).fetchall()
+            return [self._deserialize_critique_record(r) for r in rows]
+
+    def update_critique_status(
+        self,
+        critique_id: str,
+        status: str,
+        resolution_notes: str
+    ) -> Optional[Dict[str, Any]]:
+        now = datetime.now(timezone.utc).isoformat()
+        resolved_at = now if status in ("RESOLVED", "DISMISSED", "MITIGATED") else None
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                UPDATE research_critiques
+                SET status = ?, resolution_notes = ?, resolved_at = ?
+                WHERE id = ?
+                """,
+                (status, resolution_notes, resolved_at, critique_id)
+            )
+        return self.get_critique_record(critique_id)
+
 

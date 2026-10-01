@@ -560,6 +560,37 @@ class ResearchOrchestrator:
                 suggested_payload={"blind_spots": critique.blind_spots},
             ))
 
+        # Check cross-stage critique status
+        try:
+            if session_id:
+                critiques = self.storage.list_critique_records(session_id=session_id)
+                open_critiques = [c for c in critiques if c.get("status") == "OPEN"]
+                if open_critiques:
+                    fatal_or_crit = sum(1 for c in open_critiques if c.get("severity") in ("FATAL", "CRITICAL"))
+                    recs.append(RecommendedAction(
+                        action_id=f"act-critique-resolve-{uuid.uuid4().hex[:8]}",
+                        action_type=ActionType.AUDIT_CROSS_STAGE_CRITIQUE,
+                        title=f"Resolve {len(open_critiques)} Cross-Stage Contradictions",
+                        description=f"{fatal_or_crit} high-severity tensions detected across stages. Re-audit and record human mitigations.",
+                        priority=ActionPriority.HIGH if fatal_or_crit > 0 else ActionPriority.MEDIUM,
+                        blocking_stage_progression=fatal_or_crit > 0,
+                        target_engine="cross_stage_critique_engine",
+                        suggested_payload={"session_id": session_id},
+                    ))
+                elif not critiques and stage_status.stage_id in ("STAGE_C", "STAGE_D", "STAGE_E", "STAGE_F"):
+                    recs.append(RecommendedAction(
+                        action_id=f"act-critique-eval-{uuid.uuid4().hex[:8]}",
+                        action_type=ActionType.AUDIT_CROSS_STAGE_CRITIQUE,
+                        title="Execute Cross-Stage Adversarial Audit",
+                        description="Cross-examine literature claims against circumscription loops and feasibility constraints.",
+                        priority=ActionPriority.MEDIUM,
+                        blocking_stage_progression=False,
+                        target_engine="cross_stage_critique_engine",
+                        suggested_payload={"session_id": session_id},
+                    ))
+        except Exception as e:
+            logger.warning(f"Failed to check critique records for recommendations: {e}")
+
         if stage_status.missing_outputs:
             recs.append(RecommendedAction(
                 action_id=f"act-outputs-{uuid.uuid4().hex[:8]}",
@@ -738,8 +769,32 @@ class ResearchOrchestrator:
             resulting_artifacts["scholarly_works"] = works
             resulting_artifacts["count"] = len(works)
 
-        elif action_type == ActionType.EXECUTE_CRITIQUE:
-            if problem:
+        elif action_type in (ActionType.EXECUTE_CRITIQUE, ActionType.AUDIT_CROSS_STAGE_CRITIQUE):
+            if session_id:
+                from engines.cross_stage_critique_engine import CrossStageCritiqueEngine
+                from models.critique import CritiqueEvaluationRequest
+                try:
+                    critique_engine = CrossStageCritiqueEngine(storage=self.storage)
+                    proj_id = params.get("project_id") or (problem.get("project_id") if problem else "default_proj")
+                    eval_req = CritiqueEvaluationRequest(
+                        session_id=session_id,
+                        project_id=proj_id,
+                        problem_id=problem.get("id") if problem else None,
+                        include_ai_advisory=params.get("include_ai_advisory", True),
+                    )
+                    eval_res = await critique_engine.evaluate_critique(eval_req)
+                    resulting_artifacts["critique_evaluation"] = eval_res.model_dump()
+                    summary = (
+                        f"Executed Cross-Stage Critique. Epistemic Consistency Score: {eval_res.consistency_score}%. "
+                        f"Tensions: {eval_res.open_critiques} Open ({eval_res.fatal_count} Fatal, {eval_res.critical_count} Critical)."
+                    )
+                    if eval_res.is_degraded:
+                        status = "DEGRADED"
+                except Exception as e:
+                    logger.warning(f"CrossStageCritiqueEngine execution error: {e}")
+                    status = "DEGRADED"
+                    summary = f"Critique engine completed with fallback: {e}"
+            elif problem:
                 from engines.devils_advocate import challenge_problem_with_agent
                 try:
                     critique_res = await challenge_problem_with_agent(problem)
@@ -750,7 +805,7 @@ class ResearchOrchestrator:
                     summary = f"Adversarial critique fell back to deterministic rules: {e}"
             else:
                 status = "ERROR"
-                summary = "Cannot execute critique without an active problem record."
+                summary = "Cannot execute critique without a session or active problem record."
 
         elif action_type == ActionType.SYNTHESIZE_LITERATURE:
             query = params.get("query") or (problem.get("problem_statement") if problem else "")[:80]

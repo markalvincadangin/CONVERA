@@ -505,5 +505,40 @@ class BaseStorageAdapter(ABC):
         """List research feasibility records, optionally filtered by project_id."""
         pass
 
+    # ------------------------------------------------------------------
+    # Cross-Stage Research Critique & Blind-Spot Engine (SDD-019)
+    # ------------------------------------------------------------------
+
+    @abstractmethod
+    def save_critique_record(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        """Save or update a cross-stage research critique record."""
+        pass
+
+    @abstractmethod
+    def get_critique_record(self, critique_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a specific critique record by ID."""
+        pass
+
+    @abstractmethod
+    def list_critique_records(
+        self,
+        session_id: Optional[str] = None,
+        project_id: Optional[str] = None,
+        status: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """List cross-stage critique records with optional filters."""
+        pass
+
+    @abstractmethod
+    def update_critique_status(
+        self,
+        critique_id: str,
+        status: str,
+        resolution_notes: str
+    ) -> Optional[Dict[str, Any]]:
+        """Update the status and resolution notes of a critique record."""
+        pass
+
+
 
 

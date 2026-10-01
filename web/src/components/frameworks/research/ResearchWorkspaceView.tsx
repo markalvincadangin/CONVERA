@@ -32,6 +32,7 @@ import { TraceabilityDrawer } from "@/components/knowledge/TraceabilityDrawer";
 import { GateReviewModal } from "@/components/frameworks/research/GateReviewModal";
 import { CircumscriptionLoopView } from "@/components/frameworks/research/CircumscriptionLoopView";
 import { IntelligenceScorecardDrawer } from "@/components/knowledge/IntelligenceScorecardDrawer";
+import { CritiqueAuditDeck } from "@/components/research/critique/CritiqueAuditDeck";
 import { SessionState, ProblemRecord } from "@/lib/types";
 import { Badge } from "@/components/common/Badge";
 import { Button } from "@/components/common/Button";
@@ -359,6 +360,8 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
   const [isLoadingMatrix, setIsLoadingMatrix] = useState<boolean>(false);
   const [isTraceabilityOpen, setIsTraceabilityOpen] = useState<boolean>(false);
   const [isScorecardOpen, setIsScorecardOpen] = useState<boolean>(false);
+  const [isCritiqueDeckOpen, setIsCritiqueDeckOpen] = useState<boolean>(false);
+  const [consistencyScore, setConsistencyScore] = useState<number | null>(null);
   const [activeGateModal, setActiveGateModal] = useState<"GATE_1" | "GATE_2" | "GATE_3" | "GATE_4" | null>(null);
 
   const fetchMatrix = async (query: string) => {
@@ -425,6 +428,24 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
             className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 hover:bg-slate-750 text-cyan-300 border border-slate-700 transition inline-flex items-center gap-1.5 whitespace-nowrap"
           >
             <Layers className="w-3.5 h-3.5 text-cyan-400 shrink-0" /> <span>Traceability</span>
+          </button>
+
+          <button
+            onClick={() => setIsCritiqueDeckOpen(true)}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-rose-600/10 hover:bg-rose-600/20 text-rose-400 border border-rose-500/30 transition inline-flex items-center gap-1.5 whitespace-nowrap shadow-sm"
+            title="Cross-Stage Adversarial Critique & Blind-Spot Engine"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-rose-400 shrink-0" />
+            <span>Critique Deck</span>
+            {consistencyScore !== null && (
+              <span className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                consistencyScore >= 85 ? "bg-emerald-950 text-emerald-400 border border-emerald-800" :
+                consistencyScore >= 70 ? "bg-amber-950 text-amber-400 border border-amber-800" :
+                "bg-rose-950 text-rose-400 border border-rose-800"
+              }`}>
+                {consistencyScore}%
+              </span>
+            )}
           </button>
         </div>
       </div>
@@ -901,6 +922,16 @@ export const ResearchWorkspaceView: React.FC<ResearchWorkspaceViewProps> = ({
       <TraceabilityDrawer
         isOpen={isTraceabilityOpen}
         onClose={() => setIsTraceabilityOpen(false)}
+      />
+
+      {/* Cross-Stage Critique & Blind-Spot Deck */}
+      <CritiqueAuditDeck
+        isOpen={isCritiqueDeckOpen}
+        onClose={() => setIsCritiqueDeckOpen(false)}
+        sessionId={session?.session_id || ""}
+        projectId={session?.project_id || "default_proj"}
+        problemId={selectedAnchorId || problems[0]?.id || ""}
+        onScoreUpdated={(newScore) => setConsistencyScore(newScore)}
       />
       {activeGateModal && (
         <GateReviewModal
