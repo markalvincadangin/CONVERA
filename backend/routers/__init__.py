@@ -30,6 +30,7 @@ from .feasibility import router as feasibility_router
 from .critique import router as critique_router
 from .research_sessions import router as research_sessions_router
 from .provenance import router as provenance_router
+from .ecosystem import router as ecosystem_router
 
 __all__ = [
     "auth_router",
@@ -58,4 +59,5 @@ __all__ = [
     "critique_router",
     "research_sessions_router",
     "provenance_router",
+    "ecosystem_router",
 ]

@@ -30,6 +30,7 @@ import {
   SessionCheckpointModal,
 } from "@/components/research/sessions";
 import { EvidenceChainModal } from "@/components/research/provenance";
+import { EcosystemExportModal } from "@/components/research/ecosystem";
 import {
   researchSessionService,
   ResearchSessionSummary,
@@ -74,6 +75,9 @@ export default function Home() {
 
   // SDD-022 Provenance Evidence Chain Modal State
   const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
+
+  // SDD-023 Ecosystem Dissemination & Sync Modal State
+  const [isEcosystemModalOpen, setIsEcosystemModalOpen] = useState(false);
 
   // Initialize or fetch latest session from backend
   const initApp = async () => {
@@ -450,6 +454,7 @@ export default function Home() {
               onNavigatePhase={handleSelectPhase}
               onOpenScorecard={() => setIsScorecardOpen(true)}
               onOpenEvidenceChain={() => setIsEvidenceModalOpen(true)}
+              onOpenEcosystemSync={() => setIsEcosystemModalOpen(true)}
             />
 
             <AnimatePresence mode="wait">
@@ -528,6 +533,14 @@ export default function Home() {
       <EvidenceChainModal
         isOpen={isEvidenceModalOpen}
         onClose={() => setIsEvidenceModalOpen(false)}
+        sessionId={session?.session_id || ""}
+        sessionName={resumeSummary?.project_name || session?.project_name || ""}
+      />
+
+      {/* SDD-023: Global Ecosystem Dissemination Modal */}
+      <EcosystemExportModal
+        isOpen={isEcosystemModalOpen}
+        onClose={() => setIsEcosystemModalOpen(false)}
         sessionId={session?.session_id || ""}
         sessionName={resumeSummary?.project_name || session?.project_name || ""}
       />
