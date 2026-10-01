@@ -4,7 +4,7 @@
 **Specification ID**: `CONVERA-SDD-021`  
 **Feature Title**: Research Session Persistence & Resume Engine  
 **Authority Tier**: Tier 2 (Feature Specification Dossier)  
-**Document Status**: 🟡 DRAFT / FORMULATED FOR HUMAN RATIFICATION  
+**Document Status**: 🟢 RATIFIED / IMPLEMENTATION AUTHORIZED  
 **Governing Standard**: CCDS v2.0, Constitution Articles I, II, IV, VI, VII, VIII  
 **Target Feature Branch**: `feature/021-research-session-persistence-resume`  
 **Target Integration Branch**: `develop`  

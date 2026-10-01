@@ -4,7 +4,7 @@
 **Specification ID**: `CONVERA-SDD-021`  
 **Feature Title**: Research Session Persistence & Resume Engine  
 **Authority Tier**: Tier 2 (Governance & Audit Record)  
-**Document Status**: 🟡 DRAFT / FORMULATED FOR HUMAN RATIFICATION  
+**Document Status**: 🟢 RATIFIED / IMPLEMENTATION AUTHORIZED  
 **Governing Standard**: CCDS v2.0, Constitution Articles I, II, IV, VII, VIII  
 **Target Feature Branch**: `feature/021-research-session-persistence-resume`  
 **Target Integration Branch**: `develop`  
@@ -30,7 +30,7 @@
 
 | Life Cycle Phase | Gate Name | Target Status | Approval Authority |
 |:---|:---|:---|:---|
-| **Phase 1: Formulation** | Specification Gate | 🟡 FORMULATED / PENDING RATIFICATION | Human Lead Researcher / Architect |
+| **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
 | **Phase 2: Execution** | Implementation Gate | ⏳ PENDING | Automated Test Suite (pytest, tsc, Next.js build) |
 | **Phase 3: Integration** | Merge Gate | ⏳ PENDING | Engineering Verification Protocol & Closed-Loop Regression |
 | **Phase 4: Release** | Promotion Gate | ⏳ PENDING | Full Regression Passed (`feature` -> `develop` -> `main`) |
@@ -56,3 +56,9 @@
   - `INV-021-02` (Article I & II Evidence Grounding & Cryptographic Provenance): Deterministic SHA-256 state hashes across all checkpoints.
   - `INV-021-03` (Article IV Human Sovereignty): Checkpoint rollback and session cloning require explicit human authorization.
   - `INV-021-04` (Article VIII Degraded Resilience): 100% offline local SQLite WAL persistence.
+
+### 4.2 Implementation Authorization Sign-Off
+- **Status**: 🟢 AUTHORIZED
+- **Authority**: Human Lead Researcher / Architect ("approved")
+- **Timestamp**: 2026-10-01T10:59:12+08:00
+- **Scope**: Execution of TASK-021-01 through TASK-021-07.
