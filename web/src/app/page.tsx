@@ -25,6 +25,15 @@ import { SessionState, ProblemRecord } from "@/lib/types";
 import { sessionService } from "@/services/sessionService";
 import { problemService } from "@/services/problemService";
 import {
+  SessionResumeBanner,
+  ResearchSessionDrawer,
+  SessionCheckpointModal,
+} from "@/components/research/sessions";
+import {
+  researchSessionService,
+  ResearchSessionSummary,
+} from "@/services/researchSessionService";
+import {
   Download,
   Copy,
   Check,
@@ -55,53 +64,82 @@ export default function Home() {
   const [copiedDossier, setCopiedDossier] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
 
+  // SDD-021 Research Session Persistence States
+  const [isResearchDrawerOpen, setIsResearchDrawerOpen] = useState(false);
+  const [isCheckpointModalOpen, setIsCheckpointModalOpen] = useState(false);
+  const [checkpointSessionId, setCheckpointSessionId] = useState("");
+  const [checkpointSessionName, setCheckpointSessionName] = useState("");
+  const [resumeSummary, setResumeSummary] = useState<ResearchSessionSummary | null>(null);
+
   // Initialize or fetch latest session from backend
   const initApp = async () => {
     setIsLoadingSession(true);
     setConnectionError(false);
     try {
-      const sessions = await sessionService.listSessions();
-      let activeSess: SessionState;
-      if (sessions && sessions.length > 0) {
-        const latestSessionId = sessions[0].session_id;
-        activeSess = await sessionService.getSession(latestSessionId);
-      } else {
-        const newSession = await sessionService.createSession(
-          undefined,
-          "Iloilo Technopreneurship Project"
-        );
-        activeSess = newSession.state;
-      }
-      setSession(activeSess);
+      const activeResId = researchSessionService.getActiveSessionId();
+      let activeSess: SessionState | null = null;
 
-      // Restore active phase from localStorage or session progress
-      if (typeof window !== "undefined") {
+      // 1. Try restoring from active research session if present
+      if (activeResId) {
         try {
-          const savedPhase = localStorage.getItem(`convera_active_phase_${activeSess.session_id}`);
-          if (savedPhase !== null && !isNaN(Number(savedPhase))) {
-            setActivePhase(Number(savedPhase));
-          } else if (activeSess.phase4_complete) {
-            setActivePhase(5);
-          } else if (activeSess.phase3_complete) {
-            setActivePhase(4);
-          } else if (activeSess.phase2_complete || activeSess.phase3_problem) {
-            setActivePhase(3);
-          } else if (activeSess.phase1_complete) {
-            setActivePhase(2);
+          const resPayload = await researchSessionService.resumeSession(activeResId);
+          activeSess = resPayload.session as unknown as SessionState;
+          setSession(activeSess);
+          setResumeSummary(resPayload.summary);
+          setActivePhase(resPayload.summary.stage_index);
+        } catch (e) {
+          console.warn("Could not resume saved research session:", e);
+        }
+      }
+
+      // 2. If not restored, fetch latest from session service
+      if (!activeSess) {
+        const sessions = await sessionService.listSessions();
+        if (sessions && sessions.length > 0) {
+          const latestSessionId = sessions[0].session_id;
+          activeSess = await sessionService.getSession(latestSessionId);
+        } else {
+          const newSession = await sessionService.createSession(
+            undefined,
+            "Iloilo Technopreneurship Project"
+          );
+          activeSess = newSession.state;
+        }
+        setSession(activeSess);
+
+        // Turnkey hydration via research session resume endpoint
+        if (activeSess.session_id && !activeSess.session_id.startsWith("offline_")) {
+          try {
+            const resPayload = await researchSessionService.resumeSession(activeSess.session_id);
+            setResumeSummary(resPayload.summary);
+            setActivePhase(resPayload.summary.stage_index);
+          } catch {
+            // Fallback stage resolution if research resume unavailable
+            if (activeSess.phase4_complete) {
+              setActivePhase(5);
+            } else if (activeSess.phase3_complete) {
+              setActivePhase(4);
+            } else if (activeSess.phase2_complete || activeSess.phase3_problem) {
+              setActivePhase(3);
+            } else if (activeSess.phase1_complete) {
+              setActivePhase(2);
+            }
           }
-        } catch {}
+        }
       }
 
       // Fetch problems for health meter and AI hints
-      try {
-        const probList = await problemService.listProblems({
-          project_id: activeSess.project_id || undefined,
-        });
-        setProblems(probList);
-      } catch (pErr) {
-        console.warn("Could not load problems list:", pErr);
+      if (activeSess) {
+        try {
+          const probList = await problemService.listProblems({
+            project_id: activeSess.project_id || undefined,
+          });
+          setProblems(probList);
+        } catch (pErr) {
+          console.warn("Could not load problems list:", pErr);
+        }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn("Backend unavailable, loading local fallback session:", err);
       setConnectionError(true);
       const offlineId = "offline_" + Date.now();
@@ -127,10 +165,60 @@ export default function Home() {
 
   const handleSelectPhase = (phase: number) => {
     setActivePhase(phase);
-    if (session?.session_id && typeof window !== "undefined") {
-      try {
-        localStorage.setItem(`convera_active_phase_${session.session_id}`, String(phase));
-      } catch {}
+    if (session?.session_id && !session.session_id.startsWith("offline_")) {
+      const stageMap = [
+        "scouting",
+        "contextualization",
+        "matrix",
+        "artifact_design",
+        "evaluation",
+        "feasibility",
+      ];
+      const targetStage = stageMap[phase] || "scouting";
+      const pct = Math.round(((phase + 1) / 6.0) * 100);
+      researchSessionService
+        .syncStage(session.session_id, {
+          stage_id: targetStage,
+          stage_completion_pct: pct,
+        })
+        .then((res) => {
+          setResumeSummary((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  current_stage_id: res.current_stage_id,
+                  stage_completion_pct: res.stage_completion_pct,
+                  stage_index: phase,
+                }
+              : null
+          );
+        })
+        .catch((err) => {
+          console.warn("Failed to sync stage to backend:", err);
+        });
+    }
+  };
+
+  const handleResumeResearchSession = async (sessionId: string) => {
+    setIsLoadingSession(true);
+    try {
+      const payload = await researchSessionService.resumeSession(sessionId);
+      setSession(payload.session as unknown as SessionState);
+      setResumeSummary(payload.summary);
+      setActivePhase(payload.summary.stage_index);
+      const probList = await problemService.listProblems({
+        project_id: payload.summary.project_id || undefined,
+      });
+      setProblems(probList);
+      toast.success(
+        `Resumed research initiative "${payload.summary.project_name}" at ${payload.summary.current_stage_name}.`,
+        "Session Resumed"
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to resume session";
+      toast.error(msg, "Error Resuming Session");
+    } finally {
+      setIsLoadingSession(false);
     }
   };
 
@@ -266,7 +354,7 @@ export default function Home() {
       {/* Top Navigation */}
       <Navbar
         session={session}
-        onOpenSessionManager={() => setIsSessionManagerOpen(true)}
+        onOpenSessionManager={() => setIsResearchDrawerOpen(true)}
         onOpenCheatsheet={() => setIsCheatsheetOpen(true)}
         onOpenHelp={() => setIsHelpOpen(true)}
         onOpenPresentation={() => setIsPresentationOpen(true)}
@@ -274,7 +362,7 @@ export default function Home() {
         isExporting={isExporting}
         onOpenScorecard={() => setIsScorecardOpen(true)}
         onOpenTraceability={() => setIsTraceabilityOpen(true)}
-          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
         onFrameworkChanged={handleUpdateSession}
       />
 
@@ -328,6 +416,21 @@ export default function Home() {
           </div>
         ) : session ? (
           <>
+            {/* SDD-021: Research Session Resume & Stepper Banner */}
+            <SessionResumeBanner
+              sessionName={resumeSummary?.project_name || session.project_name || "Active Initiative"}
+              sessionId={session.session_id || ""}
+              currentStageId={resumeSummary?.current_stage_id || session.current_stage_id || "scouting"}
+              stageCompletionPct={resumeSummary?.stage_completion_pct ?? 0}
+              checkpointCount={resumeSummary?.checkpoint_count ?? 0}
+              onOpenDrawer={() => setIsResearchDrawerOpen(true)}
+              onOpenCheckpoints={() => {
+                setCheckpointSessionId(session.session_id || "");
+                setCheckpointSessionName(session.project_name || "Active Initiative");
+                setIsCheckpointModalOpen(true);
+              }}
+            />
+
             <ResearchCockpit
               session={session}
               activeProblemId={session.phase3_problem}
@@ -386,6 +489,33 @@ export default function Home() {
         onClose={() => setIsSessionManagerOpen(false)}
         currentSessionId={session?.session_id || ""}
         onSelectSession={handleSelectSession}
+      />
+
+      {/* SDD-021: Research Session Portfolio Drawer */}
+      <ResearchSessionDrawer
+        isOpen={isResearchDrawerOpen}
+        onClose={() => setIsResearchDrawerOpen(false)}
+        activeSessionId={session?.session_id}
+        onResumeSession={handleResumeResearchSession}
+        onOpenCheckpoints={(id, name) => {
+          setCheckpointSessionId(id);
+          setCheckpointSessionName(name);
+          setIsCheckpointModalOpen(true);
+        }}
+      />
+
+      {/* SDD-021: Session Checkpoint Modal */}
+      <SessionCheckpointModal
+        isOpen={isCheckpointModalOpen}
+        onClose={() => setIsCheckpointModalOpen(false)}
+        sessionId={checkpointSessionId || session?.session_id || ""}
+        sessionName={checkpointSessionName || session?.project_name || ""}
+        currentStageId={resumeSummary?.current_stage_id || session?.current_stage_id}
+        onRestored={() => {
+          if (session?.session_id) {
+            handleResumeResearchSession(session.session_id);
+          }
+        }}
       />
 
       {/* Cheatsheet Drawer */}
