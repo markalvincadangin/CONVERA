@@ -20,9 +20,17 @@ import {
   Activity,
   Sliders,
   Check,
+  Printer,
+  Code2,
+  BookOpen,
 } from "lucide-react";
 import { useToast } from "@/components/common/ToastProvider";
 import { MarkdownRenderer } from "@/components/common/MarkdownRenderer";
+import {
+  exportService,
+  type ExportFormat,
+  type DSRProposalCompilationResponse,
+} from "@/services/exportService";
 import {
   feasibilityService,
   type FeasibilityRecord,
@@ -60,6 +68,8 @@ export const StageFFeasibilityView: React.FC<StageFFeasibilityViewProps> = ({
   // State
   const [feasibility, setFeasibility] = useState<FeasibilityRecord | null>(null);
   const [proposal, setProposal] = useState<DSRProposalMonograph | null>(null);
+  const [compiledDoc, setCompiledDoc] = useState<DSRProposalCompilationResponse | null>(null);
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("MARKDOWN");
   const [signoffs, setSignoffs] = useState<MentorSignoffRecord[]>([]);
 
   // Loading flags
@@ -220,6 +230,21 @@ export const StageFFeasibilityView: React.FC<StageFFeasibilityViewProps> = ({
     }
   };
 
+  // Format change handler
+  const handleFormatChange = async (newFormat: ExportFormat) => {
+    setExportFormat(newFormat);
+    setIsCompiling(true);
+    try {
+      const res = await exportService.fetchProposalExport(projectId, sessionId, problemId, newFormat);
+      setCompiledDoc(res);
+      toast.success(`Switched proposal view to ${newFormat}.`);
+    } catch (err: any) {
+      toast.error(err?.message || `Failed to compile proposal as ${newFormat}.`);
+    } finally {
+      setIsCompiling(false);
+    }
+  };
+
   // Re-compile Proposal Monograph
   const handleRecompileProposal = async () => {
     setIsCompiling(true);
@@ -229,7 +254,10 @@ export const StageFFeasibilityView: React.FC<StageFFeasibilityViewProps> = ({
         session_id: sessionId,
       });
       setProposal(prop);
-      toast.success("Living DSR Proposal Canvas regenerated from latest project state.");
+
+      const compiled = await exportService.fetchProposalExport(projectId, sessionId, problemId, exportFormat);
+      setCompiledDoc(compiled);
+      toast.success("Living DSR Proposal Canvas regenerated across all formats.");
     } catch (err: any) {
       toast.error(err?.message || "Failed to recompile proposal.");
     } finally {
@@ -237,28 +265,64 @@ export const StageFFeasibilityView: React.FC<StageFFeasibilityViewProps> = ({
     }
   };
 
-  // Copy Markdown Monograph
-  const handleCopyMarkdown = () => {
-    if (!proposal?.markdown_content) return;
-    navigator.clipboard.writeText(proposal.markdown_content);
+  // Copy Active Monograph Content
+  const handleCopyActive = () => {
+    const text = compiledDoc?.content || proposal?.markdown_content;
+    if (!text) return;
+    navigator.clipboard.writeText(text);
     setCopiedProposal(true);
-    toast.success("DSR Proposal Markdown copied to clipboard.");
+    toast.success(`Copied ${exportFormat} content to clipboard.`);
     setTimeout(() => setCopiedProposal(false), 2000);
   };
 
-  // Download Markdown Monograph
-  const handleDownloadMarkdown = () => {
-    if (!proposal?.markdown_content) return;
-    const blob = new Blob([proposal.markdown_content], { type: "text/markdown;charset=utf-8" });
+  // Download Active Monograph Deliverable
+  const handleDownloadActive = () => {
+    const text = compiledDoc?.content || proposal?.markdown_content;
+    if (!text) return;
+
+    let ext = "md";
+    let mime = "text/markdown";
+    if (exportFormat === "LATEX") {
+      ext = "tex";
+      mime = "application/x-tex";
+    } else if (exportFormat === "BIBTEX") {
+      ext = "bib";
+      mime = "application/x-bibtex";
+    } else if (exportFormat === "HTML") {
+      ext = "html";
+      mime = "text/html";
+    } else if (exportFormat === "JSON") {
+      ext = "json";
+      mime = "application/json";
+    }
+
+    const blob = new Blob([text], { type: `${mime};charset=utf-8` });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `DSR_Proposal_${projectId}_${new Date().toISOString().slice(0, 10)}.md`;
+    link.download = `CONVERA_Proposal_${projectId}_${new Date().toISOString().slice(0, 10)}.${ext}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success("Downloaded DSR Proposal Monograph.");
+    toast.success(`Downloaded .${ext} deliverable.`);
+  };
+
+  // Print to PDF (HTML format)
+  const handlePrintPdf = () => {
+    if (exportFormat === "HTML" && compiledDoc?.content) {
+      const printWindow = window.open("", "_blank");
+      if (printWindow) {
+        printWindow.document.write(compiledDoc.content);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+          printWindow.print();
+        }, 300);
+      }
+    } else {
+      window.print();
+    }
   };
 
   // Submit Mentor Sign-off
@@ -742,7 +806,7 @@ export const StageFFeasibilityView: React.FC<StageFFeasibilityViewProps> = ({
         </div>
       )}
 
-      {/* TAB 4: LIVING PROPOSAL CANVAS */}
+      {/* TAB 4: LIVING PROPOSAL CANVAS (SDD-020 MULTI-FORMAT DELIVERABLE ENGINE) */}
       {activeTab === "PROPOSAL" && (
         <div className="space-y-6">
           <div className="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-4">
@@ -755,49 +819,127 @@ export const StageFFeasibilityView: React.FC<StageFFeasibilityViewProps> = ({
                   </h3>
                 </div>
                 <p className="text-xs text-slate-400 mt-1">
-                  Dynamically compiled across Stages A $\rightarrow$ F with live evidence and gate provenance.
+                  Dynamically compiled across Stages A &rarr; F with live evidence, gate provenance, and critique audit.
                 </p>
               </div>
 
               {/* Action Toolbar */}
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={handleRecompileProposal}
                   disabled={isCompiling}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors disabled:opacity-50"
+                  title="Re-aggregate latest relational state"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isCompiling ? "animate-spin" : ""}`} />
+                  <RefreshCw className={`w-3.5 h-3.5 ${isCompiling ? "animate-spin text-emerald-400" : ""}`} />
                   Recompile
                 </button>
+
                 <button
-                  onClick={handleCopyMarkdown}
+                  onClick={handleCopyActive}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors"
+                  title={`Copy ${exportFormat} content`}
                 >
                   {copiedProposal ? (
                     <Check className="w-3.5 h-3.5 text-emerald-400" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
-                  {copiedProposal ? "Copied" : "Copy .md"}
+                  {copiedProposal ? "Copied" : `Copy .${exportFormat === "LATEX" ? "tex" : exportFormat === "BIBTEX" ? "bib" : exportFormat === "HTML" ? "html" : exportFormat === "JSON" ? "json" : "md"}`}
                 </button>
+
+                {exportFormat === "HTML" && (
+                  <button
+                    onClick={handlePrintPdf}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition-colors shadow-md shadow-indigo-900/30"
+                    title="Print or Save as PDF via browser print dialogue"
+                  >
+                    <Printer className="w-3.5 h-3.5" />
+                    Print / Save PDF
+                  </button>
+                )}
+
                 <button
-                  onClick={handleDownloadMarkdown}
+                  onClick={handleDownloadActive}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold transition-colors shadow-md shadow-emerald-900/30"
+                  title={`Download .${exportFormat === "LATEX" ? "tex" : exportFormat === "BIBTEX" ? "bib" : exportFormat === "HTML" ? "html" : exportFormat === "JSON" ? "json" : "md"}`}
                 >
                   <Download className="w-3.5 h-3.5" />
-                  Download Monograph
+                  Download Deliverable
                 </button>
               </div>
             </div>
 
-            {/* Markdown Preview Area */}
-            <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-6 max-h-[600px] overflow-y-auto">
-              {proposal ? (
-                <MarkdownRenderer content={proposal.markdown_content} />
+            {/* Format Selector Pills */}
+            <div className="flex flex-wrap items-center gap-2 pt-1 pb-2">
+              <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-2">
+                Deliverable Format:
+              </span>
+              {[
+                { id: "MARKDOWN" as ExportFormat, label: "Markdown (.md)", icon: FileText },
+                { id: "LATEX" as ExportFormat, label: "LaTeX (.tex)", icon: Code2 },
+                { id: "BIBTEX" as ExportFormat, label: "BibTeX (.bib)", icon: BookOpen },
+                { id: "HTML" as ExportFormat, label: "Printable HTML (.html)", icon: Globe },
+                { id: "JSON" as ExportFormat, label: "Provenance JSON (.json)", icon: Layers },
+              ].map((fmt) => {
+                const Icon = fmt.icon;
+                const isActive = exportFormat === fmt.id;
+                return (
+                  <button
+                    key={fmt.id}
+                    onClick={() => handleFormatChange(fmt.id)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+                      isActive
+                        ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shadow-sm shadow-emerald-950"
+                        : "bg-slate-950/60 text-slate-400 hover:text-slate-200 border border-slate-800 hover:border-slate-700"
+                    }`}
+                  >
+                    <Icon className={`w-3.5 h-3.5 ${isActive ? "text-emerald-400" : "text-slate-500"}`} />
+                    {fmt.label}
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Provenance Banner */}
+            {compiledDoc?.provenance_hash && (
+              <div className="flex items-center justify-between px-3 py-1.5 rounded-lg bg-slate-950/60 border border-slate-800/80 text-[11px] font-mono text-slate-400">
+                <span className="flex items-center gap-1.5">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                  SHA-256 Provenance Digest:
+                </span>
+                <span className="text-emerald-400 truncate max-w-xs sm:max-w-md">
+                  {compiledDoc.provenance_hash}
+                </span>
+              </div>
+            )}
+
+            {/* Document Preview Area */}
+            <div className="rounded-xl border border-slate-800 bg-slate-950/80 p-6 max-h-[650px] overflow-y-auto">
+              {exportFormat === "MARKDOWN" ? (
+                proposal || compiledDoc ? (
+                  <MarkdownRenderer content={compiledDoc?.content || proposal?.markdown_content || ""} />
+                ) : (
+                  <div className="text-center py-12 text-slate-500 text-xs">
+                    Proposal compiling... Click "Recompile" to generate monograph.
+                  </div>
+                )
+              ) : exportFormat === "HTML" ? (
+                compiledDoc?.content ? (
+                  <iframe
+                    srcDoc={compiledDoc.content}
+                    className="w-full h-[600px] border border-slate-800 rounded-lg bg-slate-900"
+                    title="HTML Deliverable Preview"
+                  />
+                ) : (
+                  <div className="text-center py-12 text-slate-500 text-xs">
+                    Compiling HTML deliverable...
+                  </div>
+                )
               ) : (
-                <div className="text-center py-12 text-slate-500 text-xs">
-                  Proposal compiling... Click "Recompile" to generate monograph.
-                </div>
+                <pre className="text-xs font-mono text-emerald-300/90 whitespace-pre-wrap leading-relaxed selection:bg-emerald-900 selection:text-white">
+                  {compiledDoc?.content || (proposal ? proposal.markdown_content : "Compiling...")}
+                </pre>
               )}
             </div>
           </div>

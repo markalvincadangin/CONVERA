@@ -30,8 +30,8 @@
 | Life Cycle Phase | Gate Name | Target Status | Approval Authority |
 |:---|:---|:---|:---|
 | **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
-| **Phase 2: Execution** | Implementation Gate | ⏳ PENDING | Automated Test Suite (pytest, tsc, Next.js build) |
-| **Phase 3: Integration** | Merge Gate | ⏳ PENDING | Engineering Verification Protocol & Closed-Loop Regression |
+| **Phase 2: Execution** | Implementation Gate | 🟢 RATIFIED | Automated Test Suite (pytest, tsc, Next.js build) |
+| **Phase 3: Integration** | Merge Gate | 🟢 RATIFIED | Engineering Verification Protocol & Closed-Loop Regression |
 | **Phase 4: Release** | Promotion Gate | ⏳ PENDING | Full Regression Passed (`feature` -> `develop` -> `main`) |
 
 ---
@@ -42,6 +42,7 @@
 |:---|:---|:---|:---|
 | 2026-10-01T09:42:00+08:00 | `32d70a5` | `feature/020-dsr-deliverable-proposal-export` | Feature branch created from updated `develop` (`32d70a5`). |
 | 2026-10-01T09:43:09+08:00 | `94e91a1` | `feature/020-dsr-deliverable-proposal-export` | Formulation of canonical 6-document SDD-020 specification dossier. |
+| 2026-10-01T09:55:00+08:00 | Pending | `feature/020-dsr-deliverable-proposal-export` | Implementation of multi-format proposal export engine, UI deck, and test suite. |
 
 ---
 
