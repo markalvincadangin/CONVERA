@@ -9,6 +9,7 @@ import {
   HelpCircle,
   Loader2,
   Sparkles,
+  GitBranch,
 } from "lucide-react";
 import { SessionState } from "@/lib/types";
 import {
@@ -24,6 +25,7 @@ import { StageGateMonitor } from "./StageGateMonitor";
 import { EpistemicHealthMeter } from "./EpistemicHealthMeter";
 import { RecommendedActionCard } from "./RecommendedActionCard";
 import { OrchestrationEventsDrawer } from "./OrchestrationEventsDrawer";
+import { EvidenceChainModal } from "@/components/research/provenance";
 
 export interface ResearchCockpitProps {
   session: SessionState | null;
@@ -32,6 +34,7 @@ export interface ResearchCockpitProps {
   onNavigatePhase?: (phase: number) => void;
   onOpenScorecard?: () => void;
   onOpenGateReview?: () => void;
+  onOpenEvidenceChain?: () => void;
   className?: string;
 }
 
@@ -42,6 +45,7 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
   onNavigatePhase,
   onOpenScorecard,
   onOpenGateReview,
+  onOpenEvidenceChain,
   className = "",
 }) => {
   const toast = useToast();
@@ -50,6 +54,7 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
   const [loading, setLoading] = useState(false);
   const [isDispatching, setIsDispatching] = useState(false);
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
+  const [isInternalEvidenceModalOpen, setIsInternalEvidenceModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const sessionId = session?.session_id || "";
@@ -209,6 +214,22 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
           >
             Audit Trail
           </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              if (onOpenEvidenceChain) {
+                onOpenEvidenceChain();
+              } else {
+                setIsInternalEvidenceModalOpen(true);
+              }
+            }}
+            className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 text-xs text-neutral-200 border-cyan-500/30 hover:border-cyan-500/60"
+            leftIcon={<GitBranch className="w-3.5 h-3.5 text-cyan-400" />}
+          >
+            Evidence Chain
+          </Button>
         </div>
       </div>
 
@@ -316,6 +337,14 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
         isOpen={isAuditDrawerOpen}
         onClose={() => setIsAuditDrawerOpen(false)}
         sessionId={sessionId}
+      />
+
+      {/* SDD-022: Evidence Chain Provenance DAG Modal */}
+      <EvidenceChainModal
+        isOpen={isInternalEvidenceModalOpen}
+        onClose={() => setIsInternalEvidenceModalOpen(false)}
+        sessionId={sessionId}
+        sessionName={session.project_name || session.session_id}
       />
     </div>
   );

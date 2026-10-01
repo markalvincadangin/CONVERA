@@ -9,6 +9,7 @@ import {
   ArrowRightLeft,
   Sparkles,
   ShieldCheck,
+  GitBranch,
 } from "lucide-react";
 
 interface SessionResumeBannerProps {
@@ -19,6 +20,7 @@ interface SessionResumeBannerProps {
   checkpointCount?: number;
   onOpenDrawer: () => void;
   onOpenCheckpoints: () => void;
+  onOpenEvidenceChain?: () => void;
 }
 
 const STAGES = [
@@ -38,6 +40,7 @@ export const SessionResumeBanner: React.FC<SessionResumeBannerProps> = ({
   checkpointCount = 0,
   onOpenDrawer,
   onOpenCheckpoints,
+  onOpenEvidenceChain,
 }) => {
   const currentStageIndex = STAGES.findIndex(
     (s) => s.id === currentStageId || currentStageId.includes(s.id)
@@ -100,6 +103,17 @@ export const SessionResumeBanner: React.FC<SessionResumeBannerProps> = ({
 
         {/* Right: Quick Action Controls */}
         <div className="flex items-center space-x-2 self-end lg:self-center shrink-0">
+          {onOpenEvidenceChain && (
+            <button
+              onClick={onOpenEvidenceChain}
+              className="px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center space-x-1.5 transition"
+              title="Inspect Evidence Chain DAG & Epistemic Lineage"
+            >
+              <GitBranch className="w-3.5 h-3.5 text-cyan-400" />
+              <span>Evidence Chain</span>
+            </button>
+          )}
+
           <button
             onClick={onOpenCheckpoints}
             className="px-3 py-1.5 text-xs font-medium rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 flex items-center space-x-1.5 transition"

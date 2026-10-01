@@ -29,6 +29,7 @@ from .evaluations import router as concept_evaluation_router
 from .feasibility import router as feasibility_router
 from .critique import router as critique_router
 from .research_sessions import router as research_sessions_router
+from .provenance import router as provenance_router
 
 __all__ = [
     "auth_router",
@@ -56,4 +57,5 @@ __all__ = [
     "feasibility_router",
     "critique_router",
     "research_sessions_router",
+    "provenance_router",
 ]

@@ -29,6 +29,7 @@ import {
   ResearchSessionDrawer,
   SessionCheckpointModal,
 } from "@/components/research/sessions";
+import { EvidenceChainModal } from "@/components/research/provenance";
 import {
   researchSessionService,
   ResearchSessionSummary,
@@ -70,6 +71,9 @@ export default function Home() {
   const [checkpointSessionId, setCheckpointSessionId] = useState("");
   const [checkpointSessionName, setCheckpointSessionName] = useState("");
   const [resumeSummary, setResumeSummary] = useState<ResearchSessionSummary | null>(null);
+
+  // SDD-022 Provenance Evidence Chain Modal State
+  const [isEvidenceModalOpen, setIsEvidenceModalOpen] = useState(false);
 
   // Initialize or fetch latest session from backend
   const initApp = async () => {
@@ -429,6 +433,7 @@ export default function Home() {
                 setCheckpointSessionName(session.project_name || "Active Initiative");
                 setIsCheckpointModalOpen(true);
               }}
+              onOpenEvidenceChain={() => setIsEvidenceModalOpen(true)}
             />
 
             <ResearchCockpit
@@ -444,6 +449,7 @@ export default function Home() {
               }}
               onNavigatePhase={handleSelectPhase}
               onOpenScorecard={() => setIsScorecardOpen(true)}
+              onOpenEvidenceChain={() => setIsEvidenceModalOpen(true)}
             />
 
             <AnimatePresence mode="wait">
@@ -516,6 +522,14 @@ export default function Home() {
             handleResumeResearchSession(session.session_id);
           }
         }}
+      />
+
+      {/* SDD-022: Global Evidence Chain Provenance DAG Modal */}
+      <EvidenceChainModal
+        isOpen={isEvidenceModalOpen}
+        onClose={() => setIsEvidenceModalOpen(false)}
+        sessionId={session?.session_id || ""}
+        sessionName={resumeSummary?.project_name || session?.project_name || ""}
       />
 
       {/* Cheatsheet Drawer */}
