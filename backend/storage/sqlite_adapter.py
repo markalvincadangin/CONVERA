@@ -839,6 +839,27 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_critiques_session_id ON research_critiques(session_id);
                 CREATE INDEX IF NOT EXISTS idx_critiques_project_id ON research_critiques(project_id);
                 CREATE INDEX IF NOT EXISTS idx_critiques_status ON research_critiques(status);
+
+                -- -----------------------------------------------------------
+                -- Research Session Checkpoints (SDD-021 / Table 37)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS research_session_checkpoints (
+                    checkpoint_id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    checkpoint_name TEXT NOT NULL,
+                    description TEXT,
+                    stage_id TEXT NOT NULL,
+                    stage_index INTEGER NOT NULL,
+                    state_snapshot TEXT NOT NULL,
+                    state_hash TEXT NOT NULL,
+                    created_by TEXT DEFAULT 'Researcher',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_checkpoints_session ON research_session_checkpoints(session_id);
+                CREATE INDEX IF NOT EXISTS idx_checkpoints_stage ON research_session_checkpoints(session_id, stage_id);
+                CREATE INDEX IF NOT EXISTS idx_checkpoints_created ON research_session_checkpoints(created_at DESC);
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -1308,11 +1329,30 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             except Exception:
                 pass
 
+            # SDD-021 Additive Schema Migration: sessions research metadata
+            try:
+                col_cursor = conn.execute("PRAGMA table_info(sessions);")
+                existing_cols = [row["name"] if isinstance(row, sqlite3.Row) else row[1] for row in col_cursor.fetchall()]
+                if "active_framework_id" not in existing_cols:
+                    conn.execute("ALTER TABLE sessions ADD COLUMN active_framework_id TEXT DEFAULT 'RESEARCH';")
+                if "current_research_stage" not in existing_cols:
+                    conn.execute("ALTER TABLE sessions ADD COLUMN current_research_stage TEXT DEFAULT 'scouting';")
+                if "stage_completion_pct" not in existing_cols:
+                    conn.execute("ALTER TABLE sessions ADD COLUMN stage_completion_pct REAL DEFAULT 0.0;")
+                if "active_problem_id" not in existing_cols:
+                    conn.execute("ALTER TABLE sessions ADD COLUMN active_problem_id TEXT REFERENCES problems(id) ON DELETE SET NULL;")
+                if "active_domain_id" not in existing_cols:
+                    conn.execute("ALTER TABLE sessions ADD COLUMN active_domain_id TEXT REFERENCES research_domains(id) ON DELETE SET NULL;")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_framework ON sessions(active_framework_id);")
+                conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_stage ON sessions(current_research_stage);")
+            except Exception:
+                pass
+
 
     def get_session(self, session_id: str) -> Optional[Dict[str, Any]]:
         with self._get_connection() as conn:
             row = conn.execute(
-                "SELECT session_id, project_id, state_data, project_name, phase1_complete, phase2_complete, phase3_complete, phase4_complete, phase5_complete, updated_at, created_at FROM sessions WHERE session_id = ?",
+                "SELECT * FROM sessions WHERE session_id = ?",
                 (session_id,)
             ).fetchone()
             if not row:
@@ -1326,6 +1366,17 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
             state["project_id"] = row["project_id"]
             if "project_name" not in state or not state["project_name"]:
                 state["project_name"] = row["project_name"]
+            row_keys = row.keys()
+            if "active_problem_id" in row_keys and row["active_problem_id"]:
+                state["active_problem_id"] = row["active_problem_id"]
+            if "active_domain_id" in row_keys and row["active_domain_id"]:
+                state["active_domain_id"] = row["active_domain_id"]
+            if "current_research_stage" in row_keys and row["current_research_stage"]:
+                state["current_research_stage"] = row["current_research_stage"]
+            if "stage_completion_pct" in row_keys and row["stage_completion_pct"] is not None:
+                state["stage_completion_pct"] = row["stage_completion_pct"]
+            if "active_framework_id" in row_keys and row["active_framework_id"]:
+                state["active_framework_id"] = row["active_framework_id"]
 
             # Evaluate 3-state migration model
             if "stage_progress" in state and state["stage_progress"] is not None:
@@ -5760,5 +5811,156 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 (status, resolution_notes, resolved_at, critique_id)
             )
         return self.get_critique_record(critique_id)
+
+    # ------------------------------------------------------------------
+    # Research Session Persistence & Checkpointing (SDD-021 / Table 37)
+    # ------------------------------------------------------------------
+
+    def create_research_session_checkpoint(
+        self,
+        checkpoint_id: str,
+        session_id: str,
+        checkpoint_name: str,
+        stage_id: str,
+        stage_index: int,
+        state_snapshot: str,
+        state_hash: str,
+        description: Optional[str] = None,
+        created_by: str = "Researcher"
+    ) -> Dict[str, Any]:
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO research_session_checkpoints (
+                    checkpoint_id, session_id, checkpoint_name, description,
+                    stage_id, stage_index, state_snapshot, state_hash,
+                    created_by, created_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                (
+                    checkpoint_id,
+                    session_id,
+                    checkpoint_name,
+                    description,
+                    stage_id,
+                    stage_index,
+                    state_snapshot,
+                    state_hash,
+                    created_by
+                )
+            )
+        rec = self.get_research_session_checkpoint(checkpoint_id)
+        if not rec:
+            raise RuntimeError(f"Failed to retrieve checkpoint {checkpoint_id} after insert.")
+        return rec
+
+    def get_research_session_checkpoint(self, checkpoint_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM research_session_checkpoints WHERE checkpoint_id = ?",
+                (checkpoint_id,)
+            ).fetchone()
+            if not row:
+                return None
+            return dict(row)
+
+    def list_research_session_checkpoints(self, session_id: str) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM research_session_checkpoints WHERE session_id = ? ORDER BY created_at DESC",
+                (session_id,)
+            ).fetchall()
+            return [dict(r) for r in rows]
+
+    def delete_research_session_checkpoint(self, checkpoint_id: str) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute(
+                "DELETE FROM research_session_checkpoints WHERE checkpoint_id = ?",
+                (checkpoint_id,)
+            )
+            return cur.rowcount > 0
+
+    def update_research_session_stage(
+        self,
+        session_id: str,
+        stage_id: str,
+        stage_index: int,
+        stage_completion_pct: float,
+        active_problem_id: Optional[str] = None,
+        active_domain_id: Optional[str] = None
+    ) -> bool:
+        with self._get_connection() as conn:
+            cur = conn.execute(
+                """
+                UPDATE sessions
+                SET current_research_stage = ?,
+                    stage_completion_pct = ?,
+                    active_problem_id = COALESCE(?, active_problem_id),
+                    active_domain_id = COALESCE(?, active_domain_id),
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE session_id = ?
+                """,
+                (stage_id, stage_completion_pct, active_problem_id, active_domain_id, session_id)
+            )
+            return cur.rowcount > 0
+
+    def list_research_sessions(self, limit: int = 50) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute("""
+                SELECT 
+                    s.session_id, s.project_id, s.project_name,
+                    s.active_framework_id, s.current_research_stage, s.stage_completion_pct,
+                    s.active_problem_id, s.active_domain_id,
+                    s.created_at, s.updated_at,
+                    p.share_code,
+                    prob.problem_statement AS active_problem_title,
+                    (SELECT COUNT(*) FROM research_session_checkpoints rsc WHERE rsc.session_id = s.session_id) AS checkpoint_count,
+                    (SELECT CASE WHEN verdict = 'PASS' THEN 1 ELSE 0 END FROM gate_reviews gr WHERE gr.session_id = s.session_id AND (gr.gate_id LIKE '%1%' OR gr.gate_name LIKE '%1%') ORDER BY created_at DESC LIMIT 1) AS gate1_cleared,
+                    (SELECT CASE WHEN verdict = 'PASS' THEN 1 ELSE 0 END FROM gate_reviews gr WHERE gr.session_id = s.session_id AND (gr.gate_id LIKE '%2%' OR gr.gate_name LIKE '%2%') ORDER BY created_at DESC LIMIT 1) AS gate2_cleared,
+                    (SELECT CASE WHEN verdict = 'PASS' THEN 1 ELSE 0 END FROM gate_reviews gr WHERE gr.session_id = s.session_id AND (gr.gate_id LIKE '%3%' OR gr.gate_name LIKE '%3%') ORDER BY created_at DESC LIMIT 1) AS gate3_cleared,
+                    (SELECT is_cleared FROM research_feasibility_records rfr WHERE rfr.session_id = s.session_id ORDER BY created_at DESC LIMIT 1) AS gate4_cleared
+                FROM sessions s
+                LEFT JOIN projects p ON s.project_id = p.id
+                LEFT JOIN problems prob ON s.active_problem_id = prob.id
+                WHERE s.active_framework_id = 'RESEARCH' OR s.active_framework_id IS NULL OR s.current_research_stage IS NOT NULL
+                ORDER BY s.updated_at DESC
+                LIMIT ?
+            """, (limit,)).fetchall()
+
+            STAGE_NAMES = {
+                "scouting": ("Phase A: Scouting & Discovery", 0),
+                "contextualization": ("Phase B: Contextualization & Validation", 1),
+                "matrix": ("Phase C: Opportunity & Literature Matrix", 2),
+                "artifact_design": ("Phase D: Artifact Design & Kernel Theory", 3),
+                "evaluation": ("Phase E: Trapping & Evaluation Design", 4),
+                "feasibility": ("Phase F: Relevance & Feasibility Synthesis", 5),
+            }
+
+            results = []
+            for r in rows:
+                c_stage = r["current_research_stage"] or "scouting"
+                stage_name, stage_idx = STAGE_NAMES.get(c_stage, (f"Phase {c_stage.upper()}", 0))
+                results.append({
+                    "session_id": r["session_id"],
+                    "project_id": r["project_id"],
+                    "project_name": r["project_name"] or "Research Initiative",
+                    "framework_id": r["active_framework_id"] or "RESEARCH",
+                    "current_stage_id": c_stage,
+                    "current_stage_name": stage_name,
+                    "stage_index": stage_idx,
+                    "stage_completion_pct": float(r["stage_completion_pct"] or 0.0),
+                    "active_problem_id": r["active_problem_id"],
+                    "active_problem_title": r["active_problem_title"],
+                    "active_domain_id": r["active_domain_id"],
+                    "checkpoint_count": int(r["checkpoint_count"] or 0),
+                    "gate1_cleared": bool(r["gate1_cleared"]),
+                    "gate2_cleared": bool(r["gate2_cleared"]),
+                    "gate3_cleared": bool(r["gate3_cleared"]),
+                    "gate4_cleared": bool(r["gate4_cleared"]),
+                    "created_at": r["created_at"],
+                    "updated_at": r["updated_at"],
+                })
+            return results
+
 
 

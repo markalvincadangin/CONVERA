@@ -166,11 +166,17 @@ To clearly answer the governance question:
     - Stage F feasibility engine with compliance audit, budget estimation, and Gate 4 proposal canvas (SDD-018).
     - Cross-stage critique engine with blind-spot detection and adversarial analysis (SDD-019).
     - Multi-format proposal export (Markdown, LaTeX, HTML) with SHA-256 provenance (SDD-020).
+14. **Research Session Persistence & Resume Engine (SDD-021)**:
+    - Deterministic session serialization with cryptographic SHA-256 state hashing and tamper detection (`backend/engines/session_state_engine.py`).
+    - SQLite WAL relational checkpointing via Table 37 `research_session_checkpoints` and additive column migration (`backend/storage/sqlite_adapter.py`).
+    - RESTful session portfolio management and resume endpoints (`backend/routers/research_sessions.py`).
+    - CCDS v2.0 UI components: `ResearchSessionDrawer`, `SessionCheckpointModal`, and `SessionResumeBanner` (`web/src/components/research/sessions/`).
 
 ---
 
 ### 4.2 What Is Authorized Today (`[AUTHORIZED]` / Critical Path)
-- **All SDD-001 through SDD-020 are IMPLEMENTED and CLOSED.**
+- **All SDD-001 through SDD-021 are IMPLEMENTED and CLOSED.**
+- Baseline regression test suite expanded to **324 offline tests** (100% passing).
 - No SDDs are currently in-flight or pending implementation.
 - Next candidate SDDs require formal Discovery Authorization under Article VII (Anti-Creep Law).
 
@@ -178,9 +184,9 @@ To clearly answer the governance question:
 
 ### 4.3 What Is Merely Planned or Proposed (`[TARGET]` / `[PROPOSED]`)
 1. **Phase D2: End-to-End Research Loop Hardening**:
-   - Research session persistence & resume across browser sessions.
-   - Evidence chain visualization (interactive provenance graph).
-   - *Status*: `[TARGET — NOT YET AUTHORIZED]`. Candidate for next SDD discovery cycle.
+   - Research session persistence & resume across browser sessions (`[IMPLEMENTED — SDD-021]`).
+   - Evidence chain visualization (interactive provenance graph) (`[TARGET — NOT YET AUTHORIZED]`).
+   - *Status*: SDD-021 delivered; remaining candidate for next discovery cycle.
 2. **Dense Vector Embeddings & Neural Reranking**:
    - Dense vector embeddings (`sentence-transformers`) + FAISS vector indexing + CrossEncoder reranking.
    - *Status*: `[TARGET — NOT YET AUTHORIZED]`. Evaluated during SDD-006 discovery and deferred under Article VII (Anti-Creep Law); subject to future evaluation.

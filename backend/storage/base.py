@@ -539,6 +539,55 @@ class BaseStorageAdapter(ABC):
         """Update the status and resolution notes of a critique record."""
         pass
 
+    # ------------------------------------------------------------------
+    # Research Session Persistence & Checkpointing (SDD-021)
+    # ------------------------------------------------------------------
 
+    @abstractmethod
+    def create_research_session_checkpoint(
+        self,
+        checkpoint_id: str,
+        session_id: str,
+        checkpoint_name: str,
+        stage_id: str,
+        stage_index: int,
+        state_snapshot: str,
+        state_hash: str,
+        description: Optional[str] = None,
+        created_by: str = "Researcher"
+    ) -> Dict[str, Any]:
+        """Create a new immutable milestone checkpoint for a research session."""
+        pass
 
+    @abstractmethod
+    def list_research_session_checkpoints(self, session_id: str) -> List[Dict[str, Any]]:
+        """List all checkpoints associated with a research session."""
+        pass
 
+    @abstractmethod
+    def get_research_session_checkpoint(self, checkpoint_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a specific checkpoint by ID."""
+        pass
+
+    @abstractmethod
+    def delete_research_session_checkpoint(self, checkpoint_id: str) -> bool:
+        """Delete a checkpoint by ID."""
+        pass
+
+    @abstractmethod
+    def update_research_session_stage(
+        self,
+        session_id: str,
+        stage_id: str,
+        stage_index: int,
+        stage_completion_pct: float,
+        active_problem_id: Optional[str] = None,
+        active_domain_id: Optional[str] = None
+    ) -> bool:
+        """Update fast-index research stage metadata on a session record."""
+        pass
+
+    @abstractmethod
+    def list_research_sessions(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """List summary metadata for research framework sessions."""
+        pass
