@@ -860,6 +860,28 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 CREATE INDEX IF NOT EXISTS idx_checkpoints_session ON research_session_checkpoints(session_id);
                 CREATE INDEX IF NOT EXISTS idx_checkpoints_stage ON research_session_checkpoints(session_id, stage_id);
                 CREATE INDEX IF NOT EXISTS idx_checkpoints_created ON research_session_checkpoints(created_at DESC);
+
+                -- -----------------------------------------------------------
+                -- Ecosystem Sync Records (SDD-023 / Table 38)
+                -- -----------------------------------------------------------
+                CREATE TABLE IF NOT EXISTS ecosystem_sync_records (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    provider TEXT NOT NULL,
+                    action_type TEXT NOT NULL,
+                    status TEXT NOT NULL,
+                    target_identifier TEXT,
+                    items_count INTEGER NOT NULL DEFAULT 0,
+                    state_hash TEXT NOT NULL,
+                    external_url TEXT,
+                    error_message TEXT,
+                    metadata TEXT DEFAULT '{}',
+                    synced_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY(session_id) REFERENCES sessions(session_id) ON DELETE CASCADE
+                );
+
+                CREATE INDEX IF NOT EXISTS idx_ecosystem_sync_session ON ecosystem_sync_records(session_id);
+                CREATE INDEX IF NOT EXISTS idx_ecosystem_sync_provider ON ecosystem_sync_records(provider);
             """)
 
             # Seed default 25 research domains from Master Sheet if table is empty
@@ -5962,5 +5984,81 @@ class SQLiteStorageAdapter(BaseStorageAdapter):
                 })
             return results
 
+    # -------------------------------------------------------------------------
+    # SDD-023: Ecosystem Sync Records (Table 38)
+    # -------------------------------------------------------------------------
 
+    def create_ecosystem_sync_record(
+        self,
+        record_id: str,
+        session_id: str,
+        provider: str,
+        action_type: str,
+        status: str,
+        target_identifier: Optional[str],
+        items_count: int,
+        state_hash: str,
+        external_url: Optional[str] = None,
+        error_message: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        with self._get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO ecosystem_sync_records (
+                    id, session_id, provider, action_type, status,
+                    target_identifier, items_count, state_hash, external_url,
+                    error_message, metadata, synced_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                """,
+                (
+                    record_id,
+                    session_id,
+                    provider,
+                    action_type,
+                    status,
+                    target_identifier,
+                    items_count,
+                    state_hash,
+                    external_url,
+                    error_message,
+                    json.dumps(metadata or {}),
+                ),
+            )
+        rec = self.get_ecosystem_sync_record(record_id)
+        if not rec:
+            raise RuntimeError(f"Failed to retrieve ecosystem sync record {record_id}")
+        return rec
 
+    def get_ecosystem_sync_record(self, record_id: str) -> Optional[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            row = conn.execute(
+                "SELECT * FROM ecosystem_sync_records WHERE id = ?",
+                (record_id,)
+            ).fetchone()
+            if not row:
+                return None
+            data = dict(row)
+            if "metadata" in data and isinstance(data["metadata"], str):
+                try:
+                    data["metadata"] = json.loads(data["metadata"])
+                except Exception:
+                    data["metadata"] = {}
+            return data
+
+    def list_ecosystem_sync_records(self, session_id: str, limit: int = 50) -> List[Dict[str, Any]]:
+        with self._get_connection() as conn:
+            rows = conn.execute(
+                "SELECT * FROM ecosystem_sync_records WHERE session_id = ? ORDER BY synced_at DESC LIMIT ?",
+                (session_id, limit)
+            ).fetchall()
+            results = []
+            for r in rows:
+                data = dict(r)
+                if "metadata" in data and isinstance(data["metadata"], str):
+                    try:
+                        data["metadata"] = json.loads(data["metadata"])
+                    except Exception:
+                        data["metadata"] = {}
+                results.append(data)
+            return results

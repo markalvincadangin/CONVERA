@@ -106,6 +106,7 @@ The following matrix represents the reconciled ground-truth state of CONVERA's i
 | **Research Stage F Feasibility Engine** | `[IMPLEMENTED]` | `backend/engines/feasibility_engine.py`, `backend/routers/feasibility.py` | **SDD-018** | Feasibility scoring, compliance audit, budget estimation, and Gate 4 proposal canvas. |
 | **Cross-Stage Research Critique & Blind-Spot Engine** | `[IMPLEMENTED]` | `backend/engines/cross_stage_critique_engine.py`, `backend/routers/critique.py` | **SDD-019** | Heuristic tension detection, adversarial critique, deterministic consistency scoring. |
 | **DSR Deliverable & Comprehensive Proposal Export** | `[IMPLEMENTED]` | `backend/engines/proposal_exporter.py`, `backend/routers/export.py` | **SDD-020** | Multi-format (Markdown, LaTeX, HTML) proposal export with SHA-256 provenance hash. |
+| **Ecosystem Integrations & Dissemination Bridge** | `[IMPLEMENTED]` | `backend/engines/ecosystem_sync_engine.py`, `backend/routers/ecosystem.py` | **SDD-023** | Bi-directional Notion, Zotero reference bundles, GitHub issue manifests, Table 38 audit trail. |
 | **Dense Semantic Embeddings (`sentence-transformers`)**| `[TARGET — NOT YET AUTHORIZED]` | N/A | *Future Scope* | Local dense embeddings for conceptual and contextual similarity. |
 | **Local Vector Indexing (FAISS / Vector Store)** | `[TARGET — NOT YET AUTHORIZED]` | N/A | *Future Scope* | High-efficiency local vector similarity search over ingested literature and claims. |
 | **Neural / CrossEncoder Reranker** | `[TARGET — NOT YET AUTHORIZED]` | N/A | *Future Scope* | Two-stage reranking between hybrid retrieval candidates and generative prompts. |
@@ -177,13 +178,19 @@ To clearly answer the governance question:
     - FastAPI provenance router with `/graph`, `/node/{node_id}`, and `/export/{session_id}` (`backend/routers/provenance.py`).
     - Native SVG interactive DAG canvas with Sugiyama-style layered column layout, cubic Bézier curved connectors, pan/zoom, node cards, and slide-out node inspector (`web/src/components/research/provenance/`).
     - Research Cockpit and Session Resume Banner integration with JSON export.
+16. **Ecosystem Integrations & Research Dissemination Bridge (SDD-023)**:
+    - Bi-directional Notion bridge for Gate 4 DSR proposal canvas and literature matrix export, plus field note ingestion into SQLite `problems` table (`backend/engines/ecosystem_sync_engine.py`).
+    - Zotero citation bridge producing BibTeX and CSL-JSON reference bundles with browser client downloads.
+    - GitHub Issue & SRS spec translation producing structured issue manifests and Markdown roadmaps.
+    - Cryptographic SHA-256 state hashing and relational audit trail logged to Table 38 (`ecosystem_sync_records`).
+    - CCDS v2.0 `EcosystemExportModal` in Next.js 15 with tabbed preview, copy-to-clipboard, bundle download, and audit history.
 
 ---
 
 ### 4.2 What Is Authorized Today (`[AUTHORIZED]` / Critical Path)
-- **All SDD-001 through SDD-022 are IMPLEMENTED and CLOSED.**
-- Baseline regression test suite expanded to **331 offline tests** (100% passing).
-- Phase D2 (End-to-End Research Loop Hardening) is completely delivered.
+- **All SDD-001 through SDD-023 are IMPLEMENTED and CLOSED.**
+- Baseline regression test suite expanded to **338 offline tests** (100% passing).
+- Phase E (Ecosystem Integrations & Research Dissemination Bridge) is completely delivered.
 - Next candidate SDDs require formal Discovery Authorization under Article VII (Anti-Creep Law).
 
 ---
