@@ -68,6 +68,7 @@ from routers import (
     critique_router,
     research_sessions_router,
     provenance_router,
+    ecosystem_router,
 )
 
 app = FastAPI(
@@ -116,6 +117,7 @@ app.include_router(feasibility_router)
 app.include_router(critique_router)
 app.include_router(research_sessions_router)
 app.include_router(provenance_router)
+app.include_router(ecosystem_router)
 
 
 

@@ -10,6 +10,7 @@ import {
   Loader2,
   Sparkles,
   GitBranch,
+  Share2,
 } from "lucide-react";
 import { SessionState } from "@/lib/types";
 import {
@@ -26,6 +27,7 @@ import { EpistemicHealthMeter } from "./EpistemicHealthMeter";
 import { RecommendedActionCard } from "./RecommendedActionCard";
 import { OrchestrationEventsDrawer } from "./OrchestrationEventsDrawer";
 import { EvidenceChainModal } from "@/components/research/provenance";
+import { EcosystemExportModal } from "@/components/research/ecosystem";
 
 export interface ResearchCockpitProps {
   session: SessionState | null;
@@ -35,6 +37,7 @@ export interface ResearchCockpitProps {
   onOpenScorecard?: () => void;
   onOpenGateReview?: () => void;
   onOpenEvidenceChain?: () => void;
+  onOpenEcosystemSync?: () => void;
   className?: string;
 }
 
@@ -46,6 +49,7 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
   onOpenScorecard,
   onOpenGateReview,
   onOpenEvidenceChain,
+  onOpenEcosystemSync,
   className = "",
 }) => {
   const toast = useToast();
@@ -55,6 +59,7 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
   const [isDispatching, setIsDispatching] = useState(false);
   const [isAuditDrawerOpen, setIsAuditDrawerOpen] = useState(false);
   const [isInternalEvidenceModalOpen, setIsInternalEvidenceModalOpen] = useState(false);
+  const [isInternalEcosystemModalOpen, setIsInternalEcosystemModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const sessionId = session?.session_id || "";
@@ -230,6 +235,22 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
           >
             Evidence Chain
           </Button>
+
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => {
+              if (onOpenEcosystemSync) {
+                onOpenEcosystemSync();
+              } else {
+                setIsInternalEcosystemModalOpen(true);
+              }
+            }}
+            className="whitespace-nowrap inline-flex items-center justify-center gap-1.5 text-xs text-neutral-200 border-indigo-500/30 hover:border-indigo-500/60"
+            leftIcon={<Share2 className="w-3.5 h-3.5 text-indigo-400" />}
+          >
+            Ecosystem Sync
+          </Button>
         </div>
       </div>
 
@@ -343,6 +364,14 @@ export const ResearchCockpit: React.FC<ResearchCockpitProps> = ({
       <EvidenceChainModal
         isOpen={isInternalEvidenceModalOpen}
         onClose={() => setIsInternalEvidenceModalOpen(false)}
+        sessionId={sessionId}
+        sessionName={session.project_name || session.session_id}
+      />
+
+      {/* SDD-023: Ecosystem Dissemination & Sync Modal */}
+      <EcosystemExportModal
+        isOpen={isInternalEcosystemModalOpen}
+        onClose={() => setIsInternalEcosystemModalOpen(false)}
         sessionId={sessionId}
         sessionName={session.project_name || session.session_id}
       />
