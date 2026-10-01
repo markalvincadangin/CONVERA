@@ -1115,16 +1115,33 @@ class ResearchOrchestrator:
             resulting_artifacts["feasibility"] = eval_record.model_dump()
             summary = f"Audited Stage F feasibility: Score {eval_record.feasibility_score:.1f}%, Compliance: {'PASSED' if eval_record.compliance_passed else 'NON-COMPLIANT'}."
 
-        elif action_type == ActionType.COMPILE_PROPOSAL_CANVAS:
+        elif action_type in (ActionType.COMPILE_PROPOSAL_CANVAS, ActionType.EXPORT_PROPOSAL):
             from engines.proposal_exporter import ProposalExporter
+            from models.export import DSRProposalCompilationRequest, ExportFormat
             exporter = ProposalExporter(storage=self.storage)
             proj_id = params.get("project_id") or (problem.get("project_id") if problem else "default_proj")
-            proposal = exporter.compile_proposal_canvas(
+            fmt_str = str(params.get("format", "MARKDOWN")).upper()
+            fmt = getattr(ExportFormat, fmt_str, ExportFormat.MARKDOWN)
+
+            comp_req = DSRProposalCompilationRequest(
                 project_id=proj_id,
                 session_id=session_id,
+                problem_id=params.get("problem_id") or ctx.get("problem_id"),
+                format=fmt,
+                target_document_class=params.get("target_document_class", "article"),
+                custom_title=params.get("custom_title"),
             )
-            resulting_artifacts["proposal"] = proposal
-            summary = f"Compiled publication-ready DSR proposal canvas monograph ({len(proposal.get('markdown_content', ''))} characters)."
+            compiled = exporter.compile_proposal(comp_req)
+            prop_dict = compiled.model_dump()
+            prop_dict["document_type"] = "DSR_CAPSTONE_PROPOSAL"
+            prop_dict["markdown_content"] = compiled.content if compiled.format == ExportFormat.MARKDOWN else compiled.auxiliary_files.get("proposal.md", compiled.content)
+            resulting_artifacts["proposal"] = prop_dict
+            resulting_artifacts["markdown_content"] = prop_dict["markdown_content"]
+            resulting_artifacts["content"] = compiled.content
+            resulting_artifacts["format"] = compiled.format.value
+            resulting_artifacts["auxiliary_files"] = compiled.auxiliary_files
+            resulting_artifacts["provenance_hash"] = compiled.provenance_hash
+            summary = f"Compiled publication-ready DSR proposal ({compiled.format.value} format, {len(compiled.content)} characters, provenance: {compiled.provenance_hash[:12]})."
 
         else:
             summary = f"Action '{action_type.value}' acknowledged and queued."
