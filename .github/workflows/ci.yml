@@ -30,9 +30,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt pytest httpx pytest-asyncio
 
-      - name: Run Pytest Test Suite
+      - name: Run Hermetic Pytest Test Suite
+        env:
+          PYTHONPATH: .
         run: |
-          python -m pytest tests/ -v
+          python -m pytest tests/ -m "not live" -v
 
   frontend-build:
     name: Frontend Build & Typecheck
@@ -54,6 +56,9 @@ jobs:
 
       - name: Install NPM Dependencies
         run: npm ci
+
+      - name: Run TypeScript Typecheck
+        run: npm run typecheck
 
       - name: Run Next.js Production Build
         run: npm run build
