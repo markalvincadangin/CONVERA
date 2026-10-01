@@ -41,7 +41,7 @@
 | Date / Timestamp | Git Commit SHA | Branch | Event Description |
 |:---|:---|:---|:---|
 | 2026-10-01T09:42:00+08:00 | `32d70a5` | `feature/020-dsr-deliverable-proposal-export` | Feature branch created from updated `develop` (`32d70a5`). |
-| 2026-10-01T09:43:00+08:00 | `HEAD` | `feature/020-dsr-deliverable-proposal-export` | Formulation of canonical 6-document SDD-020 specification dossier. |
+| 2026-10-01T09:43:09+08:00 | `94e91a1` | `feature/020-dsr-deliverable-proposal-export` | Formulation of canonical 6-document SDD-020 specification dossier. |
 
 ---
 
