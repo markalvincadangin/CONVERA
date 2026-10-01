@@ -30,8 +30,8 @@
 | Life Cycle Phase | Gate Name | Target Status | Approval Authority |
 |:---|:---|:---|:---|
 | **Phase 1: Formulation** | Specification Gate | 🟢 RATIFIED | Human Lead Researcher / Architect |
-| **Phase 2: Execution** | Implementation Gate | ⏳ PENDING | Automated Test Suite (pytest, tsc, Next.js build) |
-| **Phase 3: Integration** | Merge Gate | ⏳ PENDING | Engineering Verification Protocol & Closed-Loop Regression |
+| **Phase 2: Execution** | Implementation Gate | 🟢 RATIFIED | Automated Test Suite (pytest, tsc, Next.js build) |
+| **Phase 3: Integration** | Merge Gate | ⏳ READY | Engineering Verification Protocol & Closed-Loop Regression |
 | **Phase 4: Release** | Promotion Gate | ⏳ PENDING | Full Regression Passed (`feature` -> `develop` -> `main`) |
 
 ---
@@ -42,6 +42,8 @@
 |:---|:---|:---|:---|
 | 2026-09-30T22:53:04+08:00 | `8ada2a7` | `feature/019-research-critique-blindspot-engine` | Feature branch created from updated `develop` (`8ada2a7`). |
 | 2026-09-30T22:54:41+08:00 | `fca8e46` | `feature/019-research-critique-blindspot-engine` | Formulation of canonical 6-document SDD-019 specification dossier. |
+| 2026-10-01T01:31:00+08:00 | `cf3cc05` | `feature/019-research-critique-blindspot-engine` | Storage adapter Table 36 implementation and base interface methods. |
+| 2026-10-01T09:36:00+08:00 | `HEAD` | `feature/019-research-critique-blindspot-engine` | Full implementation of critique engine, API router, orchestrator integration, frontend UI, 100% tests passing, knowledge graph sync. |
 
 ---
 
@@ -55,3 +57,16 @@
   - `INV-019-02` (Article II Tri-Part Confidence): Deterministic consistency scoring; AI critique is strictly advisory.
   - `INV-019-03` (Article IV Human Sovereignty): Human rationale note required for resolving or dismissing critiques.
   - `INV-019-04` (Article VIII Degraded Resilience): Deterministic offline fallback supported for cross-stage tension evaluation.
+
+### 4.2 Implementation & Verification Sign-Off
+- **Status**: 🟢 RATIFIED
+- **Scope**: 
+  - Table 36 (`research_critiques`) and CRUD operations in `SQLiteStorageAdapter`.
+  - Pydantic models in `backend/models/critique.py`.
+  - Core engine `CrossStageCritiqueEngine` with heuristic tension detection, adversarial AI critique, and deterministic consistency scoring in `backend/engines/cross_stage_critique_engine.py`.
+  - API router `backend/routers/critique.py` mounted in `backend/server.py`.
+  - Research orchestrator action dispatch upgraded for `EXECUTE_CRITIQUE` and `AUDIT_CROSS_STAGE_CRITIQUE`.
+  - Frontend TypeScript types, service client, and `CritiqueAuditDeck.tsx` drawer mounted in `ResearchWorkspaceView.tsx`.
+  - Test suites: 6/6 tests passed in `test_critique_engine.py`; 309/309 passed in regression suite.
+  - Frontend typecheck passed (`tsc --noEmit`), production build succeeded (`next build`).
+  - Graphify knowledge graph synced.
