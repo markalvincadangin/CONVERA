@@ -1,43 +1,46 @@
 <div align="center">
 
-  <p align="center">
-    <img src="web/public/brand/logo.png" alt="CONVERA Logo" width="380" />
-  </p>
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="web/public/brand/logo-white.png">
+  <source media="(prefers-color-scheme: light)" srcset="web/public/brand/logo.png">
+  <img alt="CONVERA — Project Intelligence & Research Validation Platform" src="web/public/brand/logo.png" width="380">
+</picture>
 
-  ### Evidence-Driven Research Intelligence & Workflow Validation Engine
-  **Project Intelligence & Research Validation Platform (v3.0) · EMAERX**
+### Evidence-Driven Research Intelligence & Workflow Validation Engine
+**Project Intelligence & Research Validation Platform (v3.0) · EMAERX**
 
-  *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*
+*WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*
 
-  [![CI Quality Gate](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml)
-  [![Tests: 338 Offline Passing](https://img.shields.io/badge/Pytest-338%20Passed%20(100%25%20Offline)-emerald.svg)](backend/tests/)
-  [![Database: SQLite WAL (38 Tables)](https://img.shields.io/badge/Storage-SQLite%20WAL%20(38%20Tables)-amber.svg)](backend/storage/)
-  [![Python](https://img.shields.io/badge/Python-3.12%2B-blue.svg?logo=python&logoColor=white)](backend/)
-  [![Next.js 15](https://img.shields.io/badge/Next.js-15%20%7C%20React%2019-black.svg?logo=next.js&logoColor=white)](web/)
-  [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688.svg?logo=fastapi&logoColor=white)](backend/)
-  [![Design System](https://img.shields.io/badge/UI%2FUX-CCDS%20v2.0-purple.svg)](web/src/components/)
-  [![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](LICENSE)
-  [![IEEE 830 Compliant](https://img.shields.io/badge/Standard-IEEE%20830%20%2F%20ISO%2029148-cyan.svg)](docs/SRSDS.md)
+[![CI Quality Gate](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/markalvincadangin/CONVERA/actions/workflows/ci.yml)
+[![Tests: 338 Offline Passing](https://img.shields.io/badge/Pytest-338%20Passed%20(100%25%20Offline)-059669?style=flat-square&logo=pytest&logoColor=white)](backend/tests/)
+[![Database: SQLite WAL (38 Tables)](https://img.shields.io/badge/Storage-SQLite%20WAL%20(38%20Tables)-d97706?style=flat-square&logo=sqlite&logoColor=white)](backend/storage/)
+[![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB?style=flat-square&logo=python&logoColor=white)](backend/)
+[![Next.js 15](https://img.shields.io/badge/Next.js-15%20%7C%20React%2019-000000?style=flat-square&logo=next.js&logoColor=white)](web/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?style=flat-square&logo=fastapi&logoColor=white)](backend/)
+[![Design System](https://img.shields.io/badge/UI%2FUX-CCDS%20v2.0-7c3aed?style=flat-square)](web/src/components/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-059669?style=flat-square)](LICENSE)
+[![Standard: IEEE 830 / ISO 29148](https://img.shields.io/badge/Standard-IEEE%20830%20%2F%20ISO%2029148-0284c7?style=flat-square)](docs/SRSDS.md)
+[![Case Study](https://img.shields.io/badge/Case_Study-markcadangin.me-0f172a?style=flat-square&logo=googlechrome&logoColor=white)](https://markcadangin.me/projects/convera)
 
-  <p align="center">
-    <strong>Transforms fragmented problem claims, scholarly literature, AI-generated outputs, field observations, and user assumptions into structured, evidence-backed, methodology-governed, and decision-ready research and venture opportunities.</strong>
-  </p>
+<p align="center">
+  <strong>Transforms fragmented problem claims, scholarly literature, AI-generated outputs, field observations, and user assumptions into structured, evidence-backed, methodology-governed, and decision-ready research and venture opportunities.</strong>
+</p>
 
-  <p align="center">
-    <a href="#-quickstart-guide">Quickstart</a> •
-    <a href="#-core-operating-doctrine">Core Doctrine</a> •
-    <a href="#-dual-governing-frameworks">Dual Frameworks</a> •
-    <a href="#-key-platform-capabilities">Platform Features</a> •
-    <a href="#-system-architecture">Architecture</a> •
-    <a href="#-testing--verification">Verification</a> •
-    <a href="docs/04-ai/AI_EVOLUTION_ROADMAP.md">AI Roadmap</a>
-  </p>
+<p align="center">
+  <a href="#quickstart-guide">Quickstart</a> •
+  <a href="#core-operating-doctrine-llm-last-not-llm-first">Core Doctrine</a> •
+  <a href="#dual-governing-frameworks">Dual Frameworks</a> •
+  <a href="#key-platform-capabilities">Platform Features</a> •
+  <a href="#system-architecture">Architecture</a> •
+  <a href="#testing--verification">Verification</a> •
+  <a href="https://markcadangin.me/projects/convera">Live Case Study</a>
+</p>
 
 </div>
 
 ---
 
-## 🧭 Executive Overview
+## Executive Overview
 
 Student technopreneurship teams, computing thesis candidates, and project innovators frequently generate ideas and unstructured data faster than they can organize, validate, and prove what is actually worth pursuing. Promising insights generated across AI chats, group chats, literature reviews, spreadsheets, and field notes are frequently lost, misdirected, or debated without empirical backing.
 
@@ -48,7 +51,7 @@ Student technopreneurship teams, computing thesis candidates, and project innova
 
 ---
 
-## ⚖️ Core Operating Doctrine: *"LLM Last, Not LLM First"*
+## Core Operating Doctrine: *"LLM Last, Not LLM First"*
 
 Under the [CONVERA Constitution](docs/00-foundation/CONSTITUTION.md) (Articles I, II, IV, VII, and VIII), intelligence mechanisms are selected according to a strict order of precedence:
 
@@ -73,7 +76,7 @@ Deterministic candidate rankings, epistemic scores, tie-breakers, and gate thres
 
 ---
 
-## 🏛️ Dual Governing Frameworks
+## Dual Governing Frameworks
 
 CONVERA provides first-class, dynamic methodology governance tailored to the active workspace:
 
@@ -81,11 +84,11 @@ CONVERA provides first-class, dynamic methodology governance tailored to the act
 ┌──────────────────────────────────────────────────────────────────────────────────────────────────┐
 │                                   DYNAMIC COMMAND DECK TRACKS                                    │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 🚀 INNOVATION & TECHNOPRENEURSHIP TRACK (7 Slots / 2 Gates):                                     │
+│ TRACK 1: INNOVATION & TECHNOPRENEURSHIP (7 Slots / 2 Gates):                                     │
 │ [0: Problem Bank] → [1: Discovery] → [2: Screening (G1)] → [3: Validation (G2)] →               │
 │ [4: Ideation] → [5: MVP Audit] → [6: Studio: Venture Hub]                                        │
 ├──────────────────────────────────────────────────────────────────────────────────────────────────┤
-│ 🔬 COMPUTING RESEARCH DSR TRACK (8 Slots / 4 Gates):                                             │
+│ TRACK 2: COMPUTING RESEARCH DSR (8 Slots / 4 Gates):                                             │
 │ [0: Problem Bank] → [1: Stage A (Scouting)] → [2: Stage B (Validation G1)] →                     │
 │ [3: Stage C (Opportunity G2)] → [4: Stage D (Formulation)] → [5: Stage E (Evaluation G3)] →      │
 │ [6: Stage F (Feasibility G4)] → [7: Studio: Proposal Suite]                                      │
@@ -111,7 +114,7 @@ Governed by [`Computing Research Concept Development Framework.md`](docs/framewo
 
 ---
 
-## ⚡ Key Platform Capabilities
+## Key Platform Capabilities
 
 | Capability | Subsystem | Description |
 | :--- | :--- | :--- |
@@ -132,7 +135,7 @@ Governed by [`Computing Research Concept Development Framework.md`](docs/framewo
 
 ---
 
-## 🏗️ System Architecture
+## System Architecture
 
 ```text
 CONVERA PLATFORM
@@ -171,7 +174,7 @@ CONVERA PLATFORM
 
 ---
 
-## 🚀 Quickstart Guide
+## Quickstart Guide
 
 ### Prerequisites
 - **Python 3.12+**
@@ -217,7 +220,7 @@ npm run dev
 
 ---
 
-## 🧪 Testing & Verification
+## Testing & Verification
 
 CONVERA is built with strict hermetic verification guarantees (Article VIII):
 
@@ -237,7 +240,7 @@ graphify update .
 
 ---
 
-## 📜 Governing Standards & Compliance
+## Governing Standards & Compliance
 
 CONVERA is designed and engineered to comply with recognized academic, technical, and regulatory frameworks:
 
@@ -249,7 +252,16 @@ CONVERA is designed and engineered to comply with recognized academic, technical
 
 ---
 
-## 📄 License & Attribution
+## Author & Attribution
 
-CONVERA is licensed under the [MIT License](LICENSE).  
-Designed and engineered by **Mark Alvin Cadangin** and **CONVERA Contributors / EMAERX** in collaboration with computing, research, and technopreneurship stakeholders.
+Developed and architected by **[Mark Alvin Cadangin](https://markcadangin.me)**  
+3rd-Year BSIT Student majoring in Software Development Technologies at West Visayas State University  
+DOST-SEI Scholar (Batch 2024) · Western Visayas, Philippines  
+Portfolio: [markcadangin.me](https://markcadangin.me) · Email: [markcadangin@gmail.com](mailto:markcadangin@gmail.com)  
+Project Governance: **EMAERX** · Academic Context: WVSU CICT
+
+---
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
