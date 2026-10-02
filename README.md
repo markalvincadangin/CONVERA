@@ -4,8 +4,8 @@
     <img src="web/public/brand/logo.png" alt="CONVERA Logo" width="380" />
   </p>
 
-  ### Evidence-Driven Research Intelligence & Workflow Orchestration System
-  **A Flagship Product of EMAERX (v3.0)**
+  ### Evidence-Driven Research Intelligence & Workflow Validation Engine
+  **Project Intelligence & Research Validation Platform (v3.0) · EMAERX**
 
   *WHERE POSSIBILITIES CONVERGE INTO DIRECTION.*
 
